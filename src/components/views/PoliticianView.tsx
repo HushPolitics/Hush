@@ -128,7 +128,7 @@ export default function PoliticianView({
           minWidth: 0,
         }}
       >
-        <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+        <div className="stack-row" style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
           <Card
             style={{
               flex: "0 0 210px",
@@ -246,7 +246,7 @@ export default function PoliticianView({
             {p.policies.map((pol) => (
               <div
                 key={pol.issue}
-                className="card-hover"
+                className="card-hover stack-grid"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "160px 1fr 140px",

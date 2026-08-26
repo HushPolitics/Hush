@@ -103,7 +103,7 @@ export default function TrustView({ politician: p }: { politician: Politician })
         </section>
       ) : null}
 
-      <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+      <div className="stack-row" style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
         {/* Ledger */}
         <div
           style={{
@@ -135,6 +135,7 @@ export default function TrustView({ politician: p }: { politician: Politician })
           </div>
 
           <div
+            className="stack-grid-head"
             style={{
               display: "grid",
               gridTemplateColumns: LEDGER_GRID,
@@ -160,7 +161,7 @@ export default function TrustView({ politician: p }: { politician: Politician })
             return (
               <div
                 key={row.id}
-                className="row-hover"
+                className="row-hover stack-grid"
                 style={{
                   display: "grid",
                   gridTemplateColumns: LEDGER_GRID,

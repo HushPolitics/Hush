@@ -44,7 +44,7 @@ export default function ProfileView({
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+      <div className="stack-row" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
         <Card
           style={{
             flex: 1,
@@ -112,7 +112,7 @@ export default function ProfileView({
                 className="link-quiet"
                 onClick={() => moveTopic(idx, -1)}
                 aria-label={`Move ${i.name} up`}
-                style={{ border: 0, background: "transparent", color: C.muted, cursor: "pointer", fontSize: 13 }}
+                style={{ border: 0, background: "transparent", color: C.muted, cursor: "pointer", fontSize: 13, padding: 8 }}
               >
                 ↑
               </button>
@@ -121,7 +121,7 @@ export default function ProfileView({
                 className="link-quiet"
                 onClick={() => moveTopic(idx, 1)}
                 aria-label={`Move ${i.name} down`}
-                style={{ border: 0, background: "transparent", color: C.muted, cursor: "pointer", fontSize: 13 }}
+                style={{ border: 0, background: "transparent", color: C.muted, cursor: "pointer", fontSize: 13, padding: 8 }}
               >
                 ↓
               </button>

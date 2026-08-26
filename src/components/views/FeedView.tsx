@@ -7,7 +7,7 @@ import { C, PARTY, PARTY_LABEL, cond, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { computeMatch, initials } from "@/lib/scoring";
 import type { Level, Politician } from "@/lib/types";
-import { Avatar, Bar, Chip, Kicker } from "@/components/ui";
+import { Avatar, Bar, Chip, Kicker, RustButton } from "@/components/ui";
 
 type SortKey = "name" | "office" | "level" | "party" | "trust" | "match";
 
@@ -182,26 +182,12 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
           </div>
 
           <div style={{ display: "flex", gap: 9, marginTop: "auto" }}>
-            <button
-              type="button"
-              className="btn-steel"
+            <RustButton
               onClick={() => router.push(`/politician/${hero.id}`)}
-              style={{
-                flex: 1,
-                border: 0,
-                padding: 11,
-                borderRadius: 7,
-                background: C.steel,
-                color: C.sand,
-                fontFamily: cond,
-                fontSize: 14,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                cursor: "pointer",
-              }}
+              style={{ flex: 1, padding: 11, borderRadius: 7, fontSize: 14 }}
             >
               View profile
-            </button>
+            </RustButton>
             <button
               type="button"
               onClick={() => toggleSaved(hero.id)}
@@ -249,6 +235,7 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
         }}
       >
         <div
+          className="stack-grid-head"
           style={{
             display: "grid",
             gridTemplateColumns: GRID,
@@ -290,7 +277,7 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
             <Link
               key={r.id}
               href={`/politician/${r.id}`}
-              className="row-hover"
+              className="row-hover stack-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: GRID,

@@ -70,7 +70,7 @@ export default function BallotView({ ballot }: { ballot: BallotItem[] }) {
         </RustButton>
       </section>
 
-      <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+      <div className="stack-row" style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: 420, display: "flex", flexDirection: "column", gap: 11 }}>
           <Display size={21}>{ballot.length} races on your ballot</Display>
           {ballot.map((b) => {
@@ -78,7 +78,7 @@ export default function BallotView({ ballot }: { ballot: BallotItem[] }) {
             return (
               <div
                 key={b.race}
-                className="card-hover"
+                className="card-hover stack-grid"
                 role="link"
                 tabIndex={0}
                 onClick={() => router.push(`/politician/${b.politicianId}`)}

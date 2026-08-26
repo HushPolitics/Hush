@@ -267,6 +267,7 @@ export default function CompareView({
                       color: C.muted,
                       fontSize: 14,
                       cursor: "pointer",
+                      padding: 8,
                     }}
                   >
                     ✕
