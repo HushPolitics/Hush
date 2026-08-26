@@ -166,3 +166,63 @@ input::placeholder {
     border-left: 0 !important;
   }
 }
+
+/* Phone widths (~640px and below). The 1100px breakpoint above turns the
+   sidebar into a top bar, but several views still lay out fixed-pixel-width
+   panels and fixed-column grids that don't reflow below tablet width. This
+   block stacks those panels and turns fixed-column data grids into a single
+   stacked column per row — one small card per record — rather than
+   shrinking columns until the text is unreadable. */
+@media (max-width: 640px) {
+  /* Generic helper for a flex row of side-by-side panels that use a fixed
+     pixel width or minWidth (e.g. `width: 360`, `minWidth: 420`). Same
+     stacking pattern as `.split` above, for panels that don't use `.split`
+     because they're allowed to stay side-by-side down to tablet width. */
+  .stack-row {
+    flex-direction: column !important;
+  }
+  .stack-row > * {
+    width: 100% !important;
+    flex: none !important;
+    min-width: 0 !important;
+  }
+
+  /* Generic helper for a fixed-column CSS grid used as a table row or list
+     item (e.g. `gridTemplateColumns: "1.3fr 1.6fr 108px 112px"`). Collapses
+     to one column, so each field stacks full-width inside the row's
+     existing border/padding — a small card per record. */
+  .stack-grid {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+  .stack-grid > * {
+    justify-self: start !important;
+    text-align: left !important;
+  }
+
+  /* Column-label header rows have nothing to say once the grid below them
+     is a single column, so they're hidden rather than stacked. */
+  .stack-grid-head {
+    display: none !important;
+  }
+
+  /* App shell header: the district pill and election countdown are already
+     shown elsewhere (district card, ballot countdown), so they're dropped
+     at phone width to keep the title, search and profile link on one row. */
+  .header-pill,
+  .header-days {
+    display: none !important;
+  }
+  .header-avatar {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  /* Comfortable tap targets. */
+  .nav-item {
+    padding: 12px 14px !important;
+  }
+  .chip {
+    padding: 10px 14px !important;
+  }
+}
