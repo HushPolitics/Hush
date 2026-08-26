@@ -9,7 +9,7 @@ import { computeMatch, initials } from "@/lib/scoring";
 import type { Level, Politician } from "@/lib/types";
 import { Avatar, Bar, Chip, Kicker, RustButton } from "@/components/ui";
 
-type SortKey = "name" | "office" | "level" | "party" | "trust" | "match";
+type SortKey = "name" | "office" | "level" | "party" | "trust";
 
 const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "name", label: "Name", align: "left" },
@@ -17,7 +17,6 @@ const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "level", label: "Level", align: "left" },
   { key: "party", label: "Party", align: "left" },
   { key: "trust", label: "Trust score", align: "left" },
-  { key: "match", label: "Match", align: "right" },
 ];
 
 const SORT_LABEL: Record<SortKey, string> = {
@@ -26,10 +25,9 @@ const SORT_LABEL: Record<SortKey, string> = {
   level: "Level",
   party: "Party",
   trust: "Trust score",
-  match: "Value match",
 };
 
-const GRID = "2.1fr 1.7fr 0.8fr 0.9fr 1.6fr 0.9fr";
+const GRID = "2.1fr 1.7fr 0.8fr 0.9fr 1.6fr";
 const LEVELS: (Level | "All")[] = ["All", "Local", "State", "Federal"];
 
 export default function FeedView({ politicians }: { politicians: Politician[] }) {
@@ -39,7 +37,7 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
   const { topics, saved, toggleSaved } = usePrefs();
 
   const [level, setLevel] = useState<Level | "All">("All");
-  const [sortKey, setSortKey] = useState<SortKey>("match");
+  const [sortKey, setSortKey] = useState<SortKey>("trust");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   const scored = useMemo(
@@ -157,23 +155,13 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
             background: C.inkSoft,
           }}
         >
-          <div style={{ display: "flex", gap: 20 }}>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
-                Value match
-              </Kicker>
-              <span style={{ fontFamily: cond, fontSize: 46, lineHeight: 1, color: C.sand }}>
-                {hero.match}%
-              </span>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
-                Trust score
-              </Kicker>
-              <span style={{ fontFamily: cond, fontSize: 46, lineHeight: 1, color: C.sand }}>
-                {hero.trust}
-              </span>
-            </div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
+              Trust score
+            </Kicker>
+            <span style={{ fontFamily: cond, fontSize: 46, lineHeight: 1, color: C.sand }}>
+              {hero.trust}
+            </span>
           </div>
 
           <div style={{ fontSize: 12, color: C.tan, lineHeight: 1.5 }}>
@@ -329,7 +317,6 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
                 </span>
                 <span style={{ fontSize: 11, color: C.muted, whiteSpace: "nowrap" }}>{band.label}</span>
               </span>
-              <span style={{ textAlign: "right", fontFamily: cond, fontSize: 17 }}>{r.match}%</span>
             </Link>
           );
         })}
