@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+/* Hush design tokens. The canvas design is light-only by intent: it is a
+   reading surface for public records, and the cream ground is load-bearing. */
+:root {
+  --ink: #151515;
+  --body: #4a4540;
+  --muted: #6b6560;
+  --cream: #fffdf9;
+  --sand: #f3efe4;
+  --sand-deep: #f7f4ec;
+  --shell: #efeade;
+  --rust: #9c3f32;
+  --navy: #253746;
+  --tan: #b5a88a;
+  --line: rgba(21, 21, 21, 0.12);
+  color-scheme: light;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-barlow), -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--rust);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+}
+
+input,
+select {
+  font-family: inherit;
+}
+
+input::placeholder {
+  color: #9a938b;
+}
+
+/* Scroll container used by the app shell's main pane. */
+.scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: rgba(21, 21, 21, 0.16);
+  border-radius: 5px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+/* Hover affordances the canvas expressed as style-hover attributes. */
+.nav-item:hover {
+  background: rgba(21, 21, 21, 0.07) !important;
+}
+
+.row-hover:hover {
+  background: var(--hover, #faf7f0);
+}
+
+.card-hover:hover {
+  border-color: rgba(21, 21, 21, 0.3) !important;
+}
+
+.lift:hover {
+  border-color: rgba(21, 21, 21, 0.32) !important;
+  box-shadow: 0 2px 8px rgba(21, 21, 21, 0.06);
+}
+
+.btn-rust:hover {
+  background: #b44a3b !important;
+}
+
+/* Hover lightens the fill and takes the label to full white. Going lighter on
+   the background alone would push the sand label under 4.5:1; white lifts it to
+   5.15:1 instead, so the state change costs no contrast. */
+.btn-steel:hover {
+  background: #4c709a !important;
+  color: #ffffff !important;
+}
+
+.btn-ink:hover {
+  background: var(--navy) !important;
+}
+
+.btn-ghost:hover {
+  border-color: var(--rust) !important;
+  color: var(--rust) !important;
+}
+
+.chip:hover {
+  border-color: var(--ink) !important;
+}
+
+.link-quiet:hover {
+  color: var(--navy) !important;
+}
+
+.tab:hover {
+  color: var(--ink) !important;
+}
+
+.fade:hover {
+  opacity: 0.7;
+}
+
+/* Below the shell's 1100px design floor the sidebar collapses to a top bar. */
+@media (max-width: 1100px) {
+  .app-shell {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+  .app-sidebar {
+    width: 100% !important;
+    flex: none !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--line);
+    flex-direction: row !important;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 18px !important;
+  }
+  .app-sidebar .sidebar-nav {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+  }
+  .app-sidebar .district-card {
+    margin-top: 0 !important;
+    margin-left: auto;
+  }
+  .split {
+    flex-direction: column;
+  }
+  .split > * {
+    width: 100% !important;
+    flex: none !important;
+    border-right: 0 !important;
+    border-left: 0 !important;
+  }
+}
