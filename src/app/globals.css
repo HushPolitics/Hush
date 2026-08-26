@@ -225,4 +225,13 @@ input::placeholder {
   .chip {
     padding: 10px 14px !important;
   }
+
+  /* FactCheckView: the topic/politician search field sits next to the
+     verdict filter chips with a fixed 270px width that doesn't reflow.
+     Forces it onto its own full-width row below the filter chips. */
+  .fact-check-search {
+    width: 100% !important;
+    margin-left: 0 !important;
+    flex: 1 1 100% !important;
+  }
 }
