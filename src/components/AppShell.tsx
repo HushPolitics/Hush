@@ -187,6 +187,7 @@ export default function AppShell({
           </div>
 
           <div
+            className="header-pill"
             style={{
               display: "flex",
               alignItems: "center",
@@ -212,6 +213,7 @@ export default function AppShell({
 
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
             <span
+              className="header-days"
               style={{
                 fontFamily: cond,
                 fontSize: 12,
@@ -225,6 +227,7 @@ export default function AppShell({
             </span>
             <Link
               href="/profile"
+              className="header-avatar"
               style={{
                 width: 32,
                 height: 32,
