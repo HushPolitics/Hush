@@ -28,14 +28,16 @@ I'm Corey Briggs, based in St. Pete / Tampa Bay. Pricing is undecided.
 
 - **Live site:** https://hushpolitics.com (HTTPS, serving on the bare domain,
   no www redirect). Running on **seed data**, not the database yet.
-- **Vercel:** team `hush-politics`, project **`hushpolitics`** (Hobby plan).
-  Two dead projects from failed attempts — `hush` and `hush-app` — are safe to
-  delete.
+- **Vercel:** team `hush-politics`, live project **`hush-live`** (Hobby plan),
+  connected to GitHub and auto-deploying from `main`. Three dead projects from
+  earlier attempts — `hush`, `hush-app`, `hushpolitics` — are safe to delete.
 - **Supabase:** org "Hush Politics", project ref **`ysbgnhgdnmmpgzrsolqn`**,
   region us-east-1. Schema fully applied.
-- **GitHub:** `HushPolitics/Hush` — **public**, and currently **empty**. The
-  local repo has the remote wired but has never been pushed.
-- **Local repo:** `~/Downloads/Hush` on my Mac. Four commits on `main`, clean.
+- **GitHub:** `HushPolitics/Hush` — **public**, populated, and wired to Vercel.
+  Every push to `main` deploys automatically. This is the source of truth.
+- **Local folder:** `~/Downloads/Hush` on my Mac. Same file contents, but its
+  git history is unrelated to GitHub's (the code was uploaded through the web
+  UI, not pushed). Treat it as a working copy, not as something to push from.
 - **Domain:** hushpolitics.com at GoDaddy. `A @ → 76.76.21.21` points at Vercel.
 
 ## Stack
@@ -97,18 +99,22 @@ with independent passes, and a promotion gate. Design doc in
 - **Vercel Hobby allows exactly one cron run per day.** Anything more frequent
   fails the build. `vercel.json` is daily at 06:00 UTC. It also rejects unknown
   keys inside a cron entry — no inline comments.
-- **The live deploy is a direct upload, not git-linked.** Changes do not
-  auto-deploy. To redeploy: zip the project (excluding `.git`, `node_modules`,
-  `.next`), then on `vercel.com/new/hush-politics` locate the file input and use
-  the file upload tool against it. A fresh `/new` page is required each time.
+- **Deploys are automatic now.** Any commit to `main` on GitHub triggers a
+  Vercel build. To ship a change without Corey touching a terminal: edit the
+  file, then upload it at
+  `github.com/HushPolitics/Hush/upload/main/<directory>` and commit. Vercel
+  picks it up within seconds. Do NOT use Vercel Drop — it can only create new
+  projects, which is how three dead ones accumulated.
+- **Corey does not want to use his Mac terminal.** Respect that; the GitHub web
+  upload path above is the agreed workflow.
 - **The Supabase migrations were run through the SQL editor, so there is no
   migration history.** Do **not** connect the GitHub→Supabase integration — it
   would try to re-run all four on push and fail.
 - **`device_bash` can't delete files** without a permission prompt, and git
   leaves `.lock` files and `tmp_obj_*` behind in the mounted folder when it
   can't unlink. Clear them or the next git command fails.
-- **Pushing to GitHub needs credentials the session doesn't have.** I have to
-  run `git push -u origin main` from my own Terminal.
+- **Direct `git push` still won't work from a session** — no credentials, and
+  the local history diverged from GitHub's anyway. Use the web upload path.
 
 ## Known issues
 
@@ -120,8 +126,7 @@ with independent passes, and a promotion gate. Design doc in
 
 ## What's next
 
-1. Push to GitHub, import into Vercel, move the domain to that project so
-   deploys become automatic.
+1. ~~Push to GitHub and connect Vercel~~ — done. Deploys are automatic.
 2. Connect the **Supabase→Vercel** integration — it injects the env vars,
    including the service role key, so nobody copies secrets by hand.
 3. Point `repo.ts` at Supabase instead of seed data.
