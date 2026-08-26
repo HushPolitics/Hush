@@ -138,6 +138,7 @@ export default function FactCheckView({
             value={q}
             onChange={setQ}
             placeholder="Filter by politician or topic"
+            className="fact-check-search"
             style={{ marginLeft: "auto", width: 270 }}
           />
         </div>
