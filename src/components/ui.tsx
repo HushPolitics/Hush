@@ -288,14 +288,16 @@ export function GhostButton({ children, onClick, style }: {
 }
 
 /** Search field with the design's hairline border and sand fill. */
-export function SearchField({ value, onChange, placeholder, style }: {
+export function SearchField({ value, onChange, placeholder, style, className }: {
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
   style?: CSSProperties;
+  className?: string;
 }) {
   return (
     <div
+      className={className}
       style={{
         display: "flex",
         alignItems: "center",
