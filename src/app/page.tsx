@@ -16,6 +16,7 @@ export default function LandingPage() {
   return (
     <div
       style={{
+        position: "relative",
         minHeight: "100vh",
         width: "100%",
         background: C.ink,
@@ -28,6 +29,56 @@ export default function LandingPage() {
         textAlign: "center",
       }}
     >
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: 12,
+          padding: "20px 24px",
+        }}
+      >
+        <Link
+          href="/signup"
+          className="btn-rust landing-cta"
+          style={{
+            padding: "13px 26px",
+            borderRadius: 8,
+            background: C.rust,
+            color: C.sand,
+            fontFamily: cond,
+            fontSize: 15,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            textDecoration: "none",
+          }}
+        >
+          Create Account
+        </Link>
+        <Link
+          href="/login"
+          className="btn-steel landing-cta"
+          style={{
+            padding: "13px 26px",
+            borderRadius: 8,
+            background: C.steel,
+            color: C.sand,
+            fontFamily: cond,
+            fontSize: 15,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            textDecoration: "none",
+          }}
+        >
+          Login
+        </Link>
+      </div>
+
       <div style={{ display: "flex", alignItems: "baseline" }}>
         <span
           style={{
