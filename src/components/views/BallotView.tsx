@@ -41,7 +41,7 @@ export default function BallotView({ ballot }: { ballot: BallotItem[] }) {
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
-            Time to polls close
+            Time until polls close
           </Kicker>
           <span
             style={{
