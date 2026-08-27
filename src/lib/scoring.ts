@@ -10,6 +10,15 @@ export function initials(name: string): string {
     .slice(0, 2);
 }
 
+// The `name` field sometimes carries a title prefix ("Rep. Delia Marchetti",
+// "Sen. Rosa Vance"), so alphabetical sorts use the final space-separated
+// token rather than the raw string. Hyphenated last names ("Osei-Hart")
+// have no internal space, so this still keeps them as one token.
+export function lastNameOf(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  return parts[parts.length - 1];
+}
+
 /**
  * Trust score: 60% promises kept, 25% recency, 15% promise significance.
  *
