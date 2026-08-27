@@ -97,6 +97,12 @@ input::placeholder {
   background: #b44a3b !important;
 }
 
+/* Landing page CTA: it's an <a>, and the global `a:hover` rule above adds an
+   underline that a filled button shouldn't get. */
+.landing-cta:hover {
+  text-decoration: none;
+}
+
 /* Hover lightens the fill and takes the label to full white. Going lighter on
    the background alone would push the sand label under 4.5:1; white lifts it to
    5.15:1 instead, so the state change costs no contrast. */
