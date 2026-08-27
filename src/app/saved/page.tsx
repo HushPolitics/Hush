@@ -1,6 +1,14 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import AppShell from "@/components/AppShell";
+import ProfileView from "@/components/views/ProfileView";
+import { listPoliticians, topicPool } from "@/lib/repo";
 
-/** Saved is now a tab on the Profile page rather than its own route — send old links/bookmarks there. */
+export const metadata: Metadata = { title: "Saved" };
+
 export default function SavedPage() {
-  redirect("/profile?tab=saved");
+  return (
+    <AppShell kicker="Saved" title="Your list">
+      <ProfileView politicians={listPoliticians()} topicPool={topicPool()} />
+    </AppShell>
+  );
 }
