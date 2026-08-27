@@ -56,6 +56,17 @@ export interface Prefs {
   invited: number;
   picks: string[];
   polling: { name: string; detail: string };
+  /**
+   * Up to 10 issues HUSH Guide researches positions for, chosen on its
+   * "What matters most to you?" step. Deliberately separate from `topics`:
+   * `topics` (ranked, unbounded) drives Value Match and the ranked-issues
+   * panels elsewhere in the app; `guideIssues` (unranked, capped at 10) only
+   * decides which issue sections HUSH Guide's comparison pages render. An
+   * empty array means the user hasn't been through HUSH Guide's setup steps
+   * yet — that's what gates whether visiting /guide shows the setup wizard
+   * or jumps straight to the tile grid.
+   */
+  guideIssues: string[];
 }
 
 // DEFAULT_DISTRICT.city is a combined "City, ST" string; split it once here
@@ -74,6 +85,7 @@ const DEFAULTS: Prefs = {
   invited: 12,
   picks: ["marchetti", "vance", "pike"],
   polling: DEFAULT_POLLING_PLACE,
+  guideIssues: [],
 };
 
 const STORAGE_KEY = "hush.prefs.v1";
@@ -146,6 +158,12 @@ interface PrefsContextValue extends Prefs {
   setOnboarded: (onboarded: boolean) => void;
   setPicks: (picks: string[]) => void;
   setPolling: (p: { name: string; detail: string }) => void;
+  /**
+   * Toggles `name` in `guideIssues`. Selecting past 10 is a no-op rather than
+   * an error — the "0/10"-style counter in the UI already disables the
+   * unselected chips at the cap, so this is a backstop, not the only guard.
+   */
+  toggleGuideIssue: (name: string) => void;
 }
 
 const Ctx = createContext<PrefsContextValue | null>(null);
@@ -196,6 +214,15 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
       setOnboarded: (onboarded) => patch({ onboarded }),
       setPicks: (picks) => patch({ picks }),
       setPolling: (polling) => patch({ polling }),
+      toggleGuideIssue: (name) => {
+        const has = snapshot.guideIssues.includes(name);
+        if (!has && snapshot.guideIssues.length >= 10) return;
+        patch({
+          guideIssues: has
+            ? snapshot.guideIssues.filter((t) => t !== name)
+            : snapshot.guideIssues.concat(name),
+        });
+      },
     }),
     [prefs, patch],
   );

@@ -17,8 +17,16 @@ import {
   TRENDING,
   STANCES,
   TOPIC_POOL,
+  GUIDE_POSITIONS,
 } from "./seed-data";
-import type { Politician, FactCheck, Race, BallotItem, TrendingClaim } from "./types";
+import type {
+  Politician,
+  FactCheck,
+  Race,
+  BallotItem,
+  TrendingClaim,
+  IssuePosition,
+} from "./types";
 
 export const hasSupabase = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -46,6 +54,19 @@ export function factChecksFor(politicianId: string): FactCheck[] {
 
 export function listRaces(): Race[] {
   return RACES;
+}
+
+export function getRace(id: string): Race | undefined {
+  return RACES.find((r) => r.id === id);
+}
+
+export function raceExists(id: string): boolean {
+  return RACES.some((r) => r.id === id);
+}
+
+/** HUSH Guide's sourced positions: politicianId -> issue -> IssuePosition. */
+export function guidePositions(): Record<string, Record<string, IssuePosition>> {
+  return GUIDE_POSITIONS;
 }
 
 export function listBallot(): BallotItem[] {

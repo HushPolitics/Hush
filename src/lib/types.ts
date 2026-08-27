@@ -122,6 +122,40 @@ export interface BallotItem {
   politicianId: string;
 }
 
+/**
+ * Where a HUSH Guide issue position was sourced from, ranked by the priority
+ * a researcher should prefer them in: a candidate's own campaign site first,
+ * down through official social media last. The UI surfaces this ranking as
+ * plain labels — it is not scored or weighted into anything.
+ */
+export type GuideSourceType =
+  | "Campaign site"
+  | "Official government site"
+  | "Official platform document"
+  | "Official press release"
+  | "Official social media";
+
+/**
+ * A single candidate's sourced position on a single issue, for HUSH Guide's
+ * election comparison page. This is the same shape `StanceCell` sketched out
+ * for the Compare grid (a short blurb plus an optional `sourceUrl`), extended
+ * with the title/type/date fields HUSH Guide's source block needs — an
+ * excerpt without a name, type, and freshness for its source isn't enough to
+ * evaluate. `date` is optional because not every source is dated (e.g. an
+ * evergreen platform page); when absent, the UI omits the date rather than
+ * guessing one. There is deliberately no `align`/score field here — HUSH
+ * Guide shows what a candidate said, not how well they scored.
+ */
+export interface IssuePosition {
+  /** Short excerpt/quote of the candidate's position — not a full reproduction. */
+  excerpt: string;
+  sourceTitle: string;
+  sourceType: GuideSourceType;
+  sourceUrl: string;
+  /** Publication or last-updated date, if the source carries one. */
+  date?: string;
+}
+
 export interface TrendingClaim {
   text: string;
   meta: string;

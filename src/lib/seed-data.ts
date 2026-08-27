@@ -13,6 +13,7 @@ import type {
   BallotItem,
   TrendingClaim,
   StanceCell,
+  IssuePosition,
 } from "./types";
 
 export const IS_SEED_DATA = true;
@@ -1770,6 +1771,193 @@ export const RACES: Race[] = [
     ]
   }
 ];
+
+/**
+ * Sourced per-candidate, per-issue positions for HUSH Guide's election
+ * comparison page — keyed by politicianId, then by issue name (matching
+ * `TOPIC_POOL`). Every RACES candidate is represented as a key even when
+ * empty, so a candidate with no researched positions yet (e.g. `rausch`,
+ * `trask`) is an explicit empty object rather than a missing key that could
+ * be mistaken for "not looked up yet" — GuideView treats both the same way
+ * (falls through to "No official position found"), but the empty object
+ * documents that the gap is real, not an oversight.
+ *
+ * Deliberately partial: this covers a handful of issues per candidate, not
+ * the full TOPIC_POOL cross product. That sparsity is intentional — it's
+ * what lets the comparison page demonstrate "No official position found"
+ * honestly instead of every cell being filled in. Nothing here is a real
+ * position or a real source; see the file header.
+ */
+export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
+  marchetti: {
+    "Healthcare": {
+      excerpt:
+        "We'll cap what you pay out of pocket for prescriptions and give every family the choice of a public option.",
+      sourceTitle: "Healthcare — Delia for TX-35",
+      sourceType: "Campaign site",
+      sourceUrl: "https://delioforcongress.example/issues/healthcare",
+      date: "Jul 2026",
+    },
+    "Housing": {
+      excerpt:
+        "Density near transit and a renter's tax credit are how we bring rent down without gutting local zoning control.",
+      sourceTitle: "Housing plan",
+      sourceType: "Campaign site",
+      sourceUrl: "https://delioforcongress.example/issues/housing",
+      date: "Jun 2026",
+    },
+    "Climate": {
+      excerpt:
+        "Grid resilience funding passed with my vote; I want a fossil subsidy phase-out next, not another delay.",
+      sourceTitle: "Floor statement on H.R. 4410",
+      sourceType: "Official press release",
+      sourceUrl: "https://marchetti.house.gov.example/press/floor-statement-hr4410",
+      date: "Mar 2026",
+    },
+  },
+  wexler: {
+    "Healthcare": {
+      excerpt:
+        "Washington mandates drive up premiums. I'll fight any public option that puts a bureaucrat between you and your doctor.",
+      sourceTitle: "Where Grant Stands",
+      sourceType: "Campaign site",
+      sourceUrl: "https://wexlerforcongress.example/platform",
+      date: "May 2026",
+    },
+  },
+  ainsley: {
+    "Housing": {
+      excerpt:
+        "We upzoned three transit corridors this term and I'll bring three more before council next spring.",
+      sourceTitle: "Housing & Growth",
+      sourceType: "Official government site",
+      sourceUrl: "https://austintexas.gov.example/mayor/housing-growth",
+      date: "Feb 2026",
+    },
+    "Climate": {
+      excerpt:
+        "The municipal fleet goes fully electric on schedule, and I've asked the utility to move up the coal retirement date.",
+      sourceTitle: "State of the City address",
+      sourceType: "Official press release",
+      sourceUrl: "https://austintexas.gov.example/news/state-of-the-city-2026",
+      date: "Jan 2026",
+    },
+    "Transit": {
+      excerpt:
+        "Phase one of the rail expansion opens on budget next year — I'm not interested in cutting corners to move the date up.",
+      sourceTitle: "@MayorAinsley",
+      sourceType: "Official social media",
+      sourceUrl: "https://x.com.example/mayorainsley/status/1234567890",
+      date: "Apr 2026",
+    },
+  },
+  kohl: {
+    "Housing": {
+      excerpt: "Austin needs a housing bond on the ballot, not more incentive programs that never break ground.",
+      sourceTitle: "Priya Kohl for Austin — Housing",
+      sourceType: "Campaign site",
+      sourceUrl: "https://kohlforaustin.example/housing",
+      date: "Jun 2026",
+    },
+    "Transit": {
+      excerpt:
+        "I'd freeze the rail budget and put the difference into bus rapid transit we can build in two years, not ten.",
+      sourceTitle: "Kohl campaign platform",
+      sourceType: "Official platform document",
+      sourceUrl: "https://kohlforaustin.example/files/platform.pdf",
+      date: "May 2026",
+    },
+  },
+  // No researched positions yet — every issue on the comparison page falls
+  // back to "No official position found" for this candidate, honestly.
+  rausch: {},
+  vance: {
+    "Healthcare": {
+      excerpt: "I led the push to expand Medicaid in this state and I'm not done — a public option should be next.",
+      sourceTitle: "Vance for Senate — Healthcare",
+      sourceType: "Campaign site",
+      sourceUrl: "https://vanceforsenate.example/healthcare",
+      date: "Jul 2026",
+    },
+    "Climate": {
+      excerpt:
+        "The coastal resilience fund I sponsored is state law now. I want the same approach applied inland, to the aquifer.",
+      sourceTitle: "Texas Senate Bill 812 — sponsor statement",
+      sourceType: "Official government site",
+      sourceUrl: "https://senate.texas.gov.example/members/dist14/sb812",
+      date: "May 2025",
+    },
+    "Voting rights": {
+      excerpt: "I blocked the mail-ballot restrictions on the floor, and I'll block the next version too.",
+      sourceTitle: "Vance campaign platform",
+      sourceType: "Official platform document",
+      sourceUrl: "https://vanceforsenate.example/files/platform.pdf",
+      date: "Jun 2026",
+    },
+  },
+  torrance: {
+    "Voting rights": {
+      excerpt: "Voter ID isn't suppression, it's security. I sponsored the bill and I'd sponsor it again.",
+      sourceTitle: "Torrance for Senate — Election Integrity",
+      sourceType: "Campaign site",
+      sourceUrl: "https://torranceforsenate.example/election-integrity",
+      date: "Jun 2026",
+    },
+    "Education": {
+      excerpt: "Every parent deserves a voucher option if their zoned school isn't working for their kid.",
+      sourceTitle: "Torrance campaign platform",
+      sourceType: "Official platform document",
+      sourceUrl: "https://torranceforsenate.example/files/platform.pdf",
+      date: "May 2026",
+    },
+  },
+  oseihart: {
+    "Housing": {
+      excerpt:
+        "The diversion pilot we funded keeps people housed instead of jailed over unpaid fines — I want to make it permanent.",
+      sourceTitle: "County Judge — Housing & Justice",
+      sourceType: "Official government site",
+      sourceUrl: "https://traviscountytx.gov.example/judge/housing-justice",
+      date: "Mar 2026",
+    },
+    "Labor": {
+      excerpt: "Every county contractor now has to meet our wage floor. No exceptions, no waivers.",
+      sourceTitle: "Commissioners Court press release",
+      sourceType: "Official press release",
+      sourceUrl: "https://traviscountytx.gov.example/news/contractor-wage-floor",
+      date: "Nov 2025",
+    },
+  },
+  // No researched positions yet — same as `rausch` above.
+  trask: {},
+  bellweather: {
+    "Education": {
+      excerpt:
+        "We stopped the voucher pilot at the board and I'll stop the next version — public dollars belong in public schools.",
+      sourceTitle: "Bellweather for School Board",
+      sourceType: "Campaign site",
+      sourceUrl: "https://bellweatherfortrustee.example/issues",
+      date: "Jun 2026",
+    },
+    "Healthcare": {
+      excerpt: "Nine campuses now have a school-based clinic. My goal is every campus in the district by 2028.",
+      sourceTitle: "District 4 trustee platform",
+      sourceType: "Official platform document",
+      sourceUrl: "https://bellweatherfortrustee.example/files/platform.pdf",
+      date: "May 2026",
+    },
+  },
+  mora: {
+    "Education": {
+      excerpt:
+        "I'd pause the clinic expansion and put that money into classroom aide pay instead — teachers are leaving over it.",
+      sourceTitle: "Sal Mora for District 4",
+      sourceType: "Campaign site",
+      sourceUrl: "https://moraford4.example/priorities",
+      date: "Jun 2026",
+    },
+  },
+};
 
 export const BALLOT: BallotItem[] = [
   {
