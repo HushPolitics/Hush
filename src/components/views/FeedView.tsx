@@ -168,7 +168,7 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
                   pct={p.align}
                   height={5}
                   track="rgba(243,239,228,0.16)"
-                  color={p.align >= 85 ? C.sand : p.align >= 60 ? C.tan : C.rust}
+                  color={C.sand}
                 />
               </div>
             ))}
@@ -409,8 +409,8 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
                 {r.party}
               </span>
               <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <Bar pct={r.trust} color={C.tan} style={{ maxWidth: 92 }} />
-                <span style={{ fontFamily: cond, fontSize: 16, color: band.color, width: 24 }}>
+                <Bar pct={r.trust} color={C.ink} style={{ maxWidth: 92 }} />
+                <span style={{ fontFamily: cond, fontSize: 16, color: C.ink, width: 24 }}>
                   {r.trust}
                 </span>
                 <span style={{ fontSize: 11, color: C.muted, whiteSpace: "nowrap" }}>{band.label}</span>
