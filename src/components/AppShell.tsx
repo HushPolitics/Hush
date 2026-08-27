@@ -6,7 +6,7 @@ import { useState, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
-import { DEFAULT_DISTRICT, ELECTION_ISO } from "@/lib/seed-data";
+import { ELECTION_ISO, lookupDistrict } from "@/lib/seed-data";
 import { RustButton, SearchField } from "./ui";
 import PersonalizeBanner from "./PersonalizeBanner";
 
@@ -47,6 +47,7 @@ export default function AppShell({
   const [zipDraft, setZipDraft] = useState(zip);
   // Rendered client-side only so the server and client markup agree.
   const days = useMounted() ? daysToElection() : null;
+  const district = lookupDistrict(zip);
 
   function openLocationForm() {
     setCityDraft(city);
@@ -156,10 +157,12 @@ export default function AppShell({
             Your district
           </div>
           <div style={{ fontFamily: cond, fontSize: 19, marginTop: 2 }}>
-            {DEFAULT_DISTRICT.district} · {zip}
+            {district ? `${district.district} · ${zip}` : zip}
           </div>
           <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.4, marginTop: 6 }}>
-            {DEFAULT_DISTRICT.county} · {DEFAULT_DISTRICT.raceCount} races on your ballot
+            {district
+              ? `${district.county} · ${district.raceCount} races on your ballot`
+              : "District info not available for this ZIP yet"}
           </div>
         </div>
       </aside>
