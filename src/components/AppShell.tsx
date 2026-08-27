@@ -15,6 +15,7 @@ const NAV = [
   { href: "/compare", label: "Compare" },
   { href: "/fact-check", label: "Fact Check" },
   { href: "/profile", label: "Profile" },
+  { href: "/saved", label: "Saved" },
 ];
 
 function isActive(pathname: string, href: string) {
