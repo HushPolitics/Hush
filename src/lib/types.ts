@@ -16,6 +16,15 @@ export type PromiseStatus = "Delivered" | "In progress" | "No movement";
 export type Verdict = "True" | "Misleading" | "False";
 export type StanceTag = "Aligned" | "Partial" | "Opposed" | "No record";
 
+/**
+ * A politician's stance on an issue, as shown in the Compare grid:
+ * [tag, short blurb, sourceUrl?]. `sourceUrl` is a placeholder for a future
+ * deep link to the exact passage the stance was sourced from — no seed data
+ * populates it yet, so the UI treats a missing sourceUrl as "not yet
+ * linkable" rather than inventing a destination.
+ */
+export type StanceCell = [StanceTag, string, string?];
+
 export interface PolicyPosition {
   issue: string;
   stance: string;

@@ -71,9 +71,14 @@ export function progressColor(progress: number): string {
   return C.rust;
 }
 
+// Aligned/Partial/Opposed are all rust now that they're clickable source
+// links (see CompareView's Row) rather than status indicators — the grid
+// trades away its at-a-glance color difference between "aligned" and
+// "opposed" for a consistent link affordance. "No record" stays neutral:
+// there's nothing sourced to link to.
 export const TAG_STYLE: Record<string, { bg: string; fg: string }> = {
-  Aligned: { bg: "rgba(37,55,70,0.10)", fg: C.navy },
-  Partial: { bg: "rgba(181,168,138,0.35)", fg: C.oliveDeep },
+  Aligned: { bg: "rgba(156,63,50,0.10)", fg: C.rust },
+  Partial: { bg: "rgba(156,63,50,0.10)", fg: C.rust },
   Opposed: { bg: "rgba(156,63,50,0.10)", fg: C.rust },
   "No record": { bg: C.shell, fg: C.muted },
 };

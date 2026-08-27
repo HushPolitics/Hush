@@ -20,14 +20,29 @@ export interface Prefs {
   topics: string[];
   saved: string[];
   zip: string;
+  /**
+   * City/state shown alongside `zip` (e.g. the header location pill).
+   * Set directly from what the user types into that form — not derived from
+   * `zip` by a real ZIP-to-city/state lookup, which would need a geocoding
+   * data source or API. Seeded from `DEFAULT_DISTRICT.city`, which was itself
+   * a single hardcoded "City, ST" string.
+   */
+  city: string;
+  state: string;
   picks: string[];
   polling: { name: string; detail: string };
 }
+
+// DEFAULT_DISTRICT.city is a combined "City, ST" string; split it once here
+// so city/state can be stored (and edited) as separate fields.
+const [DEFAULT_CITY, DEFAULT_STATE] = DEFAULT_DISTRICT.city.split(", ");
 
 const DEFAULTS: Prefs = {
   topics: ["Healthcare", "Housing", "Voting rights", "Climate", "Labor"],
   saved: ["marchetti", "bellweather", "vance", "ainsley", "oseihart"],
   zip: DEFAULT_DISTRICT.zip,
+  city: DEFAULT_CITY,
+  state: DEFAULT_STATE,
   picks: ["marchetti", "vance", "pike"],
   polling: DEFAULT_POLLING_PLACE,
 };
@@ -95,6 +110,8 @@ interface PrefsContextValue extends Prefs {
   toggleSaved: (id: string) => void;
   isSaved: (id: string) => boolean;
   setZip: (zip: string) => void;
+  setCity: (city: string) => void;
+  setState: (state: string) => void;
   setPicks: (picks: string[]) => void;
   setPolling: (p: { name: string; detail: string }) => void;
 }
@@ -130,6 +147,8 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
         }),
       isSaved: (id) => prefs.saved.includes(id),
       setZip: (zip) => patch({ zip }),
+      setCity: (city) => patch({ city }),
+      setState: (state) => patch({ state }),
       setPicks: (picks) => patch({ picks }),
       setPolling: (polling) => patch({ polling }),
     }),

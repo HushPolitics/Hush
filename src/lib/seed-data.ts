@@ -12,7 +12,7 @@ import type {
   Race,
   BallotItem,
   TrendingClaim,
-  StanceTag,
+  StanceCell,
 } from "./types";
 
 export const IS_SEED_DATA = true;
@@ -1460,7 +1460,7 @@ export const TOPIC_POOL: string[] = [
   "Veterans"
 ];
 
-export const STANCES: Record<string, Record<string, [StanceTag, string]>> = {
+export const STANCES: Record<string, Record<string, StanceCell>> = {
   "Healthcare": {
     "marchetti": [
       "Aligned",
