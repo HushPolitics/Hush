@@ -11,10 +11,9 @@ import { SearchField } from "./ui";
 
 const NAV = [
   { href: "/feed", label: "Feed" },
-  { href: "/compare", label: "Compare" },
   { href: "/ballot", label: "Voter's Guide" },
+  { href: "/compare", label: "Compare" },
   { href: "/fact-check", label: "Fact Check" },
-  { href: "/saved", label: "Saved" },
   { href: "/profile", label: "Profile" },
 ];
 
