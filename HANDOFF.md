@@ -48,9 +48,10 @@ Next.js 16 (App Router, React 19, Tailwind 4, TypeScript) · Supabase · Vercel.
 
 **Frontend** — all six views as real routes, converted from a Claude Design
 canvas and pixel-matched to it:
-`/` Feed · `/compare` · `/ballot` · `/fact-check` · `/saved` · `/profile` ·
+`/` Feed · `/compare` · `/voters-guide` · `/fact-check` · `/profile` ·
 `/politician/[id]` · `/politician/[id]/trust` · `/login` · `/pricing` ·
-`/api/ingest`.
+`/api/ingest`. (`/ballot` and `/saved` redirect to `/voters-guide` and
+`/profile` respectively.)
 Design system: Barlow + Barlow Condensed, rust `#9C3F32`, navy `#253746`,
 cream `#FFFDF9`, tan `#B5A88A`.
 

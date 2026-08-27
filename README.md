@@ -26,9 +26,9 @@ src/
   app/                    routes — one per view in the design
     page.tsx              Feed
     compare/              Vote compare + stance grid
-    ballot/               Countdown, races, polling place
+    voters-guide/         Countdown, races, polling place
     fact-check/           Claims and verdicts
-    saved/  profile/      The "you" surface (same view, two entry points)
+    profile/              The "you" surface (topics, ranked issues, saved)
     politician/[id]/      Profile
     politician/[id]/trust Promise ledger
     login/ pricing/       Auth and the (not yet live) membership page
