@@ -30,6 +30,13 @@ const SORT_LABEL: Record<SortKey, string> = {
 const GRID = "2.1fr 1.7fr 0.8fr 0.9fr 1.6fr";
 const LEVELS: (Level | "All")[] = ["All", "Local", "State", "Federal"];
 
+const SORT_OPTIONS: { label: string; key: SortKey; dir: "asc" | "desc" }[] = [
+  { label: "Trust Score", key: "trust", dir: "desc" },
+  { label: "Alphabetical (A-Z)", key: "name", dir: "asc" },
+  { label: "Level", key: "level", dir: "desc" },
+  { label: "Political Party", key: "party", dir: "desc" },
+];
+
 export default function FeedView({ politicians }: { politicians: Politician[] }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -39,6 +46,7 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
   const [level, setLevel] = useState<Level | "All">("All");
   const [sortKey, setSortKey] = useState<SortKey>("trust");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [sortOpen, setSortOpen] = useState(false);
 
   const scored = useMemo(
     () => politicians.map((p) => ({ ...p, match: computeMatch(p, topics) })),
@@ -87,6 +95,12 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
       setSortKey(key);
       setSortDir("desc");
     }
+  }
+
+  function selectSort(opt: (typeof SORT_OPTIONS)[number]) {
+    setSortKey(opt.key);
+    setSortDir(opt.dir);
+    setSortOpen(false);
   }
 
   const heroSaved = saved.includes(hero.id);
@@ -155,7 +169,7 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
             background: C.inkSoft,
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", alignItems: "center", flexDirection: "column", textAlign: "center" }}>
             <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
               Trust score
             </Kicker>
@@ -206,11 +220,77 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
           </Chip>
         ))}
         <span style={{ marginLeft: "auto", fontSize: 12, color: C.muted }}>Sorted by</span>
-        <span
-          style={{ fontFamily: cond, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase" }}
-        >
-          {SORT_LABEL[sortKey]}
-        </span>
+        <div style={{ position: "relative" }}>
+          <button
+            type="button"
+            onClick={() => setSortOpen((o) => !o)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              border: 0,
+              background: "transparent",
+              padding: 0,
+              cursor: "pointer",
+              fontFamily: cond,
+              fontSize: 15,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+              color: C.ink,
+            }}
+          >
+            {SORT_LABEL[sortKey]}
+            <span style={{ fontSize: 10, color: C.muted }}>{sortOpen ? "⌃" : "⌄"}</span>
+          </button>
+
+          {sortOpen ? (
+            <>
+              <div
+                onClick={() => setSortOpen(false)}
+                style={{ position: "fixed", inset: 0, zIndex: 9 }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 6px)",
+                  right: 0,
+                  zIndex: 10,
+                  minWidth: 190,
+                  border: `1px solid ${C.line}`,
+                  borderRadius: 10,
+                  background: C.white,
+                  boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
+                  padding: 6,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                }}
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    className="row-hover"
+                    onClick={() => selectSort(opt)}
+                    style={{
+                      border: 0,
+                      background: "transparent",
+                      borderRadius: 6,
+                      padding: "9px 10px",
+                      textAlign: "left",
+                      fontSize: 13,
+                      cursor: "pointer",
+                      color: opt.key === sortKey ? C.ink : C.body,
+                      fontWeight: opt.key === sortKey ? 600 : 400,
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : null}
+        </div>
       </div>
 
       {/* Table */}
