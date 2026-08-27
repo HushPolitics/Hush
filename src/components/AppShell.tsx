@@ -10,7 +10,7 @@ import { DEFAULT_DISTRICT, ELECTION_ISO } from "@/lib/seed-data";
 import { SearchField } from "./ui";
 
 const NAV = [
-  { href: "/", label: "Feed" },
+  { href: "/feed", label: "Feed" },
   { href: "/compare", label: "Compare" },
   { href: "/ballot", label: "Ballot" },
   { href: "/fact-check", label: "Fact Check" },
@@ -19,7 +19,7 @@ const NAV = [
 ];
 
 function isActive(pathname: string, href: string) {
-  if (href === "/") return pathname === "/" || pathname.startsWith("/politician");
+  if (href === "/feed") return pathname === "/feed" || pathname.startsWith("/politician");
   return pathname === href || pathname.startsWith(href + "/");
 }
 
@@ -46,7 +46,7 @@ export default function AppShell({
 
   function submitSearch(v: string) {
     setQ(v);
-    const target = v.trim() ? `/?q=${encodeURIComponent(v.trim())}` : "/";
+    const target = v.trim() ? `/feed?q=${encodeURIComponent(v.trim())}` : "/feed";
     router.replace(target, { scroll: false });
   }
 
@@ -73,7 +73,7 @@ export default function AppShell({
           padding: "24px 16px 18px",
         }}
       >
-        <Link href="/" style={{ display: "flex", alignItems: "baseline", padding: "0 8px", color: C.ink }}>
+        <Link href="/feed" style={{ display: "flex", alignItems: "baseline", padding: "0 8px", color: C.ink }}>
           <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 28, letterSpacing: "0.22em" }}>
             HUSH
           </span>
