@@ -8,6 +8,7 @@ import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { DEFAULT_DISTRICT, ELECTION_ISO } from "@/lib/seed-data";
 import { RustButton, SearchField } from "./ui";
+import PersonalizeBanner from "./PersonalizeBanner";
 
 const NAV = [
   { href: "/feed", label: "Feed" },
@@ -360,6 +361,8 @@ export default function AppShell({
             </Link>
           </div>
         </header>
+
+        <PersonalizeBanner />
 
         <main className="scroll" style={{ flex: 1, minHeight: 0 }}>
           {children}
