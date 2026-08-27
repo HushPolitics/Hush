@@ -371,6 +371,7 @@ function Row({
               gap: 4,
             }}
           >
+            <span style={{ fontSize: 12, color: C.body, lineHeight: 1.45 }}>{blurb}</span>
             {isLinkable ? (
               sourceUrl ? (
                 <a
@@ -380,7 +381,7 @@ function Row({
                   className="stance-tag-link"
                   style={{ ...bubbleStyle, textDecoration: "none", cursor: "pointer" }}
                 >
-                  {tag}
+                  Source
                 </a>
               ) : (
                 <span
@@ -388,13 +389,12 @@ function Row({
                   title="Source link coming soon"
                   style={{ ...bubbleStyle, cursor: "pointer" }}
                 >
-                  {tag}
+                  Source
                 </span>
               )
             ) : (
               <span style={bubbleStyle}>{tag}</span>
             )}
-            <span style={{ fontSize: 12, color: C.body, lineHeight: 1.45 }}>{blurb}</span>
           </div>
         );
       })}

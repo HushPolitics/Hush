@@ -409,7 +409,7 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
                 {r.party}
               </span>
               <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <Bar pct={r.trust} color={band.color} style={{ maxWidth: 92 }} />
+                <Bar pct={r.trust} color={C.tan} style={{ maxWidth: 92 }} />
                 <span style={{ fontFamily: cond, fontSize: 16, color: band.color, width: 24 }}>
                   {r.trust}
                 </span>
