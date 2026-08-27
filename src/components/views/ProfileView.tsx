@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, type DragEvent } from "react";
 import { C, cond, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { computeMatch, initials, lastNameOf, rankWeights } from "@/lib/scoring";
-import type { Politician } from "@/lib/types";
+import { initials, lastNameOf, rankWeights } from "@/lib/scoring";
+import type { FactCheck, Politician } from "@/lib/types";
 import { Avatar, Bar, Card, Chip, Display, EmptyState, Kicker, RustButton } from "@/components/ui";
+import { FactCheckCard } from "./FactCheckView";
 
 const SORTS = ["Seniority", "A–Z", "Trust score"] as const;
 type Sort = (typeof SORTS)[number];
@@ -39,13 +40,14 @@ const heroSecondaryBtn = {
 export default function ProfileView({
   politicians,
   topicPool,
+  checks,
 }: {
   politicians: Politician[];
   topicPool: string[];
+  checks: FactCheck[];
 }) {
   const router = useRouter();
-  const { topics, toggleTopic, moveTopic, reorderTopic, saved, party, city, state, invited } =
-    usePrefs();
+  const { topics, toggleTopic, reorderTopic, saved, party, city, state, invited } = usePrefs();
   const [sort, setSort] = useState<Sort>("Seniority");
   const [dragIndex, setDragIndex] = useState<number | null>(null);
 
@@ -71,9 +73,17 @@ export default function ProfileView({
           : sort === "Trust score"
             ? b.trust - a.trust
             : a.since - b.since,
-      )
-      .map((p) => ({ ...p, match: computeMatch(p, topics) }));
-  }, [politicians, saved, sort, topics]);
+      );
+  }, [politicians, saved, sort]);
+
+  // Fact checks tied to whichever politicians are currently saved. `saved`
+  // is reactive (from usePrefs), so this list updates the moment a
+  // politician is saved or unsaved — no separate tracking needed.
+  const nameById = useMemo(() => new Map(politicians.map((p) => [p.id, p.name])), [politicians]);
+  const relatedChecks = useMemo(
+    () => checks.filter((c) => saved.includes(c.politicianId)),
+    [checks, saved],
+  );
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -240,64 +250,6 @@ export default function ProfileView({
             ))}
           </div>
         </Card>
-
-        <Card
-          style={{
-            width: 400,
-            flex: "0 0 400px",
-            padding: 18,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-            <Kicker>Ranked</Kicker>
-            <Display size={19}>Your top issues</Display>
-          </div>
-          {ranked.length === 0 ? (
-            <span style={{ fontSize: 13, color: C.muted }}>
-              Pick a few topics and they show up here, weighted by rank.
-            </span>
-          ) : null}
-          {ranked.map((i, idx) => (
-            <div key={i.name} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontFamily: cond, fontSize: 14, color: C.tan, width: 14 }}>
-                {i.rank}
-              </span>
-              <span
-                style={{
-                  fontSize: 13,
-                  width: 120,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {i.name}
-              </span>
-              <Bar pct={Math.min(100, i.pct)} color={C.navy} />
-              <button
-                type="button"
-                className="link-quiet"
-                onClick={() => moveTopic(idx, -1)}
-                aria-label={`Move ${i.name} up`}
-                style={{ border: 0, background: "transparent", color: C.muted, cursor: "pointer", fontSize: 13, padding: 8 }}
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                className="link-quiet"
-                onClick={() => moveTopic(idx, 1)}
-                aria-label={`Move ${i.name} down`}
-                style={{ border: 0, background: "transparent", color: C.muted, cursor: "pointer", fontSize: 13, padding: 8 }}
-              >
-                ↓
-              </button>
-            </div>
-          ))}
-        </Card>
       </div>
 
       <div id="saved" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -342,7 +294,6 @@ export default function ProfileView({
                 <span style={{ fontFamily: cond, fontSize: 15, color: trustBand(s.trust).color }}>
                   Trust {s.trust}
                 </span>
-                <span style={{ fontSize: 12, color: C.body }}>Match {s.match}%</span>
               </span>
             </div>
           </Link>
@@ -351,6 +302,29 @@ export default function ProfileView({
           <EmptyState>Nothing saved yet — open a profile and hit “Save to my list”.</EmptyState>
         ) : null}
       </div>
+
+      <Card style={{ padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+          <Kicker>Related</Kicker>
+          <Display size={19}>Fact checks on your saved politicians</Display>
+        </div>
+        {relatedChecks.length === 0 ? (
+          <span style={{ fontSize: 13, color: C.muted }}>
+            Save a few politicians and their fact checks will show up here.
+          </span>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+            {relatedChecks.map((c) => (
+              <FactCheckCard
+                key={c.id}
+                check={c}
+                who={nameById.get(c.politicianId)}
+                href={`/politician/${c.politicianId}`}
+              />
+            ))}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
