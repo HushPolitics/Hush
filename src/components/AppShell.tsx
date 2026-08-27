@@ -11,11 +11,10 @@ import { SearchField } from "./ui";
 
 const NAV = [
   { href: "/feed", label: "Feed" },
-  { href: "/ballot", label: "Voter's Guide" },
+  { href: "/voters-guide", label: "Voter's Guide" },
   { href: "/compare", label: "Compare" },
   { href: "/fact-check", label: "Fact Check" },
   { href: "/profile", label: "Profile" },
-  { href: "/saved", label: "Saved" },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -120,7 +119,7 @@ export default function AppShell({
           className="district-card"
           style={{
             marginTop: "auto",
-            padding: 13,
+            padding: "17px 15px",
             border: "1px solid rgba(21,21,21,0.14)",
             borderRadius: 10,
             background: "rgba(255,255,255,0.55)",
@@ -137,10 +136,10 @@ export default function AppShell({
           >
             Your district
           </div>
-          <div style={{ fontFamily: cond, fontSize: 19 }}>
+          <div style={{ fontFamily: cond, fontSize: 19, marginTop: 2 }}>
             {DEFAULT_DISTRICT.district} · {zip}
           </div>
-          <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.4, marginTop: 3 }}>
+          <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.4, marginTop: 6 }}>
             {DEFAULT_DISTRICT.county} · {DEFAULT_DISTRICT.raceCount} races on your ballot
           </div>
         </div>
