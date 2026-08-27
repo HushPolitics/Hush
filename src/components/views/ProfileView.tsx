@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { C, cond, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
@@ -12,17 +11,10 @@ import { Avatar, Bar, Card, Chip, Display, EmptyState, Kicker } from "@/componen
 const SORTS = ["Seniority", "A–Z", "Trust score"] as const;
 type Sort = (typeof SORTS)[number];
 
-const TABS = [
-  { key: "preferences", label: "Preferences" },
-  { key: "saved", label: "Saved" },
-] as const;
-
-type TabKey = (typeof TABS)[number]["key"];
-
 /**
- * The "you" surface. A Preferences tab (topics + ranked issues, which drive
- * value match everywhere else in the app) and a Saved tab (saved politicians
- * grid). /saved redirects here with ?tab=saved to land on the latter.
+ * The "you" surface. Renders the same two panels in both routes; /saved just
+ * scrolls the saved grid into focus. Topic order here drives value match
+ * everywhere else in the app.
  */
 export default function ProfileView({
   politicians,
@@ -32,8 +24,6 @@ export default function ProfileView({
   topicPool: string[];
 }) {
   const { topics, toggleTopic, moveTopic, saved } = usePrefs();
-  const searchParams = useSearchParams();
-  const [tab, setTab] = useState<TabKey>(searchParams.get("tab") === "saved" ? "saved" : "preferences");
   const [sort, setSort] = useState<Sort>("Seniority");
 
   const ranked = rankWeights(topics).slice(0, 6);
@@ -54,32 +44,6 @@ export default function ProfileView({
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", gap: 24, borderBottom: `1px solid ${C.line}` }}>
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            className="tab"
-            onClick={() => setTab(t.key)}
-            style={{
-              border: 0,
-              background: "transparent",
-              padding: "0 2px 11px",
-              fontFamily: cond,
-              fontSize: 16,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-              color: tab === t.key ? C.ink : C.muted,
-              borderBottom: `2px solid ${tab === t.key ? C.rust : "transparent"}`,
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === "preferences" ? (
       <div className="stack-row" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
         <Card
           style={{
@@ -165,11 +129,8 @@ export default function ProfileView({
           ))}
         </Card>
       </div>
-      ) : null}
 
-      {tab === "saved" ? (
-      <>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+      <div id="saved" style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <Display size={21}>Saved politicians · {saved.length}</Display>
         <span style={{ marginLeft: "auto", fontSize: 12, color: C.muted }}>Sort</span>
         {SORTS.map((s) => (
@@ -220,8 +181,6 @@ export default function ProfileView({
           <EmptyState>Nothing saved yet — open a profile and hit “Save to my list”.</EmptyState>
         ) : null}
       </div>
-      </>
-      ) : null}
     </div>
   );
 }
