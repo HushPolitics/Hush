@@ -30,6 +30,21 @@ export interface Prefs {
   city: string;
   state: string;
   /**
+   * Street address collected on the signup wizard's "Where do you live?"
+   * step. Optional (the step is skippable) and, like `city`/`state`, not
+   * derived from anything — the district/ballot lookups elsewhere in the
+   * app still key off `zip`. Kept here so it round-trips through the same
+   * localStorage-backed store as the rest of onboarding, with a best-effort
+   * sync to `profiles.street_address` when a Supabase session exists.
+   */
+  streetAddress: string;
+  /**
+   * Whether the user has been through (or explicitly skipped past) the
+   * signup wizard's personalization steps. Drives whether `PersonalizeBanner`
+   * nags a signed-in user to finish — not whether an account exists at all.
+   */
+  onboarded: boolean;
+  /**
    * Placeholder fields for the Profile hero — nothing collects these yet.
    * `party` will eventually come from account setup (see the "Profile
    * Settings" placeholder page); `invited` will eventually come from a real
@@ -53,6 +68,8 @@ const DEFAULTS: Prefs = {
   zip: DEFAULT_DISTRICT.zip,
   city: DEFAULT_CITY,
   state: DEFAULT_STATE,
+  streetAddress: "",
+  onboarded: false,
   party: "Independent",
   invited: 12,
   picks: ["marchetti", "vance", "pike"],
@@ -124,6 +141,8 @@ interface PrefsContextValue extends Prefs {
   setZip: (zip: string) => void;
   setCity: (city: string) => void;
   setState: (state: string) => void;
+  setStreetAddress: (streetAddress: string) => void;
+  setOnboarded: (onboarded: boolean) => void;
   setPicks: (picks: string[]) => void;
   setPolling: (p: { name: string; detail: string }) => void;
 }
@@ -161,6 +180,8 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
       setZip: (zip) => patch({ zip }),
       setCity: (city) => patch({ city }),
       setState: (state) => patch({ state }),
+      setStreetAddress: (streetAddress) => patch({ streetAddress }),
+      setOnboarded: (onboarded) => patch({ onboarded }),
       setPicks: (picks) => patch({ picks }),
       setPolling: (polling) => patch({ polling }),
     }),
