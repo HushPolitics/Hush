@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type DragEvent } from "react";
 import { C, cond, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { computeMatch, initials, lastNameOf, rankWeights } from "@/lib/scoring";
@@ -44,11 +44,22 @@ export default function ProfileView({
   topicPool: string[];
 }) {
   const router = useRouter();
-  const { topics, toggleTopic, moveTopic, saved, party, city, state, invited } = usePrefs();
+  const { topics, toggleTopic, moveTopic, reorderTopic, saved, party, city, state, invited } =
+    usePrefs();
   const [sort, setSort] = useState<Sort>("Seniority");
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const ranked = rankWeights(topics).slice(0, 6);
-  const heroIssues = ranked.slice(0, 3);
+  // Hero panel shows the top 5 of the same ranked list the lower "Your top
+  // issues" Card shows the top 6 of — same source, same order, just fewer
+  // slots up top where space is tighter.
+  const heroRanked = ranked.slice(0, 5);
+
+  function dropOnto(index: number) {
+    if (dragIndex === null || dragIndex === index) return;
+    reorderTopic(dragIndex, index);
+    setDragIndex(null);
+  }
 
   const savedCards = useMemo(() => {
     const list = politicians.filter((p) => saved.includes(p.id));
@@ -101,23 +112,27 @@ export default function ProfileView({
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
-            {heroIssues.map((i) => (
-              <div key={i.name} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <span style={{ fontSize: 12, color: C.tan }}>{i.name}</span>
-                <Bar
-                  pct={Math.min(100, i.pct)}
-                  height={5}
-                  track="rgba(243,239,228,0.16)"
-                  color={i.pct >= 85 ? C.sand : i.pct >= 60 ? C.tan : C.rust}
-                />
-              </div>
-            ))}
-            {heroIssues.length === 0 ? (
-              <span style={{ fontSize: 12, color: C.tan, gridColumn: "1 / -1" }}>
-                Pick a few topics below and your top issues will show up here.
-              </span>
-            ) : null}
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <RustButton
+              onClick={() => router.push("/voters-guide")}
+              style={{ padding: "10px 16px", borderRadius: 7, fontSize: 13 }}
+            >
+              My Voter Guide
+            </RustButton>
+            <button
+              type="button"
+              onClick={() => router.push("/profile/settings")}
+              style={{ ...heroSecondaryBtn, width: "auto", padding: "10px 16px", fontSize: 13 }}
+            >
+              Profile Settings
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/profile/top-issues")}
+              style={{ ...heroSecondaryBtn, width: "auto", padding: "10px 16px", fontSize: 13 }}
+            >
+              My Top Issues
+            </button>
           </div>
         </div>
 
@@ -129,42 +144,73 @@ export default function ProfileView({
             padding: 24,
             display: "flex",
             flexDirection: "column",
-            gap: 14,
+            gap: 12,
             background: C.inkSoft,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", flexDirection: "column", textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
             <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
-              Quick links
+              Ranked
             </Kicker>
+            <Display size={17} color={C.sand}>
+              Your top issues
+            </Display>
           </div>
 
-          <div style={{ fontSize: 12, color: C.tan, lineHeight: 1.5 }}>
-            Jump to your ballot, or manage your account and ranked issues.
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 9, marginTop: "auto" }}>
-            <RustButton
-              onClick={() => router.push("/voters-guide")}
-              style={{ width: "100%", padding: 11, borderRadius: 7, fontSize: 14 }}
-            >
-              My Voter Guide
-            </RustButton>
-            <button
-              type="button"
-              onClick={() => router.push("/profile/settings")}
-              style={heroSecondaryBtn}
-            >
-              Profile Settings
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/profile/top-issues")}
-              style={heroSecondaryBtn}
-            >
-              My Top Issues
-            </button>
-          </div>
+          {heroRanked.length === 0 ? (
+            <span style={{ fontSize: 12, color: C.tan, lineHeight: 1.5 }}>
+              Pick a few topics below and your top issues will show up here.
+            </span>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {heroRanked.map((i, idx) => (
+                <div
+                  key={i.name}
+                  draggable
+                  onDragStart={() => setDragIndex(idx)}
+                  onDragOver={(e: DragEvent) => e.preventDefault()}
+                  onDrop={() => dropOnto(idx)}
+                  onDragEnd={() => setDragIndex(null)}
+                  title="Drag to reorder"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "5px 6px",
+                    borderRadius: 7,
+                    background: dragIndex === idx ? "rgba(243,239,228,0.14)" : "transparent",
+                    opacity: dragIndex !== null && dragIndex !== idx ? 0.6 : 1,
+                    cursor: "grab",
+                  }}
+                >
+                  <span aria-hidden style={{ color: C.tan, fontSize: 12, letterSpacing: -1 }}>
+                    ⠿
+                  </span>
+                  <span style={{ fontFamily: cond, fontSize: 13, color: C.tan, width: 14 }}>
+                    {i.rank}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: C.sand,
+                      width: 100,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {i.name}
+                  </span>
+                  <Bar
+                    pct={Math.min(100, i.pct)}
+                    height={4}
+                    track="rgba(243,239,228,0.16)"
+                    color={i.pct >= 85 ? C.sand : i.pct >= 60 ? C.tan : C.rust}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
