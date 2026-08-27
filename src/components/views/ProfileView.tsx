@@ -1,15 +1,35 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { C, cond, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { computeMatch, initials, lastNameOf, rankWeights } from "@/lib/scoring";
 import type { Politician } from "@/lib/types";
-import { Avatar, Bar, Card, Chip, Display, EmptyState, Kicker } from "@/components/ui";
+import { Avatar, Bar, Card, Chip, Display, EmptyState, Kicker, RustButton } from "@/components/ui";
 
 const SORTS = ["Seniority", "A–Z", "Trust score"] as const;
 type Sort = (typeof SORTS)[number];
+
+// Placeholder display name for the signed-in user — matches the title
+// AppShell is given on /profile (src/app/profile/page.tsx). There's no
+// account system yet, so this is hardcoded in both places.
+const USER_NAME = "Jordan Reyes";
+
+const heroSecondaryBtn = {
+  width: "100%",
+  padding: "11px 14px",
+  borderRadius: 7,
+  border: "1px solid rgba(243,239,228,0.32)",
+  background: "transparent",
+  color: C.sand,
+  fontFamily: cond,
+  fontSize: 14,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase" as const,
+  cursor: "pointer",
+};
 
 /**
  * The "you" surface, rendered at /profile. (/saved redirects here — see
@@ -23,10 +43,12 @@ export default function ProfileView({
   politicians: Politician[];
   topicPool: string[];
 }) {
-  const { topics, toggleTopic, moveTopic, saved } = usePrefs();
+  const router = useRouter();
+  const { topics, toggleTopic, moveTopic, saved, party, city, state, invited } = usePrefs();
   const [sort, setSort] = useState<Sort>("Seniority");
 
   const ranked = rankWeights(topics).slice(0, 6);
+  const heroIssues = ranked.slice(0, 3);
 
   const savedCards = useMemo(() => {
     const list = politicians.filter((p) => saved.includes(p.id));
@@ -44,6 +66,108 @@ export default function ProfileView({
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Your Hush profile — same hero treatment as FeedView's top-match card,
+          adapted for the signed-in user instead of a politician. */}
+      <section
+        className="split"
+        style={{ display: "flex", background: C.ink, borderRadius: 12, overflow: "hidden" }}
+      >
+        <div
+          style={{
+            flex: 1,
+            padding: 24,
+            display: "flex",
+            flexDirection: "column",
+            gap: 14,
+            minWidth: 0,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
+              Your Hush profile
+            </Kicker>
+            <span style={{ height: 1, flex: 1, background: "rgba(243,239,228,0.2)" }} />
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <Avatar text={initials(USER_NAME)} size={66} bg={C.tan} fg={C.ink} radius={12} font={23} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <span style={{ fontFamily: cond, fontSize: 32, color: C.sand, lineHeight: 1.05 }}>
+                {USER_NAME}
+              </span>
+              <span style={{ fontSize: 13, color: C.tan }}>
+                {party} · {city}, {state} · {invited} invited
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
+            {heroIssues.map((i) => (
+              <div key={i.name} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <span style={{ fontSize: 12, color: C.tan }}>{i.name}</span>
+                <Bar
+                  pct={Math.min(100, i.pct)}
+                  height={5}
+                  track="rgba(243,239,228,0.16)"
+                  color={i.pct >= 85 ? C.sand : i.pct >= 60 ? C.tan : C.rust}
+                />
+              </div>
+            ))}
+            {heroIssues.length === 0 ? (
+              <span style={{ fontSize: 12, color: C.tan, gridColumn: "1 / -1" }}>
+                Pick a few topics below and your top issues will show up here.
+              </span>
+            ) : null}
+          </div>
+        </div>
+
+        <div
+          style={{
+            width: 310,
+            flex: "0 0 310px",
+            borderLeft: "1px solid rgba(243,239,228,0.18)",
+            padding: 24,
+            display: "flex",
+            flexDirection: "column",
+            gap: 14,
+            background: C.inkSoft,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", flexDirection: "column", textAlign: "center" }}>
+            <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
+              Quick links
+            </Kicker>
+          </div>
+
+          <div style={{ fontSize: 12, color: C.tan, lineHeight: 1.5 }}>
+            Jump to your ballot, or manage your account and ranked issues.
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 9, marginTop: "auto" }}>
+            <RustButton
+              onClick={() => router.push("/voters-guide")}
+              style={{ width: "100%", padding: 11, borderRadius: 7, fontSize: 14 }}
+            >
+              My Voter Guide
+            </RustButton>
+            <button
+              type="button"
+              onClick={() => router.push("/profile/settings")}
+              style={heroSecondaryBtn}
+            >
+              Profile Settings
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/profile/top-issues")}
+              style={heroSecondaryBtn}
+            >
+              My Top Issues
+            </button>
+          </div>
+        </div>
+      </section>
+
       <div className="stack-row" style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
         <Card
           style={{
