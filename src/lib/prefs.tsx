@@ -136,6 +136,7 @@ function update(next: Prefs) {
 interface PrefsContextValue extends Prefs {
   toggleTopic: (name: string) => void;
   moveTopic: (index: number, delta: number) => void;
+  reorderTopic: (from: number, to: number) => void;
   toggleSaved: (id: string) => void;
   isSaved: (id: string) => boolean;
   setZip: (zip: string) => void;
@@ -168,6 +169,17 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
         const j = index + delta;
         if (j < 0 || j >= next.length) return;
         [next[index], next[j]] = [next[j], next[index]];
+        patch({ topics: next });
+      },
+      // Arbitrary-distance reorder (drag-and-drop), as opposed to moveTopic's
+      // adjacent swap (↑/↓ buttons). Same underlying `topics` array either
+      // way, so the hero panel's drag reordering and the lower Card's arrow
+      // reordering stay in sync.
+      reorderTopic: (from, to) => {
+        const next = snapshot.topics.slice();
+        if (from < 0 || from >= next.length || to < 0 || to >= next.length) return;
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
         patch({ topics: next });
       },
       toggleSaved: (id) =>

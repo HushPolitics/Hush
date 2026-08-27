@@ -1870,6 +1870,32 @@ export const DEFAULT_DISTRICT = {
   city: "Austin, TX",
 };
 
+/**
+ * Small hand-seeded ZIP -> district lookup, standing in for a real
+ * ZIP-to-district geocoding dataset. Covers a handful of sample ZIPs (all
+ * within the Austin/Travis County area the rest of the seed data is set in)
+ * so the sidebar district card can react to a real entered ZIP instead of
+ * always showing DEFAULT_DISTRICT. Anything outside this set has no entry —
+ * see `lookupDistrict`, which returns undefined rather than a stale guess.
+ */
+export const ZIP_DISTRICTS: Record<
+  string,
+  { district: string; county: string; raceCount: number; city: string }
+> = {
+  "78701": { district: "TX-35", county: "Travis County", raceCount: 6, city: "Austin, TX" },
+  "78702": { district: "TX-35", county: "Travis County", raceCount: 5, city: "Austin, TX" },
+  "78703": { district: "TX-25", county: "Travis County", raceCount: 6, city: "Austin, TX" },
+  "78704": { district: "TX-25", county: "Travis County", raceCount: 7, city: "Austin, TX" },
+  "78745": { district: "TX-25", county: "Travis County", raceCount: 6, city: "Austin, TX" },
+  "78751": { district: "TX-35", county: "Travis County", raceCount: 5, city: "Austin, TX" },
+  "78758": { district: "TX-35", county: "Travis County", raceCount: 4, city: "Austin, TX" },
+};
+
+/** Looks up district context for a ZIP. Returns undefined for any ZIP not seeded above. */
+export function lookupDistrict(zip: string) {
+  return ZIP_DISTRICTS[zip];
+}
+
 export const DEFAULT_POLLING_PLACE = {
   name: "Carver Branch Library",
   detail: "1161 Angelina St - 0.6 mi - Open 7am-7pm on election day",
