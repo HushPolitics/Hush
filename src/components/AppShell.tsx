@@ -7,7 +7,7 @@ import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { DEFAULT_DISTRICT, ELECTION_ISO } from "@/lib/seed-data";
-import { SearchField } from "./ui";
+import { RustButton, SearchField } from "./ui";
 
 const NAV = [
   { href: "/feed", label: "Feed" },
@@ -38,10 +38,28 @@ export default function AppShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { zip } = usePrefs();
+  const { zip, city, state, setZip, setCity, setState } = usePrefs();
   const [q, setQ] = useState("");
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [cityDraft, setCityDraft] = useState(city);
+  const [stateDraft, setStateDraft] = useState(state);
+  const [zipDraft, setZipDraft] = useState(zip);
   // Rendered client-side only so the server and client markup agree.
   const days = useMounted() ? daysToElection() : null;
+
+  function openLocationForm() {
+    setCityDraft(city);
+    setStateDraft(state);
+    setZipDraft(zip);
+    setLocationOpen(true);
+  }
+
+  function submitLocation() {
+    if (cityDraft.trim()) setCity(cityDraft.trim());
+    if (stateDraft.trim()) setState(stateDraft.trim());
+    if (zipDraft.length === 5) setZip(zipDraft);
+    setLocationOpen(false);
+  }
 
   function submitSearch(v: string) {
     setQ(v);
@@ -189,22 +207,115 @@ export default function AppShell({
             </h1>
           </div>
 
-          <div
-            className="header-pill"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 7,
-              padding: "7px 12px",
-              border: "1px solid rgba(21,21,21,0.16)",
-              borderRadius: 7,
-              fontSize: 13,
-              whiteSpace: "nowrap",
-              flex: "0 0 auto",
-            }}
-          >
-            <span style={{ width: 7, height: 7, borderRadius: "50%", background: C.navy }} />
-            {DEFAULT_DISTRICT.city} · {zip}
+          <div className="header-pill" style={{ position: "relative", flex: "0 0 auto" }}>
+            <button
+              type="button"
+              onClick={() => (locationOpen ? setLocationOpen(false) : openLocationForm())}
+              aria-haspopup="true"
+              aria-expanded={locationOpen}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                padding: "7px 12px",
+                border: "1px solid rgba(21,21,21,0.16)",
+                borderRadius: 7,
+                background: locationOpen ? C.hover : "transparent",
+                fontSize: 13,
+                whiteSpace: "nowrap",
+                cursor: "pointer",
+                color: C.ink,
+              }}
+            >
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: C.navy }} />
+              {city} · {state} · {zip}
+            </button>
+
+            {locationOpen ? (
+              <>
+                <div
+                  style={{ position: "fixed", inset: 0, zIndex: 9 }}
+                  onClick={() => setLocationOpen(false)}
+                />
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    submitLocation();
+                  }}
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 6px)",
+                    left: 0,
+                    zIndex: 10,
+                    width: 240,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                    padding: 14,
+                    border: `1px solid ${C.line}`,
+                    borderRadius: 10,
+                    background: C.white,
+                    boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
+                  }}
+                >
+                  <label style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 12, color: C.muted }}>
+                    City
+                    <input
+                      value={cityDraft}
+                      onChange={(e) => setCityDraft(e.target.value)}
+                      aria-label="City"
+                      style={{
+                        padding: "8px 10px",
+                        border: "1px solid rgba(21,21,21,0.2)",
+                        borderRadius: 6,
+                        fontSize: 14,
+                        color: C.ink,
+                        outline: "none",
+                      }}
+                    />
+                  </label>
+                  <label style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 12, color: C.muted }}>
+                    State
+                    <input
+                      value={stateDraft}
+                      onChange={(e) => setStateDraft(e.target.value.toUpperCase().slice(0, 2))}
+                      maxLength={2}
+                      aria-label="State"
+                      style={{
+                        padding: "8px 10px",
+                        border: "1px solid rgba(21,21,21,0.2)",
+                        borderRadius: 6,
+                        fontSize: 14,
+                        color: C.ink,
+                        outline: "none",
+                        textTransform: "uppercase",
+                      }}
+                    />
+                  </label>
+                  <label style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 12, color: C.muted }}>
+                    ZIP
+                    <input
+                      value={zipDraft}
+                      onChange={(e) => setZipDraft(e.target.value.replace(/[^0-9]/g, "").slice(0, 5))}
+                      maxLength={5}
+                      inputMode="numeric"
+                      aria-label="ZIP code"
+                      style={{
+                        padding: "8px 10px",
+                        border: "1px solid rgba(21,21,21,0.2)",
+                        borderRadius: 6,
+                        fontSize: 14,
+                        color: C.ink,
+                        outline: "none",
+                      }}
+                    />
+                  </label>
+                  <RustButton type="submit" style={{ padding: "8px 14px", fontSize: 12 }}>
+                    Save
+                  </RustButton>
+                </form>
+              </>
+            ) : null}
           </div>
 
           <SearchField
