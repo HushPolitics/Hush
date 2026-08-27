@@ -9,7 +9,7 @@ import { computeMatch, initials } from "@/lib/scoring";
 import type { Level, Politician } from "@/lib/types";
 import { Avatar, Bar, Chip, Kicker, RustButton } from "@/components/ui";
 
-type SortKey = "name" | "office" | "level" | "party" | "trust";
+type SortKey = "name" | "office" | "level" | "party" | "trust" | "lastName";
 
 const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "name", label: "Name", align: "left" },
@@ -24,17 +24,30 @@ const SORT_LABEL: Record<SortKey, string> = {
   office: "Office",
   level: "Level",
   party: "Party",
-  trust: "Trust score",
+  trust: "Trust Score",
+  lastName: "Alphabetical (A-Z)",
 };
 
 const GRID = "2.1fr 1.7fr 0.8fr 0.9fr 1.6fr";
 const LEVELS: (Level | "All")[] = ["All", "Local", "State", "Federal"];
 
-const SORT_OPTIONS: { label: string; key: SortKey; dir: "asc" | "desc" }[] = [
-  { label: "Trust Score", key: "trust", dir: "desc" },
-  { label: "Alphabetical (A-Z)", key: "name", dir: "asc" },
-  { label: "Level", key: "level", dir: "desc" },
-  { label: "Political Party", key: "party", dir: "desc" },
+// Federal > State > Local, so the default (desc) direction reads
+// highest-office-first — matching sortBy()'s existing "new key = desc" default.
+const LEVEL_RANK: Record<Level, number> = { Federal: 2, State: 1, Local: 0 };
+
+// The `name` field sometimes carries a title prefix ("Rep. Delia Marchetti",
+// "Sen. Rosa Vance"), so alphabetical sort uses the final space-separated
+// token rather than the raw string. Hyphenated last names ("Osei-Hart")
+// have no internal space, so this still keeps them as one token.
+function lastNameOf(fullName: string) {
+  const parts = fullName.trim().split(/\s+/);
+  return parts[parts.length - 1];
+}
+
+const SORT_OPTIONS: { label: string; key: SortKey }[] = [
+  { label: "Trust Score", key: "trust" },
+  { label: "Alphabetical (A-Z)", key: "lastName" },
+  { label: "Level", key: "level" },
 ];
 
 export default function FeedView({ politicians }: { politicians: Politician[] }) {
@@ -64,12 +77,19 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
           `${p.name} ${p.office} ${p.tags.join(" ")}`.toLowerCase().includes(needle),
       )
       .sort((a, b) => {
-        const va = a[sortKey];
-        const vb = b[sortKey];
-        const cmp =
-          typeof va === "number" && typeof vb === "number"
-            ? va - vb
-            : String(va).localeCompare(String(vb));
+        let cmp: number;
+        if (sortKey === "level") {
+          cmp = LEVEL_RANK[a.level] - LEVEL_RANK[b.level];
+        } else if (sortKey === "lastName") {
+          cmp = lastNameOf(a.name).localeCompare(lastNameOf(b.name));
+        } else {
+          const va = a[sortKey];
+          const vb = b[sortKey];
+          cmp =
+            typeof va === "number" && typeof vb === "number"
+              ? va - vb
+              : String(va).localeCompare(String(vb));
+        }
         return cmp * dir;
       });
   }, [scored, level, q, sortKey, sortDir]);
@@ -97,9 +117,16 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
     }
   }
 
-  function selectSort(opt: (typeof SORT_OPTIONS)[number]) {
-    setSortKey(opt.key);
-    setSortDir(opt.dir);
+  function selectSort(key: SortKey) {
+    // Same toggle pattern as sortBy() above: re-selecting the active key
+    // flips direction. Newly selecting a key defaults to descending (the
+    // Trust Score and Level rank orders both read correctly highest-first
+    // that way) except Alphabetical, which reads correctly A→Z first.
+    if (key === sortKey) setSortDir(sortDir === "desc" ? "asc" : "desc");
+    else {
+      setSortKey(key);
+      setSortDir(key === "lastName" ? "asc" : "desc");
+    }
     setSortOpen(false);
   }
 
@@ -271,7 +298,7 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
                     key={opt.label}
                     type="button"
                     className="row-hover"
-                    onClick={() => selectSort(opt)}
+                    onClick={() => selectSort(opt.key)}
                     style={{
                       border: 0,
                       background: "transparent",
