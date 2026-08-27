@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { C, cond, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { computeMatch, initials, rankWeights } from "@/lib/scoring";
+import { computeMatch, initials, lastNameOf, rankWeights } from "@/lib/scoring";
 import type { Politician } from "@/lib/types";
 import { Avatar, Bar, Card, Chip, Display, EmptyState, Kicker } from "@/components/ui";
 
@@ -12,9 +12,9 @@ const SORTS = ["Seniority", "A–Z", "Trust score"] as const;
 type Sort = (typeof SORTS)[number];
 
 /**
- * The "you" surface. Renders the same two panels in both routes; /saved just
- * scrolls the saved grid into focus. Topic order here drives value match
- * everywhere else in the app.
+ * The "you" surface, rendered at /profile. (/saved redirects here — see
+ * next.config.ts.) Topic order here drives value match everywhere else in
+ * the app.
  */
 export default function ProfileView({
   politicians,
@@ -34,7 +34,7 @@ export default function ProfileView({
       .slice()
       .sort((a, b) =>
         sort === "A–Z"
-          ? a.name.localeCompare(b.name)
+          ? lastNameOf(a.name).localeCompare(lastNameOf(b.name))
           : sort === "Trust score"
             ? b.trust - a.trust
             : a.since - b.since,

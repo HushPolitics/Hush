@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { C, PARTY, PARTY_LABEL, cond, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { computeMatch, initials } from "@/lib/scoring";
+import { computeMatch, initials, lastNameOf } from "@/lib/scoring";
 import type { Level, Politician } from "@/lib/types";
 import { Avatar, Bar, Chip, Kicker, RustButton } from "@/components/ui";
 
@@ -34,15 +34,6 @@ const LEVELS: (Level | "All")[] = ["All", "Local", "State", "Federal"];
 // Federal > State > Local, so the default (desc) direction reads
 // highest-office-first — matching sortBy()'s existing "new key = desc" default.
 const LEVEL_RANK: Record<Level, number> = { Federal: 2, State: 1, Local: 0 };
-
-// The `name` field sometimes carries a title prefix ("Rep. Delia Marchetti",
-// "Sen. Rosa Vance"), so alphabetical sort uses the final space-separated
-// token rather than the raw string. Hyphenated last names ("Osei-Hart")
-// have no internal space, so this still keeps them as one token.
-function lastNameOf(fullName: string) {
-  const parts = fullName.trim().split(/\s+/);
-  return parts[parts.length - 1];
-}
 
 const SORT_OPTIONS: { label: string; key: SortKey }[] = [
   { label: "Trust Score", key: "trust" },
