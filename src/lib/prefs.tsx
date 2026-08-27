@@ -29,6 +29,16 @@ export interface Prefs {
    */
   city: string;
   state: string;
+  /**
+   * Placeholder fields for the Profile hero — nothing collects these yet.
+   * `party` will eventually come from account setup (see the "Profile
+   * Settings" placeholder page); `invited` will eventually come from a real
+   * referral/invite system. Both are seeded with plausible values so the
+   * hero has something to show rather than inventing UI for data that isn't
+   * tracked anywhere.
+   */
+  party: string;
+  invited: number;
   picks: string[];
   polling: { name: string; detail: string };
 }
@@ -43,6 +53,8 @@ const DEFAULTS: Prefs = {
   zip: DEFAULT_DISTRICT.zip,
   city: DEFAULT_CITY,
   state: DEFAULT_STATE,
+  party: "Independent",
+  invited: 12,
   picks: ["marchetti", "vance", "pike"],
   polling: DEFAULT_POLLING_PLACE,
 };
