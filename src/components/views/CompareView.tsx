@@ -5,8 +5,8 @@ import { useMemo, useState } from "react";
 import { C, PARTY, TAG_STYLE, cond, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { DEFAULT_DISTRICT } from "@/lib/seed-data";
-import { computeMatch, initials } from "@/lib/scoring";
-import type { Politician, Race, StanceTag } from "@/lib/types";
+import { initials } from "@/lib/scoring";
+import type { Politician, Race, StanceCell } from "@/lib/types";
 import { Avatar, Bar, Display, Kicker, RustButton } from "@/components/ui";
 
 export default function CompareView({
@@ -16,7 +16,7 @@ export default function CompareView({
 }: {
   politicians: Politician[];
   races: Race[];
-  stances: Record<string, Record<string, [StanceTag, string]>>;
+  stances: Record<string, Record<string, StanceCell>>;
 }) {
   const router = useRouter();
   const { zip, setZip, picks, setPicks, topics } = usePrefs();
@@ -29,7 +29,7 @@ export default function CompareView({
 
   const heads = picks.map((id) => {
     const p = byId.get(id) ?? politicians[0];
-    return { ...p, band: trustBand(p.trust), match: computeMatch(p, topics) };
+    return { ...p, band: trustBand(p.trust) };
   });
 
   const gridCols = `150px ${picks.map(() => "1fr").join(" ")}`;
@@ -301,7 +301,7 @@ export default function CompareView({
                   {h.office} · {h.district}
                 </span>
                 <span style={{ fontSize: 11, color: h.band.color }}>
-                  Trust {h.trust} · Match {h.match}%
+                  Trust {h.trust}
                 </span>
               </div>
             ))}
@@ -323,7 +323,7 @@ function Row({
 }: {
   issue: string;
   picks: string[];
-  stances: Record<string, Record<string, [StanceTag, string]>>;
+  stances: Record<string, Record<string, StanceCell>>;
 }) {
   return (
     <>
@@ -341,8 +341,24 @@ function Row({
         {issue}
       </span>
       {picks.map((id, i) => {
-        const cell = stances[issue]?.[id] ?? (["No record", "Not tracked for this office"] as const);
-        const style = TAG_STYLE[cell[0]];
+        const fallback: StanceCell = ["No record", "Not tracked for this office"];
+        const cell = stances[issue]?.[id] ?? fallback;
+        const [tag, blurb, sourceUrl] = cell;
+        const style = TAG_STYLE[tag];
+        // "No record" has nothing sourced to link to; the other three tags
+        // are link bubbles that will deep-link to the sourced passage once
+        // sourceUrl is populated (see StanceCell) — until then they're
+        // link-styled but inert rather than pointing somewhere fake.
+        const isLinkable = tag !== "No record";
+        const bubbleStyle = {
+          alignSelf: "flex-start" as const,
+          padding: "3px 8px",
+          borderRadius: 12,
+          fontSize: 11,
+          whiteSpace: "nowrap" as const,
+          background: style.bg,
+          color: style.fg,
+        };
         return (
           <div
             key={`${issue}-${id}-${i}`}
@@ -355,20 +371,30 @@ function Row({
               gap: 4,
             }}
           >
-            <span
-              style={{
-                alignSelf: "flex-start",
-                padding: "3px 8px",
-                borderRadius: 12,
-                fontSize: 11,
-                whiteSpace: "nowrap",
-                background: style.bg,
-                color: style.fg,
-              }}
-            >
-              {cell[0]}
-            </span>
-            <span style={{ fontSize: 12, color: C.body, lineHeight: 1.45 }}>{cell[1]}</span>
+            {isLinkable ? (
+              sourceUrl ? (
+                <a
+                  href={sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="stance-tag-link"
+                  style={{ ...bubbleStyle, textDecoration: "none", cursor: "pointer" }}
+                >
+                  {tag}
+                </a>
+              ) : (
+                <span
+                  className="stance-tag-link"
+                  title="Source link coming soon"
+                  style={{ ...bubbleStyle, cursor: "pointer" }}
+                >
+                  {tag}
+                </span>
+              )
+            ) : (
+              <span style={bubbleStyle}>{tag}</span>
+            )}
+            <span style={{ fontSize: 12, color: C.body, lineHeight: 1.45 }}>{blurb}</span>
           </div>
         );
       })}
