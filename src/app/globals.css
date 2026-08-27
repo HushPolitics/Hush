@@ -136,6 +136,13 @@ input::placeholder {
   opacity: 0.7;
 }
 
+/* Compare grid stance bubbles: link-styled, will eventually deep-link to the
+   sourced passage. Darkens the rust tint on hover regardless of whether a
+   real destination exists yet (see StanceCell's sourceUrl placeholder). */
+.stance-tag-link:hover {
+  background: rgba(156, 63, 50, 0.2) !important;
+}
+
 /* Below the shell's 1100px design floor the sidebar collapses to a top bar. */
 @media (max-width: 1100px) {
   .app-shell {
