@@ -148,6 +148,7 @@ export default function AppShell({
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <header
+          className="app-header"
           style={{
             height: 66,
             flex: "0 0 66px",
@@ -159,7 +160,10 @@ export default function AppShell({
             background: C.cream,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0, overflow: "hidden" }}>
+          <div
+            className="header-title"
+            style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0, overflow: "hidden" }}
+          >
             <span
               style={{
                 fontFamily: cond,
@@ -208,10 +212,11 @@ export default function AppShell({
             value={q}
             onChange={submitSearch}
             placeholder="Search politicians, promises, or issues"
+            className="header-search"
             style={{ flex: 1, maxWidth: 430 }}
           />
 
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
+          <div className="header-right" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
             <span
               className="header-days"
               style={{
