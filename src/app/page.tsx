@@ -62,11 +62,11 @@ export default function LandingPage() {
         </Link>
         <Link
           href="/login"
-          className="btn-steel landing-cta"
+          className="btn-rust landing-cta"
           style={{
             padding: "13px 26px",
             borderRadius: 8,
-            background: C.steel,
+            background: C.rust,
             color: C.sand,
             fontFamily: cond,
             fontSize: 15,
