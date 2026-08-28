@@ -6,8 +6,9 @@ import { useState, type CSSProperties, type FormEvent } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { issueCoverage, parseRaceTitle } from "@/lib/guide";
-import type { IssuePosition, Politician, Race } from "@/lib/types";
+import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, GhostButton, Kicker, RustButton } from "@/components/ui";
+import { BillsSection } from "./GuideBills";
 
 const fieldStyle = {
   padding: "11px 14px",
@@ -31,8 +32,8 @@ type Step = "address" | "issues" | "grid";
 /**
  * HUSH Guide's own three-step flow (address -> issues -> tile grid), gated
  * on `guideIssues` rather than a separate "setup done" flag: an empty array
- * means the user hasn't been through setup, so /guide opens on step one;
- * once populated, it opens straight on the tile grid. `manualStep` overrides
+ * means the user hasn't been through setup, so /hush-guide opens on step
+ * one; once populated, it opens straight on the tile grid. `manualStep` overrides
  * that default once the user navigates on purpose (Edit address / Edit
  * issues from the grid, or Continue/Back between steps) — see the render
  * below for how each step's actions clear or set it.
@@ -42,11 +43,17 @@ export default function GuideView({
   races,
   topicPool,
   positions,
+  // Defaulted rather than required: during the /guide -> /hush-guide route
+  // migration, the old route's page.tsx doesn't pass this prop, and letting
+  // it fall back to an empty list keeps that page building and rendering
+  // (just without the Bills section) instead of breaking the deploy.
+  bills = [],
 }: {
   politicians: Politician[];
   races: Race[];
   topicPool: string[];
   positions: Record<string, Record<string, IssuePosition>>;
+  bills?: Bill[];
 }) {
   const { guideIssues } = usePrefs();
   const [manualStep, setManualStep] = useState<Step | null>(null);
@@ -73,6 +80,7 @@ export default function GuideView({
           races={races}
           politicians={politicians}
           positions={positions}
+          bills={bills}
           onEditAddress={() => setManualStep("address")}
           onEditIssues={() => setManualStep("issues")}
         />
@@ -291,12 +299,14 @@ function TileGrid({
   races,
   politicians,
   positions,
+  bills,
   onEditAddress,
   onEditIssues,
 }: {
   races: Race[];
   politicians: Politician[];
   positions: Record<string, Record<string, IssuePosition>>;
+  bills: Bill[];
   onEditAddress: () => void;
   onEditIssues: () => void;
 }) {
@@ -493,6 +503,8 @@ function TileGrid({
           })}
         </div>
       )}
+
+      <BillsSection bills={bills} />
     </>
   );
 }
