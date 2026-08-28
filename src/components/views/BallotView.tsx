@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { C, PARTY, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useNow } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
-import type { Race } from "@/lib/types";
+import type { Politician, Race } from "@/lib/types";
 import { Display, InkButton, Kicker, RustButton } from "@/components/ui";
 
 /**
@@ -25,9 +25,13 @@ function formatCountdown(target: number, now: number) {
   return `${d} days · ${h} hrs · ${m} min · ${s} s`;
 }
 
-export default function BallotView({ races }: { races: Race[] }) {
+export default function BallotView({ races, politicians }: { races: Race[]; politicians: Politician[] }) {
   const { polling, setPolling, city, state, zip, streetAddress } = usePrefs();
   const [addr, setAddr] = useState("");
+  // Some RaceCandidates (e.g. an opposing candidate with no research done
+  // yet) don't have a full Politician profile — same gap CompareView guards
+  // against. Those names render as inert text instead of a dead link.
+  const knownIds = useMemo(() => new Set(politicians.map((p) => p.id)), [politicians]);
   // Only updated on submit, so the map doesn't reload on every keystroke —
   // it centers on the last address the user actually looked up.
   const [searchedAddr, setSearchedAddr] = useState("");
@@ -127,20 +131,8 @@ export default function BallotView({ races }: { races: Race[] }) {
                 </span>
               </div>
               <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
-                {race.candidates.map((c) => (
-                  <Link
-                    key={c.politicianId}
-                    href={`/politician/${c.politicianId}`}
-                    className="fade"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 7,
-                      fontSize: 13,
-                      color: C.ink,
-                      textDecoration: "none",
-                    }}
-                  >
+                {race.candidates.map((c) => {
+                  const dot = (
                     <span
                       style={{
                         width: 8,
@@ -150,9 +142,41 @@ export default function BallotView({ races }: { races: Race[] }) {
                         flex: "0 0 8px",
                       }}
                     />
-                    {c.name}
-                  </Link>
-                ))}
+                  );
+                  return knownIds.has(c.politicianId) ? (
+                    <Link
+                      key={c.politicianId}
+                      href={`/politician/${c.politicianId}`}
+                      className="fade"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 7,
+                        fontSize: 13,
+                        color: C.ink,
+                        textDecoration: "none",
+                      }}
+                    >
+                      {dot}
+                      {c.name}
+                    </Link>
+                  ) : (
+                    <span
+                      key={c.politicianId}
+                      title="No profile yet"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 7,
+                        fontSize: 13,
+                        color: C.muted,
+                      }}
+                    >
+                      {dot}
+                      {c.name}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           ))}
