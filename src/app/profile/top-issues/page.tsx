@@ -1,28 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
-import { EmptyState } from "@/components/ui";
+import { TopIssuesCard } from "@/components/views/TopIssuesCard";
+import { topicPool } from "@/lib/repo";
+import { C } from "@/lib/theme";
 
 export const metadata: Metadata = { title: "My Top Issues" };
 
 /**
- * Placeholder for a dedicated ranked-issues view. Today the ranked list
- * lives inline on /profile ("Your top issues"); this stands in as the
- * destination for the Profile hero's "My Top Issues" button until that gets
- * its own page.
+ * The full-page destination for the Profile hero's "My Top Issues" button
+ * and the "Your Top Issues" card's "Edit Issues →" link. Same editor either
+ * place — see TopIssuesCard — just given the whole page to itself.
  */
 export default function TopIssuesPage() {
   return (
-    <AppShell kicker="Profile" title="My Top Issues">
-      <div style={{ padding: "24px 28px" }}>
-        <EmptyState>
-          Coming soon — a dedicated view of your ranked issues is on the way. In
-          the meantime you can reorder them from{" "}
-          <Link href="/profile" style={{ textDecoration: "underline" }}>
-            your Profile page
-          </Link>
-          .
-        </EmptyState>
+    <AppShell kicker="Profile" title="Rank what matters most to you">
+      <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
+        <TopIssuesCard topicPool={topicPool()} showEditLink={false} />
+        <Link href="/profile" style={{ fontSize: 13, color: C.navy, textDecoration: "underline" }}>
+          Back to Profile
+        </Link>
       </div>
     </AppShell>
   );
