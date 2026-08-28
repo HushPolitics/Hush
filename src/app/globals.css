@@ -143,6 +143,39 @@ input::placeholder {
   background: rgba(156, 63, 50, 0.2) !important;
 }
 
+/* HUSH Guide's "Bills Being Considered" flip tiles. `.flip-card` establishes
+   the 3D context and a fixed height tall enough for the back face (the
+   longer side — explanation + two lists + source block); the front face's
+   own content is shorter and top-aligned inside it. `.is-flipped` rotates
+   the inner wrapper; both faces are `backface-visibility: hidden` so only
+   one is ever legible, and the back is pre-rotated 180deg so it reads
+   right-way-round once the flip completes. Works identically on tap and
+   click since the flip is triggered by a button's onClick, not :hover. */
+.flip-card {
+  perspective: 1400px;
+  height: 460px;
+}
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+}
+.flip-card-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+.flip-card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow-y: auto;
+}
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
 /* Below the shell's 1100px design floor the sidebar collapses to a top bar. */
 @media (max-width: 1100px) {
   .app-shell {
@@ -274,5 +307,11 @@ input::placeholder {
     order: 3;
     flex: 1 1 100% !important;
     max-width: none !important;
+  }
+
+  /* Narrower cards wrap onto more lines — taller fixed height keeps both
+     flip faces from clipping their content. */
+  .flip-card {
+    height: 560px;
   }
 }
