@@ -12,7 +12,7 @@ import PersonalizeBanner from "./PersonalizeBanner";
 
 const NAV = [
   { href: "/feed", label: "Feed" },
-  { href: "/guide", label: "HUSH Guide" },
+  { href: "/hush-guide", label: "HUSH Guide" },
   { href: "/your-ballot", label: "Your Ballot" },
   { href: "/compare", label: "Compare" },
   { href: "/fact-check", label: "Fact Check" },
