@@ -121,24 +121,52 @@ export default function LandingPage() {
         </p>
       </div>
 
-      <Link
-        href="/feed"
-        className="btn-rust landing-cta"
+      <div
         style={{
           marginTop: 8,
-          padding: "13px 26px",
-          borderRadius: 8,
-          background: C.rust,
-          color: C.sand,
-          fontFamily: cond,
-          fontSize: 15,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          textDecoration: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexWrap: "wrap",
+          gap: 12,
         }}
       >
-        See a Preview?
-      </Link>
+        <Link
+          href="/feed"
+          className="btn-rust landing-cta"
+          style={{
+            padding: "13px 26px",
+            borderRadius: 8,
+            background: C.rust,
+            color: C.sand,
+            fontFamily: cond,
+            fontSize: 15,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            textDecoration: "none",
+          }}
+        >
+          UI Preview
+        </Link>
+        {/* Destination not built yet — placeholder link until that page exists. */}
+        <Link
+          href="#"
+          className="btn-rust landing-cta"
+          style={{
+            padding: "13px 26px",
+            borderRadius: 8,
+            background: C.rust,
+            color: C.sand,
+            fontFamily: cond,
+            fontSize: 15,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            textDecoration: "none",
+          }}
+        >
+          Home Page Preview
+        </Link>
+      </div>
     </div>
   );
 }
