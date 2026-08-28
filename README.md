@@ -76,6 +76,16 @@ the `scoring_weights` table rather than in code, so a rubric change is a dated
 row and the number on screen can always be explained. See
 `compute_trust_score()` in migration 0003.
 
+## The precinct map
+
+The map on Your Ballot is a live Google Maps embed centered on the user's
+address (whatever they've most recently given the app — the polling-place
+lookup, their onboarding street address, or the city/state/ZIP set via the
+header pill). It needs `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (Maps Embed API
+enabled) in the environment — see `.env.example`. Without it, that panel
+falls back to an "Open in Google Maps" link rather than a broken embed, so
+missing setup is visible instead of silently failing.
+
 ## The ingestion cron
 
 `vercel.json` runs `/api/ingest` once daily at 06:00 UTC (2am ET). That cadence
