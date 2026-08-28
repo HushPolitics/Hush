@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 
 /** Small-caps condensed eyebrow used above nearly every heading in the design. */
@@ -162,14 +162,24 @@ export function Avatar({ text, size = 28, bg = C.shell, fg = C.body, radius, fon
   );
 }
 
-export function Card({ children, style, className }: {
+export function Card({ children, style, className, onClick, onKeyDown, role, tabIndex, "aria-label": ariaLabel }: {
   children: ReactNode;
   style?: CSSProperties;
   className?: string;
+  onClick?: () => void;
+  onKeyDown?: (e: KeyboardEvent<HTMLDivElement>) => void;
+  role?: string;
+  tabIndex?: number;
+  "aria-label"?: string;
 }) {
   return (
     <div
       className={className}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      role={role}
+      tabIndex={tabIndex}
+      aria-label={ariaLabel}
       style={{
         border: `1px solid ${C.line}`,
         borderRadius: 10,
