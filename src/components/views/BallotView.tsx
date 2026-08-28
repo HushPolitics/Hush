@@ -1,13 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
-import { BALLOT_STATE_STYLE, C, cond } from "@/lib/theme";
+import { C, PARTY, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useNow } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
-import type { BallotItem } from "@/lib/types";
-import { Display, InkButton, Kicker, Pill, RustButton } from "@/components/ui";
+import type { Race } from "@/lib/types";
+import { Display, InkButton, Kicker, RustButton } from "@/components/ui";
+
+/**
+ * Google Maps Embed API key. Optional — the map falls back to a
+ * "open in Google Maps" link when it isn't set, rather than rendering a
+ * broken/blank iframe. See .env.example for setup notes.
+ */
+const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 function formatCountdown(target: number, now: number) {
   const ms = Math.max(0, target - now);
@@ -18,13 +25,30 @@ function formatCountdown(target: number, now: number) {
   return `${d} days · ${h} hrs · ${m} min · ${s} s`;
 }
 
-export default function BallotView({ ballot }: { ballot: BallotItem[] }) {
-  const router = useRouter();
-  const { polling, setPolling } = usePrefs();
+export default function BallotView({ races }: { races: Race[] }) {
+  const { polling, setPolling, city, state, zip, streetAddress } = usePrefs();
   const [addr, setAddr] = useState("");
+  // Only updated on submit, so the map doesn't reload on every keystroke —
+  // it centers on the last address the user actually looked up.
+  const [searchedAddr, setSearchedAddr] = useState("");
   const target = new Date(ELECTION_ISO).getTime();
   // 0 until hydration, then ticks every second.
   const now = useNow(1000);
+
+  // Same address the rest of the page already has, in priority order: an
+  // address just searched in the polling-place lookup below, then the home
+  // address from onboarding, then the city/state/zip set via the header
+  // pill. No separate "map address" field.
+  const mapQuery = (
+    searchedAddr.trim() ||
+    streetAddress.trim() ||
+    [city, state, zip].filter(Boolean).join(" ")
+  ).trim();
+  const mapSrc =
+    MAPS_KEY && mapQuery
+      ? `https://www.google.com/maps/embed/v1/place?key=${MAPS_KEY}&q=${encodeURIComponent(mapQuery)}`
+      : null;
+  const openInMapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery || "United States")}`;
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -72,29 +96,22 @@ export default function BallotView({ ballot }: { ballot: BallotItem[] }) {
 
       <div className="stack-row" style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: 420, display: "flex", flexDirection: "column", gap: 11 }}>
-          <Display size={21}>{ballot.length} races on your ballot</Display>
-          {ballot.map((b) => {
-            const style = BALLOT_STATE_STYLE[b.state];
-            return (
-              <div
-                key={b.race}
-                className="card-hover stack-grid"
-                role="link"
-                tabIndex={0}
-                onClick={() => router.push(`/politician/${b.politicianId}`)}
-                onKeyDown={(e) => e.key === "Enter" && router.push(`/politician/${b.politicianId}`)}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1.3fr 1.6fr 108px 112px",
-                  gap: 14,
-                  alignItems: "center",
-                  border: `1px solid ${C.line}`,
-                  borderRadius: 10,
-                  background: C.white,
-                  padding: "13px 16px",
-                  cursor: "pointer",
-                }}
-              >
+          <Display size={21}>{races.length} races on your ballot</Display>
+          {races.map((race) => (
+            <div
+              key={race.id}
+              className="card-hover"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+                border: `1px solid ${C.line}`,
+                borderRadius: 10,
+                background: C.white,
+                padding: "13px 16px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
                 <span
                   style={{
                     fontFamily: cond,
@@ -103,26 +120,42 @@ export default function BallotView({ ballot }: { ballot: BallotItem[] }) {
                     textTransform: "uppercase",
                   }}
                 >
-                  {b.race}
+                  {race.title}
                 </span>
-                <span style={{ fontSize: 13, color: C.body }}>{b.candidates}</span>
-                <span
-                  style={{
-                    fontFamily: cond,
-                    fontSize: 12,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    color: C.muted,
-                  }}
-                >
-                  {b.level}
+                <span style={{ marginLeft: "auto", fontSize: 11, color: C.muted, whiteSpace: "nowrap" }}>
+                  {race.meta}
                 </span>
-                <Pill bg={style.bg} fg={style.fg} style={{ justifySelf: "end", padding: "5px 11px" }}>
-                  {b.state}
-                </Pill>
               </div>
-            );
-          })}
+              <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+                {race.candidates.map((c) => (
+                  <Link
+                    key={c.politicianId}
+                    href={`/politician/${c.politicianId}`}
+                    className="fade"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 7,
+                      fontSize: 13,
+                      color: C.ink,
+                      textDecoration: "none",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 2,
+                        background: PARTY[c.party],
+                        flex: "0 0 8px",
+                      }}
+                    />
+                    {c.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
 
         <div style={{ width: 360, flex: "0 0 360px", display: "flex", flexDirection: "column", gap: 14 }}>
@@ -131,41 +164,68 @@ export default function BallotView({ ballot }: { ballot: BallotItem[] }) {
               height: 220,
               border: `1px solid ${C.line}`,
               borderRadius: 10,
-              background:
-                "repeating-linear-gradient(0deg,#F3EFE4 0 23px,rgba(21,21,21,0.07) 23px 24px)," +
-                "repeating-linear-gradient(90deg,#F3EFE4 0 23px,rgba(21,21,21,0.07) 23px 24px)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              overflow: "hidden",
               position: "relative",
+              background: C.sand,
             }}
           >
-            <span
-              style={{
-                position: "absolute",
-                top: 12,
-                left: 14,
-                fontFamily: cond,
-                fontSize: 11,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: C.muted,
-                background: C.sand,
-                padding: "2px 6px",
-              }}
-            >
-              Precinct map · placeholder
-            </span>
-            <span
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: "50% 50% 50% 4px",
-                transform: "rotate(-45deg)",
-                background: C.rust,
-                boxShadow: "0 3px 10px rgba(21,21,21,0.2)",
-              }}
-            />
+            {mapSrc ? (
+              <iframe
+                title="Map centered on your address"
+                src={mapSrc}
+                width="100%"
+                height="100%"
+                style={{ border: 0, display: "block" }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            ) : (
+              <div
+                style={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  padding: "16px 20px",
+                  textAlign: "center",
+                }}
+              >
+                <span
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: "50% 50% 50% 4px",
+                    transform: "rotate(-45deg)",
+                    background: C.rust,
+                    boxShadow: "0 3px 10px rgba(21,21,21,0.2)",
+                  }}
+                />
+                <span
+                  style={{
+                    fontFamily: cond,
+                    fontSize: 12,
+                    letterSpacing: "0.04em",
+                    color: C.muted,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  Map needs a Google Maps API key —
+                  <br />
+                  set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+                </span>
+                <a
+                  href={openInMapsHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 12, color: C.rust }}
+                >
+                  Open in Google Maps →
+                </a>
+              </div>
+            )}
           </div>
 
           <div
@@ -191,6 +251,7 @@ export default function BallotView({ ballot }: { ballot: BallotItem[] }) {
                   name: "Precinct 214 · Community Hall",
                   detail: `${addr.trim()} · 0.4 mi · Open 7am–7pm on election day`,
                 });
+                setSearchedAddr(addr.trim());
               }}
             >
               <input
