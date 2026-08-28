@@ -124,10 +124,10 @@ export default function ProfileView({
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <RustButton
-              onClick={() => router.push("/voters-guide")}
+              onClick={() => router.push("/your-ballot")}
               style={{ padding: "10px 16px", borderRadius: 7, fontSize: 13 }}
             >
-              My Voter Guide
+              My Ballot
             </RustButton>
             <button
               type="button"
