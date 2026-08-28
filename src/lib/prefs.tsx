@@ -63,7 +63,7 @@ export interface Prefs {
    * panels elsewhere in the app; `guideIssues` (unranked, capped at 10) only
    * decides which issue sections HUSH Guide's comparison pages render. An
    * empty array means the user hasn't been through HUSH Guide's setup steps
-   * yet — that's what gates whether visiting /guide shows the setup wizard
+   * yet — that's what gates whether visiting /hush-guide shows the setup wizard
    * or jumps straight to the tile grid.
    */
   guideIssues: string[];

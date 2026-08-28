@@ -14,6 +14,7 @@ import type {
   TrendingClaim,
   StanceCell,
   IssuePosition,
+  Bill,
 } from "./types";
 
 export const IS_SEED_DATA = true;
@@ -2151,6 +2152,144 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
     },
   },
 };
+
+/**
+ * Sample legislation for HUSH Guide's "Bills Being Considered" section.
+ * Illustrative placeholder data, like everything else in this file — there
+ * is no Congress.gov / state-legislature / municipal-records integration
+ * yet. `explanation`/`yesMeans`/`noMeans` are HUSH's own paraphrase and are
+ * kept clearly separate from each bill's official number/title/source in
+ * the UI (see BillCard). `sb1` deliberately sets `explainerTooComplex`
+ * instead of a summary, demonstrating the "say so rather than guessing"
+ * rule for a bill genuinely too dense to paraphrase responsibly — a large
+ * appropriations bill amended by floor riders is a realistic case for that.
+ * `hr2145` and `sb890` are both federal but at different vote stages
+ * (final passage vs. a procedural cloture motion) specifically so the UI's
+ * "not just the opposite of each other" and "note when a vote is
+ * procedural" rules have a real case each to satisfy. `propAOrdinance` ties
+ * to the existing "PROP A · TRANSIT BOND" entry in BALLOT below — it's the
+ * council ordinance that put that proposition on the ballot, not a
+ * duplicate of it.
+ */
+export const BILLS: Bill[] = [
+  {
+    id: "hr2145",
+    number: "H.R. 2145",
+    title: "Insulin Cost Reduction Act",
+    chamber: "U.S. House of Representatives",
+    level: "Federal",
+    description:
+      "Caps out-of-pocket insulin costs for people with private insurance and directs HHS to study extending the cap to the uninsured.",
+    voteDate: "Sep 16, 2026",
+    voteStage: "Final passage vote",
+    explanation:
+      "The bill sets a $35-per-month cap on what private insurance plans can charge a patient out of pocket for insulin, starting the plan year after it's signed. It also orders a one-year HHS study on extending a similar cap to people without insurance, but doesn't create that cap itself. The cap applies per insulin prescription filled, not per person, so someone on more than one insulin product would still see more than $35 total in a month.",
+    yesMeans: [
+      "The $35/month insulin cap becomes law for private insurance plans starting next plan year.",
+      "HHS is required to deliver its uninsured-coverage study to Congress within 12 months.",
+      "The bill moves to the Senate, where it is not yet scheduled for a vote.",
+    ],
+    noMeans: [
+      "The bill fails in the House and does not move to the Senate in its current form.",
+      "No federal cap on insulin out-of-pocket costs takes effect; existing state-level caps (where they exist) are unaffected.",
+      "A revised version would need to be reintroduced and pass committee again before another floor vote.",
+    ],
+    sourceName: "Congress.gov",
+    sourceUrl: "https://congress.gov.example/bill/119th-congress/house-bill/2145",
+    dateAccessed: "Aug 20, 2026",
+    dateUpdated: "Aug 18, 2026",
+  },
+  {
+    id: "sb890",
+    number: "S. 890",
+    title: "Voting Access Modernization Act",
+    chamber: "U.S. Senate",
+    level: "Federal",
+    description:
+      "Would require states to offer at least 14 days of early voting and online voter registration for federal elections.",
+    voteDate: "Sep 9, 2026",
+    voteStage: "Procedural vote (cloture motion)",
+    explanation:
+      "This is not a vote on the bill itself. It's a cloture motion — a vote on whether to end debate and allow a final up-or-down vote on the bill to happen at all. Under Senate rules, cloture needs 60 votes to succeed; the bill's actual final-passage vote, if cloture succeeds, would only need a simple majority and would be scheduled separately.",
+    yesMeans: [
+      "Debate ends and the bill advances to a final passage vote, likely within the following week.",
+      "The bill itself is not yet passed — this vote only clears the way for that vote to happen.",
+    ],
+    noMeans: [
+      "Debate continues, but without 60 votes to end it, the bill is effectively blocked from reaching a final vote this session.",
+      "The bill is not formally rejected — it simply cannot come to a final vote under current Senate rules — so a later cloture attempt is possible.",
+    ],
+    sourceName: "Congress.gov",
+    sourceUrl: "https://congress.gov.example/bill/119th-congress/senate-bill/890",
+    dateAccessed: "Aug 20, 2026",
+    dateUpdated: "Aug 14, 2026",
+  },
+  {
+    id: "hb455",
+    number: "Texas HB 455",
+    title: "Renters' Notice and Cure Act",
+    chamber: "Texas House of Representatives",
+    level: "State",
+    description:
+      "Would require landlords to give tenants a written notice and a set period to fix a lease violation before starting an eviction over that violation.",
+    voteDate: "Sep 22, 2026",
+    voteStage: "Committee vote (House Business & Industry Committee)",
+    explanation:
+      "This is a committee vote on whether to send the bill to the full House floor, not a final passage vote. The bill as written would require landlords to give tenants a written notice describing the alleged lease violation and a minimum 10-day period to fix it before filing an eviction based on that violation. It applies to violations like late fees or unauthorized pets — it does not apply to nonpayment of rent, which the bill leaves under existing eviction timelines.",
+    yesMeans: [
+      "The bill advances out of committee to the full Texas House, where it can be scheduled for a floor vote.",
+      "The 10-day notice-and-cure requirement is not yet law — it still needs to pass the House, the Senate, and be signed.",
+    ],
+    noMeans: [
+      "The bill dies in committee for this session unless a member forces a discharge vote to bring it to the floor anyway.",
+      "Current Texas eviction notice rules stay unchanged.",
+    ],
+    sourceName: "Texas Legislature Online",
+    sourceUrl: "https://capitol.texas.gov.example/billlookup/history.aspx?legsess=90r&bill=hb455",
+    dateAccessed: "Aug 19, 2026",
+    dateUpdated: "Aug 11, 2026",
+  },
+  {
+    id: "sb1",
+    number: "Texas SB 1",
+    title: "General Appropriations Act — Article II Floor Amendments",
+    chamber: "Texas State Senate",
+    level: "State",
+    description:
+      "The state's two-year budget bill, as amended by more than 40 floor amendments to its Article II (health and human services) spending.",
+    voteDate: "Sep 24, 2026",
+    voteStage: "Final passage vote",
+    explainerTooComplex: true,
+    sourceName: "Texas Legislature Online",
+    sourceUrl: "https://capitol.texas.gov.example/billlookup/history.aspx?legsess=90r&bill=sb1",
+    dateAccessed: "Aug 19, 2026",
+    dateUpdated: "Aug 17, 2026",
+  },
+  {
+    id: "prop-a-ordinance",
+    number: "Austin Ordinance 20260812-014",
+    title: "Ordinance Ordering a Transit Bond Election (Proposition A)",
+    chamber: "Austin City Council",
+    level: "Local",
+    description:
+      "The council action that placed the transit general-obligation-bond measure on the November 3 ballot as Proposition A.",
+    voteStage: "Final passage vote (already adopted — placed the measure on the ballot)",
+    explanation:
+      "This ordinance doesn't authorize any spending itself. It's the procedural step the council used to call an election asking voters to decide on the transit bond — the bond only takes effect if voters approve Proposition A itself on the November 3 ballot. The ordinance also sets the ballot language and ballot order for Proposition A.",
+    yesMeans: [
+      "The transit bond measure is placed on the Nov 3 ballot as Proposition A, with the ballot language and order this ordinance sets.",
+      "It does not itself authorize any bond spending — that authorization depends entirely on how voters decide Proposition A.",
+    ],
+    noMeans: [
+      "The transit bond measure would not appear on the Nov 3 ballot this cycle.",
+      "The council could revise and re-adopt a new ordinance for a future election instead.",
+    ],
+    sourceName: "City of Austin — Official Records",
+    sourceUrl: "https://austintexas.gov.example/records/ordinances/20260812-014",
+    dateAccessed: "Aug 21, 2026",
+    dateUpdated: "Aug 12, 2026",
+  },
+];
 
 export const BALLOT: BallotItem[] = [
   {

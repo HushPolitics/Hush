@@ -18,6 +18,7 @@ import {
   STANCES,
   TOPIC_POOL,
   GUIDE_POSITIONS,
+  BILLS,
 } from "./seed-data";
 import type {
   Politician,
@@ -26,6 +27,7 @@ import type {
   BallotItem,
   TrendingClaim,
   IssuePosition,
+  Bill,
 } from "./types";
 
 export const hasSupabase = Boolean(
@@ -83,4 +85,9 @@ export function stanceGrid() {
 
 export function topicPool(): string[] {
   return TOPIC_POOL;
+}
+
+/** HUSH Guide's "Bills Being Considered" seed data — no real bill lookup yet. */
+export function listBills(): Bill[] {
+  return BILLS;
 }

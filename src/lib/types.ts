@@ -161,3 +161,45 @@ export interface TrendingClaim {
   meta: string;
   dot: string;
 }
+
+/**
+ * A piece of legislation shown in HUSH Guide's "Bills Being Considered"
+ * section. `explanation`/`yesMeans`/`noMeans` are HUSH's own paraphrase, not
+ * the bill's official language — the UI must keep that visually distinct
+ * (see BillCard) and never blend the two. `explainerTooComplex` is the
+ * honesty valve for a bill HUSH can't confidently simplify yet: when true,
+ * the UI shows that admission instead of `explanation`/`yesMeans`/`noMeans`
+ * (all left undefined for such a bill) rather than guessing at a summary it
+ * can't stand behind. `voteStage` says what kind of vote this is (e.g.
+ * "Final passage vote", "Committee vote", "Procedural vote (cloture
+ * motion)") so a procedural vote is never read as final passage — `yesMeans`
+ * and `noMeans` must describe that vote's actual consequence, not a generic
+ * "the opposite of yes."
+ */
+export interface Bill {
+  id: string;
+  /** Official bill number, e.g. "H.R. 2145", "Texas SB 214". */
+  number: string;
+  /** Official title. */
+  title: string;
+  /** Legislative body considering it, e.g. "U.S. House of Representatives". */
+  chamber: string;
+  level: Level;
+  /** Short official-ish description shown on the tile front, if available. */
+  description?: string;
+  /** Upcoming vote date, if scheduled. */
+  voteDate?: string;
+  voteStage?: string;
+  explainerTooComplex?: boolean;
+  /** "What does this bill do?" — HUSH's plain-English paraphrase. */
+  explanation?: string;
+  /** "A YES vote would:" bullets — the actual consequence of that vote. */
+  yesMeans?: string[];
+  /** "A NO vote would:" bullets — not just the inverse of `yesMeans`. */
+  noMeans?: string[];
+  sourceName: string;
+  sourceUrl: string;
+  dateAccessed: string;
+  /** Date the source was last updated, if the source carries one. */
+  dateUpdated?: string;
+}
