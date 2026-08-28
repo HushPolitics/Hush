@@ -1689,6 +1689,25 @@ export const RACES: Race[] = [
     ]
   },
   {
+    "id": "u-s-senate-tx",
+    "title": "U.S. Senate · TX",
+    "meta": "Nov 3 · federal",
+    "candidates": [
+      {
+        "politicianId": "pike",
+        "name": "Harold Pike (R)",
+        "party": "R",
+        "align": 34
+      },
+      {
+        "politicianId": "olamide",
+        "name": "Bisi Olamide (D)",
+        "party": "D",
+        "align": 77
+      }
+    ]
+  },
+  {
     "id": "mayor-of-austin",
     "title": "Mayor of Austin",
     "meta": "Nov 3 · local",
@@ -1780,31 +1799,34 @@ export const RACES: Race[] = [
  * `trask`) is an explicit empty object rather than a missing key that could
  * be mistaken for "not looked up yet" — GuideView treats both the same way
  * (falls through to "No official position found"), but the empty object
- * documents that the gap is real, not an oversight.
+ * documents that the gap is real, not an oversight. The same convention
+ * applies at the single-issue level: `ainsley` has no "Healthcare" key and
+ * `pike` has no "Housing" key, each with an inline comment marking the
+ * omission as deliberate rather than an unresearched gap.
  *
- * Deliberately partial: this covers a handful of issues per candidate, not
- * the full TOPIC_POOL cross product. That sparsity is intentional — it's
- * what lets the comparison page demonstrate "No official position found"
- * honestly instead of every cell being filled in. Nothing here is a real
- * position or a real source; see the file header.
+ * Deliberately partial: this covers most, not all, of the TOPIC_POOL cross
+ * product. That sparsity is intentional — it's what lets the comparison
+ * page demonstrate "No official position found" honestly instead of every
+ * cell being filled in. Nothing here is a real position or a real source;
+ * see the file header.
  */
 export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
   marchetti: {
     "Healthcare": {
       excerpt:
-        "We'll cap what you pay out of pocket for prescriptions and give every family the choice of a public option.",
-      sourceTitle: "Healthcare — Delia for TX-35",
+        "I'll keep fighting for a public option and a hard $35 cap on insulin copays for anyone on a state plan.",
+      sourceTitle: "Healthcare — Marchetti for Congress",
       sourceType: "Campaign site",
       sourceUrl: "https://delioforcongress.example/issues/healthcare",
-      date: "Jul 2026",
+      date: "Feb 2026",
     },
     "Housing": {
       excerpt:
-        "Density near transit and a renter's tax credit are how we bring rent down without gutting local zoning control.",
-      sourceTitle: "Housing plan",
+        "A renter's tax credit and real density incentives — that's how we actually bring costs down instead of just talking about it.",
+      sourceTitle: "Housing — Marchetti for Congress",
       sourceType: "Campaign site",
       sourceUrl: "https://delioforcongress.example/issues/housing",
-      date: "Jun 2026",
+      date: "Feb 2026",
     },
     "Climate": {
       excerpt:
@@ -1813,6 +1835,22 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       sourceType: "Official press release",
       sourceUrl: "https://marchetti.house.gov.example/press/floor-statement-hr4410",
       date: "Mar 2026",
+    },
+    "Labor": {
+      excerpt:
+        "I co-sponsored sectoral bargaining rules for service workers — that's how you actually raise wages without waiting on Congress to touch the federal minimum.",
+      sourceTitle: "Labor — Marchetti for Congress",
+      sourceType: "Campaign site",
+      sourceUrl: "https://delioforcongress.example/issues/labor",
+      date: "Apr 2026",
+    },
+    "Voting rights": {
+      excerpt:
+        "Automatic registration and restoring federal pre-clearance review are both overdue — I'm a cosponsor on both.",
+      sourceTitle: "Marchetti Co-Sponsors Pre-Clearance Restoration Act",
+      sourceType: "Official press release",
+      sourceUrl: "https://marchetti.house.gov.example/press/pre-clearance-restoration-act",
+      date: "Jan 2026",
     },
   },
   wexler: {
@@ -1824,15 +1862,25 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       sourceUrl: "https://wexlerforcongress.example/platform",
       date: "May 2026",
     },
+    "Climate": {
+      excerpt:
+        "Grid reliability comes before emissions targets — I won't vote to phase out dispatchable power before we have a replacement that works.",
+      sourceTitle: "Where Grant Stands — Energy",
+      sourceType: "Campaign site",
+      sourceUrl: "https://wexlerforcongress.example/platform/energy",
+      date: "May 2026",
+    },
   },
   ainsley: {
+    // No official position found on Healthcare — the city funds clinics but
+    // Ainsley has not staked out a position beyond deferring to the county.
     "Housing": {
       excerpt:
-        "We upzoned three transit corridors this term and I'll bring three more before council next spring.",
-      sourceTitle: "Housing & Growth",
+        "We upzoned three transit corridors this term and cut permit review time to 30 days — that's how a city keeps up with growth.",
+      sourceTitle: "State of the City: Housing & Growth",
       sourceType: "Official government site",
-      sourceUrl: "https://austintexas.gov.example/mayor/housing-growth",
-      date: "Feb 2026",
+      sourceUrl: "https://austintexas.gov.example/mayor/state-of-the-city-housing-growth",
+      date: "Mar 2026",
     },
     "Climate": {
       excerpt:
@@ -1849,6 +1897,21 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       sourceType: "Official social media",
       sourceUrl: "https://x.com.example/mayorainsley/status/1234567890",
       date: "Apr 2026",
+    },
+    "Labor": {
+      excerpt: "I signed the prevailing wage order in my first hundred days — every city contract now has to meet it.",
+      sourceTitle: "Office of the Mayor — Labor",
+      sourceType: "Official government site",
+      sourceUrl: "https://austintexas.gov.example/mayor/labor",
+      date: "Feb 2026",
+    },
+    "Voting rights": {
+      excerpt:
+        "Fifteen new early voting sites are open citywide this cycle — turnout shouldn't depend on which zip code you live in.",
+      sourceTitle: "Mayor Ainsley Expands Early Voting Access",
+      sourceType: "Official press release",
+      sourceUrl: "https://austintexas.gov.example/news/early-voting-expansion",
+      date: "Sep 2025",
     },
   },
   kohl: {
@@ -1867,17 +1930,32 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       sourceUrl: "https://kohlforaustin.example/files/platform.pdf",
       date: "May 2026",
     },
+    "Labor": {
+      excerpt: "Every city contract should carry a local-hire requirement, not just a wage floor.",
+      sourceTitle: "Kohl campaign platform",
+      sourceType: "Official platform document",
+      sourceUrl: "https://kohlforaustin.example/files/platform.pdf",
+      date: "May 2026",
+    },
   },
   // No researched positions yet — every issue on the comparison page falls
   // back to "No official position found" for this candidate, honestly.
   rausch: {},
   vance: {
     "Healthcare": {
-      excerpt: "I led the push to expand Medicaid in this state and I'm not done — a public option should be next.",
-      sourceTitle: "Vance for Senate — Healthcare",
-      sourceType: "Campaign site",
-      sourceUrl: "https://vanceforsenate.example/healthcare",
-      date: "Jul 2026",
+      excerpt:
+        "Our state Medicaid expansion is the reason 40,000 more families have coverage today — I led that fight and I'll defend it.",
+      sourceTitle: "Where I Stand: Healthcare",
+      sourceType: "Official platform document",
+      sourceUrl: "https://vanceforsenate.example/where-i-stand/healthcare",
+      date: "Jan 2026",
+    },
+    "Housing": {
+      excerpt: "I support building more supply, but not at the cost of tenant protections — both have to move together.",
+      sourceTitle: "Where I Stand: Housing",
+      sourceType: "Official platform document",
+      sourceUrl: "https://vanceforsenate.example/where-i-stand/housing",
+      date: "Jan 2026",
     },
     "Climate": {
       excerpt:
@@ -1886,6 +1964,14 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       sourceType: "Official government site",
       sourceUrl: "https://senate.texas.gov.example/members/dist14/sb812",
       date: "May 2025",
+    },
+    "Labor": {
+      excerpt:
+        "I'll back a statewide wage floor, but I'm not there yet on mandating sectoral bargaining — that fight isn't finished for me.",
+      sourceTitle: "Where I Stand: Labor",
+      sourceType: "Official platform document",
+      sourceUrl: "https://vanceforsenate.example/where-i-stand/labor",
+      date: "Jan 2026",
     },
     "Voting rights": {
       excerpt: "I blocked the mail-ballot restrictions on the floor, and I'll block the next version too.",
@@ -1896,6 +1982,21 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
     },
   },
   torrance: {
+    "Healthcare": {
+      excerpt:
+        "I opposed the Medicaid expansion — the state can't sustain the match cost — but I'll back real price transparency requirements for hospitals.",
+      sourceTitle: "Torrance for Senate — Healthcare",
+      sourceType: "Campaign site",
+      sourceUrl: "https://torranceforsenate.example/healthcare",
+      date: "May 2026",
+    },
+    "Housing": {
+      excerpt: "I'm for more supply, not more mandates — let the market build, and get government out of the way.",
+      sourceTitle: "Torrance campaign platform",
+      sourceType: "Official platform document",
+      sourceUrl: "https://torranceforsenate.example/files/platform.pdf",
+      date: "May 2026",
+    },
     "Voting rights": {
       excerpt: "Voter ID isn't suppression, it's security. I sponsored the bill and I'd sponsor it again.",
       sourceTitle: "Torrance for Senate — Election Integrity",
@@ -1912,6 +2013,14 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
     },
   },
   oseihart: {
+    "Healthcare": {
+      excerpt:
+        "I held the hospital district levy flat for the third year running — you shouldn't need a tax hike every cycle to keep the county ER open.",
+      sourceTitle: "County Judge — Hospital District Levy",
+      sourceType: "Official government site",
+      sourceUrl: "https://traviscountytx.gov.example/judge/hospital-district-levy",
+      date: "Oct 2025",
+    },
     "Housing": {
       excerpt:
         "The diversion pilot we funded keeps people housed instead of jailed over unpaid fines — I want to make it permanent.",
@@ -1927,10 +2036,49 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       sourceUrl: "https://traviscountytx.gov.example/news/contractor-wage-floor",
       date: "Nov 2025",
     },
+    "Voting rights": {
+      excerpt:
+        "Two new ballot drop sites opened this term, both in the districts that had the longest lines last cycle.",
+      sourceTitle: "Commissioners Court press release",
+      sourceType: "Official press release",
+      sourceUrl: "https://traviscountytx.gov.example/news/ballot-drop-sites",
+      date: "Sep 2025",
+    },
   },
   // No researched positions yet — same as `rausch` above.
   trask: {},
   bellweather: {
+    "Healthcare": {
+      excerpt:
+        "Nine campuses now have a school-based health clinic on-site — every kid should be able to see a nurse without missing a day of class.",
+      sourceTitle: "School-Based Health Clinics Update",
+      sourceType: "Official press release",
+      sourceUrl: "https://bellweatherfortrustee.example/press/school-based-health-clinics-update",
+      date: "Sep 2025",
+    },
+    "Housing": {
+      excerpt:
+        "Teacher housing on district-owned land is how we keep good teachers from being priced out of the community they teach in.",
+      sourceTitle: "@BellweatherForD4",
+      sourceType: "Official social media",
+      sourceUrl: "https://x.com.example/bellweatherford4/status/9876543210",
+      date: "Oct 2025",
+    },
+    "Climate": {
+      excerpt:
+        "Twelve campuses are on solar now, and every new build goes solar by default — that's board policy, not a pledge.",
+      sourceTitle: "District 4 trustee platform",
+      sourceType: "Official platform document",
+      sourceUrl: "https://bellweatherfortrustee.example/files/platform.pdf",
+      date: "May 2026",
+    },
+    "Labor": {
+      excerpt: "I negotiated the aide wage floor up to $22 an hour — we were losing aides to retail jobs that paid better.",
+      sourceTitle: "Bellweather Announces Aide Wage Agreement",
+      sourceType: "Official press release",
+      sourceUrl: "https://bellweatherfortrustee.example/press/aide-wage-agreement",
+      date: "Aug 2025",
+    },
     "Education": {
       excerpt:
         "We stopped the voucher pilot at the board and I'll stop the next version — public dollars belong in public schools.",
@@ -1939,15 +2087,16 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       sourceUrl: "https://bellweatherfortrustee.example/issues",
       date: "Jun 2026",
     },
-    "Healthcare": {
-      excerpt: "Nine campuses now have a school-based clinic. My goal is every campus in the district by 2028.",
-      sourceTitle: "District 4 trustee platform",
-      sourceType: "Official platform document",
-      sourceUrl: "https://bellweatherfortrustee.example/files/platform.pdf",
-      date: "May 2026",
-    },
   },
   mora: {
+    "Housing": {
+      excerpt:
+        "Teacher housing sounds nice, but I'd rather see that land sold and the money put straight into aide pay.",
+      sourceTitle: "Sal Mora for District 4 — Housing",
+      sourceType: "Campaign site",
+      sourceUrl: "https://moraford4.example/housing",
+      date: "Jun 2026",
+    },
     "Education": {
       excerpt:
         "I'd pause the clinic expansion and put that money into classroom aide pay instead — teachers are leaving over it.",
@@ -1955,6 +2104,50 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       sourceType: "Campaign site",
       sourceUrl: "https://moraford4.example/priorities",
       date: "Jun 2026",
+    },
+  },
+  pike: {
+    "Healthcare": {
+      excerpt:
+        "I voted against the subsidy renewal because it grows the deficit without fixing the underlying cost of care.",
+      sourceTitle: "Senator Pike Statement on Health Subsidy Vote",
+      sourceType: "Official government site",
+      sourceUrl: "https://pike.senate.gov.example/press/health-subsidy-vote",
+      date: "Nov 2025",
+    },
+    // No official position found on Housing — Pike has voted on the topic
+    // but has not issued a public statement staking out a position.
+    "Climate": {
+      excerpt:
+        "Emissions targets without a reliability plan are wishful thinking — I'll keep backing LNG expansion as the bridge fuel that actually keeps the lights on.",
+      sourceTitle: "Senator Pike on Energy Policy",
+      sourceType: "Official government site",
+      sourceUrl: "https://pike.senate.gov.example/issues/energy-policy",
+      date: "Aug 2025",
+    },
+    "Voting rights": {
+      excerpt: "Ballot integrity and ballot access aren't in conflict — I'll keep backing ID requirements and regular roll maintenance.",
+      sourceTitle: "Senator Pike Statement on Election Security",
+      sourceType: "Official press release",
+      sourceUrl: "https://pike.senate.gov.example/press/election-security-statement",
+      date: "Dec 2025",
+    },
+  },
+  olamide: {
+    "Housing": {
+      excerpt: "We need a statewide renters' bill of rights — Texans shouldn't lose their home over one missed paycheck.",
+      sourceTitle: "Olamide for Senate — Housing",
+      sourceType: "Campaign site",
+      sourceUrl: "https://olamideforsenate.example/housing",
+      date: "Mar 2026",
+    },
+    "Climate": {
+      excerpt:
+        "I'd put the state's share of clean-energy tax credits behind grid batteries first — that's the fastest way to cut outages.",
+      sourceTitle: "Olamide for Senate — Climate",
+      sourceType: "Campaign site",
+      sourceUrl: "https://olamideforsenate.example/climate",
+      date: "Feb 2026",
     },
   },
 };
