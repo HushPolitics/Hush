@@ -64,15 +64,6 @@ export interface Prefs {
    */
   onboarded: boolean;
   /**
-   * Deprecated placeholders — superseded by `firstName`/`lastName`/`email`
-   * below and no longer read anywhere. Kept for one commit so the currently
-   * live ProfileView (which still destructures them) doesn't fail to build
-   * while that file is mid-migration; removed in the immediate follow-up
-   * commit once it no longer references them.
-   */
-  party: string;
-  invited: number;
-  /**
    * Name/email collected on the signup wizard's "Create account" step
    * (`SignupWizard`'s `firstName`/`lastName`/`email` state), mirrored here so
    * Profile Settings has something real to show and edit instead of a
@@ -129,8 +120,6 @@ const DEFAULTS: Prefs = {
   state: DEFAULT_STATE,
   streetAddress: "",
   onboarded: false,
-  party: "Independent",
-  invited: 12,
   firstName: "Jordan",
   lastName: "Reyes",
   email: "",
