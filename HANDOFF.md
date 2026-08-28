@@ -48,10 +48,19 @@ Next.js 16 (App Router, React 19, Tailwind 4, TypeScript) · Supabase · Vercel.
 
 **Frontend** — all six views as real routes, converted from a Claude Design
 canvas and pixel-matched to it:
-`/` Feed · `/compare` · `/your-ballot` · `/fact-check` · `/profile` ·
-`/politician/[id]` · `/politician/[id]/trust` · `/login` · `/pricing` ·
-`/api/ingest`. (`/ballot` and `/voters-guide` redirect to `/your-ballot`;
-`/saved` redirects to `/profile`.)
+`/` Feed · `/compare` · `/your-ballot` · `/hush-guide` · `/hush-guide/[raceId]` ·
+`/fact-check` · `/profile` · `/politician/[id]` · `/politician/[id]/trust` ·
+`/login` · `/pricing` · `/api/ingest`. (`/ballot` and `/voters-guide` redirect
+to `/your-ballot`; `/guide` redirects to `/hush-guide`; `/saved` redirects to
+`/profile`.)
+
+`/hush-guide` is its own three-step flow (address, then up to 10 issues,
+then a tile grid of races) gated on `guideIssues` in prefs, plus a "Bills
+Being Considered" section of flip-card tiles at the bottom. No score, no
+ranking, no recommendation anywhere in it by design — see the comments atop
+`GuideView.tsx`, `GuideRaceView.tsx` and `GuideBills.tsx`. All of its data
+(`GUIDE_POSITIONS`, `BILLS`) is illustrative seed data with no real
+civic-data or Congress.gov/state-legislature integration yet.
 Design system: Barlow + Barlow Condensed, rust `#9C3F32`, navy `#253746`,
 cream `#FFFDF9`, tan `#B5A88A`.
 

@@ -27,6 +27,7 @@ src/
     page.tsx              Feed
     compare/              Vote compare + stance grid
     your-ballot/          Countdown, races, polling place
+    hush-guide/           Address + issues -> race tile grid, comparisons, bills
     fact-check/           Claims and verdicts
     profile/              The "you" surface (topics, ranked issues, saved)
     politician/[id]/      Profile
