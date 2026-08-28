@@ -385,7 +385,7 @@ export const POLITICIANS: Politician[] = [
   },
   {
     "id": "pike",
-    "name": "Sen. Harold Pike",
+    "name": "Sen. Carsten Prause",
     "office": "U.S. Senator",
     "district": "Texas",
     "level": "Federal",
@@ -1696,7 +1696,7 @@ export const RACES: Race[] = [
     "candidates": [
       {
         "politicianId": "pike",
-        "name": "Harold Pike (R)",
+        "name": "Carsten Prause (R)",
         "party": "R",
         "align": 34
       },
@@ -2301,7 +2301,7 @@ export const BALLOT: BallotItem[] = [
   },
   {
     "race": "U.S. Senate · TX",
-    "candidates": "Pike (R) · Olamide (D)",
+    "candidates": "Prause (R) · Olamide (D)",
     "level": "Federal",
     "state": "Needs review",
     "politicianId": "pike"
@@ -2338,7 +2338,7 @@ export const BALLOT: BallotItem[] = [
 
 export const TRENDING: TrendingClaim[] = [
   {
-    "text": "Pike's rent claim, repeated in three debates",
+    "text": "Prause's rent claim, repeated in three debates",
     "meta": "47 checks · False",
     "dot": "#9C3F32"
   },
