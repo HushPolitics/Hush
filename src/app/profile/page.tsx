@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Profile" };
 
 export default function ProfilePage() {
   return (
-    <AppShell kicker="Profile" title="Jordan Reyes">
+    <AppShell kicker="Profile" title="Your issues, your ballot, your record">
       <ProfileView
         politicians={listPoliticians()}
         topicPool={topicPool()}
