@@ -130,6 +130,13 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
       return;
     }
 
+    // Mirror into Prefs immediately — this is the only place these are
+    // captured, and Profile Settings reads them from here, not from
+    // component state that disappears once the wizard unmounts.
+    prefs.setFirstName(firstName.trim());
+    prefs.setLastName(lastName.trim());
+    prefs.setEmail(email.trim());
+
     setAccountStatus("idle");
     setStep(2);
   }
@@ -156,6 +163,7 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
   async function finish() {
     setFinishing(true);
     prefs.setOnboarded(true);
+    prefs.setEmailPref("hushAnnouncements", marketingOptIn);
     const synced = await syncOnboardingToSupabase({
       firstName,
       lastName,

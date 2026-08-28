@@ -162,7 +162,7 @@ export function Avatar({ text, size = 28, bg = C.shell, fg = C.body, radius, fon
   );
 }
 
-export function Card({ children, style, className, onClick, onKeyDown, role, tabIndex, "aria-label": ariaLabel }: {
+export function Card({ children, style, className, onClick, onKeyDown, role, tabIndex, id, "aria-label": ariaLabel }: {
   children: ReactNode;
   style?: CSSProperties;
   className?: string;
@@ -170,10 +170,12 @@ export function Card({ children, style, className, onClick, onKeyDown, role, tab
   onKeyDown?: (e: KeyboardEvent<HTMLDivElement>) => void;
   role?: string;
   tabIndex?: number;
+  id?: string;
   "aria-label"?: string;
 }) {
   return (
     <div
+      id={id}
       className={className}
       onClick={onClick}
       onKeyDown={onKeyDown}
