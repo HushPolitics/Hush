@@ -493,7 +493,7 @@ function TileGrid({
                 </span>
 
                 <RustButton
-                  onClick={() => router.push(`/guide/${race.id}`)}
+                  onClick={() => router.push(`/hush-guide/${race.id}`)}
                   style={{ marginTop: 4, padding: "10px 16px", fontSize: 13 }}
                 >
                   View Comparison

@@ -38,7 +38,7 @@ export default function GuideRaceView({
           <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
             Pick the issues you want researched before opening a comparison page.
           </span>
-          <RustButton onClick={() => router.push("/guide")} style={{ alignSelf: "flex-start" }}>
+          <RustButton onClick={() => router.push("/hush-guide")} style={{ alignSelf: "flex-start" }}>
             Go to HUSH Guide
           </RustButton>
         </Card>
@@ -50,7 +50,7 @@ export default function GuideRaceView({
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
       <button
         type="button"
-        onClick={() => router.push("/guide")}
+        onClick={() => router.push("/hush-guide")}
         style={{
           alignSelf: "flex-start",
           border: 0,
