@@ -410,20 +410,19 @@ function TileGrid({
       </div>
 
       {/*
-        RACES only has 5 entries seeded (U.S. House, Mayor, State Senate,
-        County Judge, School Board), all for the same Austin/Travis County
-        sample ballot BallotView and CompareView already use — there's no
-        real address-to-ballot lookup behind it yet, so every address shows
-        the same five races. The seed dataset also has no U.S. Senate,
-        Governor, State House, or County Commission race with a full
-        candidate roster (BALLOT lists a U.S. Senate item, but not with
-        candidates/positions attached) — those tile types are left out
-        rather than invented. See seed-data.ts.
+        RACES has 6 entries seeded (U.S. House, U.S. Senate, Mayor, State
+        Senate, County Judge, School Board), all for the same Austin/Travis
+        County sample ballot BallotView and CompareView already use — there's
+        no real address-to-ballot lookup behind it yet, so every address
+        shows the same six races. The seed dataset still has no Governor,
+        State House, or County Commission race with a full candidate roster
+        — those tile types are left out rather than invented. See
+        seed-data.ts.
       */}
       <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.5 }}>
         Showing the {races.length} races in Hush&apos;s seed dataset for this sample ballot —
         this prototype doesn&apos;t have real address-based ballot lookup yet, and the seed data
-        doesn&apos;t include every race type (no U.S. Senate, Governor, State House, or County
+        still doesn&apos;t include every race type (no Governor, State House, or County
         Commission race with a full candidate list yet).
       </span>
 
