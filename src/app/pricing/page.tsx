@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { C, cond } from "@/lib/theme";
 import { PAYWALL_ENABLED } from "@/components/Gate";
+import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 
 export const metadata: Metadata = { title: "Membership" };
 
@@ -18,7 +19,7 @@ const PLANS = [
     price: "$0",
     cadence: "always",
     lines: [
-      "Every published trust score",
+      "Every published HUSH. Score",
       "Your ballot and value matching",
       "Fact-check feed",
     ],
@@ -57,8 +58,10 @@ export default function PricingPage() {
           </Link>
           <span style={{ fontFamily: cond, fontSize: 32 }}>Membership</span>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: C.body, maxWidth: 620 }}>
-            Trust scores stay free — a voter should never hit a paywall between themselves and a
-            public record. Membership pays for the fact-checking work behind them.
+            HUSH. Scores{" "}
+            <HushScoreInfoIcon style={{ color: C.body, verticalAlign: "middle" }} /> stay free — a
+            voter should never hit a paywall between themselves and a public record. Membership
+            pays for the fact-checking work behind them.
           </p>
           {!PAYWALL_ENABLED ? (
             <span style={{ fontSize: 12, color: C.muted }}>
