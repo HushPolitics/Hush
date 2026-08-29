@@ -9,11 +9,11 @@ import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, lookupDistrict } from "@/lib/seed-data";
 import { RustButton, SearchField } from "./ui";
 import PersonalizeBanner from "./PersonalizeBanner";
+import { HushScoreInfoProvider } from "./HushScoreInfo";
 
 const NAV = [
   { href: "/feed", label: "Feed" },
-  { href: "/hush-guide", label: "HUSH Guide" },
-  { href: "/your-ballot", label: "Your Ballot" },
+  { href: "/voters-guide", label: "Voter's Guide" },
   { href: "/compare", label: "Compare" },
   { href: "/fact-check", label: "Fact Check" },
   { href: "/profile", label: "Profile" },
@@ -71,6 +71,7 @@ export default function AppShell({
   }
 
   return (
+    <HushScoreInfoProvider>
     <div
       className="app-shell"
       style={{
@@ -386,10 +387,11 @@ export default function AppShell({
           }}
         >
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.rust, flex: "0 0 6px" }} />
-          Illustrative placeholder data — trust scores, promise records and fact-check verdicts in this
+          Illustrative placeholder data — HUSH. Scores, promise records and fact-check verdicts in this
           prototype are not real.
         </footer>
       </div>
     </div>
+    </HushScoreInfoProvider>
   );
 }
