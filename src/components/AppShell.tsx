@@ -13,6 +13,7 @@ import { HushScoreInfoProvider } from "./HushScoreInfo";
 
 const NAV = [
   { href: "/feed", label: "Feed" },
+  { href: "/hush-guide", label: "HUSH Guide" },
   { href: "/voters-guide", label: "Voter's Guide" },
   { href: "/compare", label: "Compare" },
   { href: "/fact-check", label: "Fact Check" },
