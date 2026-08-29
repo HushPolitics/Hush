@@ -28,7 +28,7 @@ export default async function TrustPage({ params }: { params: Promise<{ id: stri
   const p = getPolitician(id);
 
   return (
-    <AppShell kicker="Trust score" title={`${p.name} · promise ledger`}>
+    <AppShell kicker="HUSH. Score" title={`${p.name} · promise ledger`}>
       <TrustView politician={p} />
     </AppShell>
   );

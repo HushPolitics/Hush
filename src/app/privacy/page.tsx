@@ -15,8 +15,8 @@ const SECTIONS: { title: string; body: string }[] = [
     body: "The issues you rank and the topics you choose to follow shape what HUSH shows you first and how closely it says a politician matches what you care about. They're a personalization signal for your account only — not a political label, and not something other users can see.",
   },
   {
-    title: "Trust scores, promise records and fact checks",
-    body: "This is an illustrative prototype. Trust scores, promise records and fact-check verdicts shown across HUSH today are placeholder data, not a real assessment of any real person — see the notice at the bottom of every page.",
+    title: "HUSH. Scores, promise records and fact checks",
+    body: "This is an illustrative prototype. HUSH. Scores, promise records and fact-check verdicts shown across HUSH today are placeholder data, not a real assessment of any real person — see the notice at the bottom of every page.",
   },
   {
     title: "Your account",

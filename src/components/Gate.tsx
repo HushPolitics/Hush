@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { getUser, hasEntitlement } from "@/lib/supabase/server";
+import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 
 /**
  * Subscription gate.
@@ -55,8 +56,15 @@ export default async function Gate({
         </span>
         <span style={{ fontFamily: cond, fontSize: 25 }}>{feature}</span>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.body }}>
-          {blurb ??
-            "Trust scores and your ballot stay free. This part needs a membership."}
+          {blurb ? (
+            blurb
+          ) : (
+            <>
+              HUSH. Scores{" "}
+              <HushScoreInfoIcon style={{ color: C.body, verticalAlign: "middle" }} /> and your
+              ballot stay free. This part needs a membership.
+            </>
+          )}
         </p>
         <div style={{ display: "flex", gap: 9, marginTop: 4 }}>
           <Link

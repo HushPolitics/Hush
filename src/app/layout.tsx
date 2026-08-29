@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Hush — know who you're voting for",
     description:
-      "Value matching and promise-tracking trust scores for every race on your ballot.",
+      "Value matching and promise-tracking HUSH. Scores for every race on your ballot.",
     url: "https://hushpolitics.com",
     siteName: "Hush",
     type: "website",

@@ -8,6 +8,7 @@ import { usePrefs } from "@/lib/prefs";
 import { computeMatch, initials, lastNameOf } from "@/lib/scoring";
 import type { Level, Politician } from "@/lib/types";
 import { Avatar, Bar, Chip, Kicker, RustButton } from "@/components/ui";
+import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 
 type SortKey = "name" | "office" | "level" | "party" | "trust" | "lastName";
 
@@ -16,7 +17,7 @@ const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
   { key: "office", label: "Office", align: "left" },
   { key: "level", label: "Level", align: "left" },
   { key: "party", label: "Party", align: "left" },
-  { key: "trust", label: "Trust score", align: "left" },
+  { key: "trust", label: "HUSH. Score", align: "left" },
 ];
 
 const SORT_LABEL: Record<SortKey, string> = {
@@ -24,7 +25,7 @@ const SORT_LABEL: Record<SortKey, string> = {
   office: "Office",
   level: "Level",
   party: "Party",
-  trust: "Trust Score",
+  trust: "HUSH. Score",
   lastName: "Alphabetical (A-Z)",
 };
 
@@ -36,7 +37,7 @@ const LEVELS: (Level | "All")[] = ["All", "Local", "State", "Federal"];
 const LEVEL_RANK: Record<Level, number> = { Federal: 2, State: 1, Local: 0 };
 
 const SORT_OPTIONS: { label: string; key: SortKey }[] = [
-  { label: "Trust Score", key: "trust" },
+  { label: "HUSH. Score", key: "trust" },
   { label: "Alphabetical (A-Z)", key: "lastName" },
   { label: "Level", key: "level" },
 ];
@@ -188,9 +189,12 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
           }}
         >
           <div style={{ display: "flex", alignItems: "center", flexDirection: "column", textAlign: "center" }}>
-            <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
-              Trust score
-            </Kicker>
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
+                HUSH. Score
+              </Kicker>
+              <HushScoreInfoIcon politicianId={hero.id} style={{ color: C.tan }} />
+            </span>
             <span style={{ fontFamily: cond, fontSize: 46, lineHeight: 1, color: C.sand }}>
               {hero.trust}
             </span>

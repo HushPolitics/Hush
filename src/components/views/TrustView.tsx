@@ -5,6 +5,7 @@ import { C, STATUS_STYLE, cond, progressColor, trustBand } from "@/lib/theme";
 import { TRUST_WEIGHTS } from "@/lib/scoring";
 import type { Politician, PromiseStatus } from "@/lib/types";
 import { Chip, Kicker, Pill } from "@/components/ui";
+import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 
 const FILTERS: (PromiseStatus | "All")[] = ["All", "Delivered", "In progress", "No movement"];
 const LEDGER_GRID = "1fr 168px 96px 132px";
@@ -33,7 +34,10 @@ export default function TrustView({ politician: p }: { politician: Politician })
           <span style={{ fontFamily: cond, fontSize: 40, lineHeight: 1, color: C.sand }}>
             {p.trust}
           </span>
-          <span style={{ fontSize: 12, color: C.tan }}>Trust score · {p.name}</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: C.tan }}>
+            HUSH. Score · {p.name}
+            <HushScoreInfoIcon politicianId={p.id} style={{ color: C.tan }} />
+          </span>
         </div>
         <span style={{ height: 30, width: 1, background: "rgba(243,239,228,0.2)" }} />
         <span style={{ fontSize: 12, color: C.tan, maxWidth: 420, lineHeight: 1.5 }}>

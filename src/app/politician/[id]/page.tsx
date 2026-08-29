@@ -18,7 +18,7 @@ export async function generateMetadata({
   const p = getPolitician(id);
   return {
     title: p.name,
-    description: `${p.name} — ${p.office}, ${p.district}. Trust score ${p.trust}, ${p.kept} of ${p.kept + p.prog + p.broken} tracked promises delivered.`,
+    description: `${p.name} — ${p.office}, ${p.district}. HUSH. Score ${p.trust}, ${p.kept} of ${p.kept + p.prog + p.broken} tracked promises delivered.`,
   };
 }
 
