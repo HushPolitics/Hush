@@ -8,6 +8,7 @@ import { DEFAULT_DISTRICT } from "@/lib/seed-data";
 import { initials } from "@/lib/scoring";
 import type { Politician, Race, StanceCell } from "@/lib/types";
 import { Avatar, Bar, Display, Kicker, RustButton } from "@/components/ui";
+import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 
 export default function CompareView({
   politicians,
@@ -300,8 +301,9 @@ export default function CompareView({
                 <span style={{ fontSize: 11, color: C.muted }}>
                   {h.office} · {h.district}
                 </span>
-                <span style={{ fontSize: 11, color: h.band.color }}>
-                  Trust {h.trust}
+                <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: h.band.color }}>
+                  HUSH. {h.trust}
+                  <HushScoreInfoIcon politicianId={h.id} />
                 </span>
               </div>
             ))}

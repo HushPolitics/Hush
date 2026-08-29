@@ -7,6 +7,7 @@ import { usePrefs } from "@/lib/prefs";
 import { promiseSplit } from "@/lib/scoring";
 import type { FactCheck, Politician } from "@/lib/types";
 import { Card, EmptyState, GhostButton, InkButton, Kicker } from "@/components/ui";
+import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 import { FactCheckCard } from "./FactCheckView";
 
 const TABS = [
@@ -138,7 +139,10 @@ export default function PoliticianView({
               gap: 3,
             }}
           >
-            <Kicker>Trust score</Kicker>
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Kicker>HUSH. Score</Kicker>
+              <HushScoreInfoIcon politicianId={p.id} />
+            </span>
             <span style={{ fontFamily: cond, fontSize: 56, lineHeight: 1, color: band.color }}>
               {p.trust}
             </span>
