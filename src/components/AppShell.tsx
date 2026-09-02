@@ -16,6 +16,7 @@ const NAV = [
   { href: "/hush-guide", label: "HUSH Guide" },
   { href: "/voters-guide", label: "My Ballot" },
   { href: "/compare", label: "Compare" },
+  { href: "/stance-check", label: "Stance Check" },
   { href: "/fact-check", label: "Fact Check" },
   { href: "/profile", label: "Profile" },
 ];
