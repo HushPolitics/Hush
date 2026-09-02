@@ -156,6 +156,37 @@ export interface IssuePosition {
   date?: string;
 }
 
+/**
+ * A candidate's recorded stance toward one Stance Check statement — their
+ * own vote or stated position on the specific claim, not how well it
+ * matches the signed-in user. "Neutral" covers a genuinely mixed or
+ * conditional record, not a missing one; a candidate with nothing sourced
+ * simply has no key in `STANCE_POSITIONS` for that issue, same convention
+ * `GUIDE_POSITIONS` already uses, and Stance Check's UI renders that gap as
+ * "No record" rather than guessing.
+ */
+export type StanceCheckAnswer = "Agree" | "Neutral" | "Disagree";
+
+/**
+ * Same shape and sourcing rigor as `IssuePosition` — this only exists as a
+ * separate type because it carries `stance`, which `IssuePosition`
+ * deliberately does not: HUSH Guide shows what a candidate said with no
+ * judgment attached, while Stance Check exists specifically to say whether
+ * that record agrees or disagrees with the statement. There is still no
+ * score here — `stance` is a per-question fact, not something rolled up
+ * across questions.
+ */
+export interface StanceCheckPosition {
+  stance: StanceCheckAnswer;
+  /** Short excerpt/quote grounding the stance — not a full reproduction. */
+  excerpt: string;
+  sourceTitle: string;
+  sourceType: GuideSourceType;
+  sourceUrl: string;
+  /** Publication or last-updated date, if the source carries one. */
+  date?: string;
+}
+
 export interface TrendingClaim {
   text: string;
   meta: string;

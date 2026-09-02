@@ -19,6 +19,8 @@ import {
   TOPIC_POOL,
   GUIDE_POSITIONS,
   BILLS,
+  STANCE_STATEMENTS,
+  STANCE_POSITIONS,
 } from "./seed-data";
 import type {
   Politician,
@@ -27,6 +29,7 @@ import type {
   BallotItem,
   TrendingClaim,
   IssuePosition,
+  StanceCheckPosition,
   Bill,
 } from "./types";
 
@@ -90,4 +93,14 @@ export function topicPool(): string[] {
 /** HUSH Guide's "Bills Being Considered" seed data — no real bill lookup yet. */
 export function listBills(): Bill[] {
   return BILLS;
+}
+
+/** Stance Check's per-issue statements: issue -> the statement text. */
+export function stanceStatements(): Record<string, string> {
+  return STANCE_STATEMENTS;
+}
+
+/** Stance Check's sourced per-candidate stances: politicianId -> issue -> StanceCheckPosition. */
+export function stancePositions(): Record<string, Record<string, StanceCheckPosition>> {
+  return STANCE_POSITIONS;
 }
