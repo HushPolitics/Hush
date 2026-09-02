@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type CSSProperties, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { issueCoverage, parseRaceTitle } from "@/lib/guide";
@@ -207,16 +207,34 @@ function AddressStep({
 
 const MAX_GUIDE_ISSUES = 10;
 
-function IssuesStep({
+/**
+ * The "What matters most to you?" issue picker. Shared between HUSH Guide's
+ * own setup flow and Stance Check's empty-`guideIssues` gate — both features
+ * read and write the same `guideIssues` list, so there is deliberately one
+ * picker rather than two. `kicker`/`title`/`description`/`continueLabel`
+ * default to HUSH Guide's own copy (and `onBack` defaults to hidden), so
+ * HUSH Guide's call site below needs no changes; a caller that wants
+ * different wording (Stance Check) passes its own strings instead of
+ * branching on `hasGuide` here.
+ */
+export function IssuesStep({
   topicPool,
   hasGuide,
   onBack,
   onContinue,
+  kicker,
+  title = "What matters most to you?",
+  description,
+  continueLabel,
 }: {
   topicPool: string[];
   hasGuide: boolean;
-  onBack: () => void;
+  onBack?: () => void;
   onContinue: () => void;
+  kicker?: string;
+  title?: string;
+  description?: ReactNode;
+  continueLabel?: string;
 }) {
   const { guideIssues, toggleGuideIssue } = usePrefs();
   const [capNote, setCapNote] = useState(false);
@@ -243,16 +261,21 @@ function IssuesStep({
       }}
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        <Kicker>{hasGuide ? "Edit issues" : "Step 2 of 2 · HUSH Guide"}</Kicker>
+        <Kicker>{kicker ?? (hasGuide ? "Edit issues" : "Step 2 of 2 · HUSH Guide")}</Kicker>
         <span style={{ height: 1, flex: 1, background: C.line }} />
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <span style={{ fontFamily: cond, fontSize: 24 }}>What matters most to you?</span>
+        <span style={{ fontFamily: cond, fontSize: 24 }}>{title}</span>
         <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
-          Pick up to {MAX_GUIDE_ISSUES} issues. HUSH Guide researches sourced candidate positions
-          on each one you choose — this is separate from the ranked issues that drive Value Match
-          elsewhere in the app, so picking issues here doesn&apos;t change your match scores.
+          {description ?? (
+            <>
+              Pick up to {MAX_GUIDE_ISSUES} issues. HUSH Guide researches sourced candidate
+              positions on each one you choose — this is separate from the ranked issues that
+              drive Value Match elsewhere in the app, so picking issues here doesn&apos;t change
+              your match scores.
+            </>
+          )}
         </span>
       </div>
 
@@ -276,12 +299,12 @@ function IssuesStep({
       ) : null}
 
       <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
-        <GhostButton onClick={onBack}>Back</GhostButton>
+        {onBack ? <GhostButton onClick={onBack}>Back</GhostButton> : null}
         <RustButton
           onClick={() => guideIssues.length > 0 && onContinue()}
           style={{ flex: 1, opacity: guideIssues.length === 0 ? 0.5 : 1, cursor: guideIssues.length === 0 ? "not-allowed" : "pointer" }}
         >
-          {hasGuide ? "Save & view guide" : "Generate my guide"}
+          {continueLabel ?? (hasGuide ? "Save & view guide" : "Generate my guide")}
         </RustButton>
       </div>
       {guideIssues.length === 0 ? (
