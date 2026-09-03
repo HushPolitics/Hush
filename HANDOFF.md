@@ -55,8 +55,9 @@ to `/your-ballot`; `/guide` redirects to `/hush-guide`; `/saved` redirects to
 `/profile`.)
 
 `/hush-guide` is its own three-step flow (address, then up to 10 issues,
-then a tile grid of races) gated on `guideIssues` in prefs, plus a "Bills
-Being Considered" section of flip-card tiles at the bottom. No score, no
+then a tile grid of races) gated on `topics` in prefs — the same ranked
+issue list "My Top Issues" on Profile edits and Stance Check quizzes on —
+plus a "Bills Being Considered" section of flip-card tiles at the bottom. No score, no
 ranking, no recommendation anywhere in it by design — see the comments atop
 `GuideView.tsx`, `GuideRaceView.tsx` and `GuideBills.tsx`. All of its data
 (`GUIDE_POSITIONS`, `BILLS`) is illustrative seed data with no real

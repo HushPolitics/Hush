@@ -31,9 +31,11 @@ const heroSecondaryBtn = {
 /**
  * The "you" surface, rendered at /profile. (/saved redirects here — see
  * next.config.ts.) `topics` (ranked, edited from the "Your Top Issues" card
- * below) drives value match everywhere else in the app; `followedTopics`
- * ("Topics You Follow") is a separate, unranked watch-list with no effect on
- * matching — see the doc comments on both fields in lib/prefs.tsx.
+ * below) drives Value Match everywhere else in the app, and is also the same
+ * list HUSH Guide and Stance Check read/write — so `hushGuideReady` below
+ * just checks whether it's non-empty. `followedTopics` ("Topics You Follow")
+ * is a separate, unranked watch-list with no effect on matching — see the
+ * doc comments on both fields in lib/prefs.tsx.
  */
 export default function ProfileView({
   politicians,
@@ -54,12 +56,12 @@ export default function ProfileView({
     lastName,
     followedTopics,
     toggleFollowedTopic,
-    guideIssues,
+    topics,
   } = usePrefs();
   const [sort, setSort] = useState<Sort>("Seniority");
 
   const displayName = `${firstName} ${lastName}`.trim() || "HUSH Member";
-  const hushGuideReady = guideIssues.length > 0;
+  const hushGuideReady = topics.length > 0;
 
   const savedCards = useMemo(() => {
     const list = politicians.filter((p) => saved.includes(p.id));
@@ -130,6 +132,13 @@ export default function ProfileView({
           </button>
           <button
             type="button"
+            onClick={() => router.push("/profile/top-issues/quiz")}
+            style={heroSecondaryBtn}
+          >
+            Take the Issues Quiz
+          </button>
+          <button
+            type="button"
             onClick={() => router.push("/profile/settings")}
             style={heroSecondaryBtn}
           >
@@ -175,7 +184,7 @@ export default function ProfileView({
                   {city}, {state} · {zip}
                 </span>
                 <span style={{ fontSize: 12, color: C.muted }}>
-                  {guideIssues.length} issue{guideIssues.length === 1 ? "" : "s"} selected
+                  {topics.length} issue{topics.length === 1 ? "" : "s"} selected
                 </span>
               </>
             ) : (
