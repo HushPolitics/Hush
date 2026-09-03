@@ -12,9 +12,10 @@ import { Card, Display, EmptyState, Kicker, RustButton } from "@/components/ui";
  * Election Comparison Page — one section per issue the user picked in HUSH
  * Guide's setup, each showing every candidate's sourced position side by
  * side. No score, no ranking, no "who matches you" — this page exists to
- * show what was said and where it came from, nothing more. `guideIssues` is
- * read live from prefs (not passed as a prop) so editing the issue list
- * elsewhere in HUSH Guide updates this page's sections without a reload.
+ * show what was said and where it came from, nothing more. `topics` is read
+ * live from prefs (not passed as a prop) so editing the issue list elsewhere
+ * in HUSH Guide, Stance Check, or Profile updates this page's sections
+ * without a reload.
  */
 export default function GuideRaceView({
   race,
@@ -26,11 +27,11 @@ export default function GuideRaceView({
   positions: Record<string, Record<string, IssuePosition>>;
 }) {
   const router = useRouter();
-  const { guideIssues } = usePrefs();
+  const { topics } = usePrefs();
   const knownIds = new Set(politicians.map((p) => p.id));
   const { office, district } = parseRaceTitle(race.title);
 
-  if (guideIssues.length === 0) {
+  if (topics.length === 0) {
     return (
       <div style={{ padding: "24px 28px" }}>
         <Card style={{ maxWidth: 520, padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
@@ -105,7 +106,7 @@ export default function GuideRaceView({
         )}
       </div>
 
-      {guideIssues.map((issue) => (
+      {topics.map((issue) => (
         <IssueSection key={issue} issue={issue} race={race} positions={positions} />
       ))}
     </div>

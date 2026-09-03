@@ -33,12 +33,13 @@ type Step = "address" | "issues" | "grid";
 
 /**
  * HUSH Guide's own three-step flow (address -> issues -> tile grid), gated
- * on `guideIssues` rather than a separate "setup done" flag: an empty array
- * means the user hasn't been through setup, so /hush-guide opens on step
- * one; once populated, it opens straight on the tile grid. `manualStep` overrides
- * that default once the user navigates on purpose (Edit address / Edit
- * issues from the grid, or Continue/Back between steps) — see the render
- * below for how each step's actions clear or set it.
+ * on `topics` — the same ranked issue list "My Top Issues" on Profile edits
+ * — rather than a separate "setup done" flag: an empty list means the user
+ * hasn't been through setup, so /hush-guide opens on step one; once
+ * populated, it opens straight on the tile grid. `manualStep` overrides that
+ * default once the user navigates on purpose (Edit address / Edit issues
+ * from the grid, or Continue/Back between steps) — see the render below for
+ * how each step's actions clear or set it.
  */
 export default function GuideView({
   politicians,
@@ -57,9 +58,9 @@ export default function GuideView({
   positions: Record<string, Record<string, IssuePosition>>;
   bills?: Bill[];
 }) {
-  const { guideIssues } = usePrefs();
+  const { topics } = usePrefs();
   const [manualStep, setManualStep] = useState<Step | null>(null);
-  const hasGuide = guideIssues.length > 0;
+  const hasGuide = topics.length > 0;
   const step: Step = manualStep ?? (hasGuide ? "grid" : "address");
 
   return (
@@ -211,13 +212,16 @@ const MAX_GUIDE_ISSUES = 10;
 
 /**
  * The "What matters most to you?" issue picker. Shared between HUSH Guide's
- * own setup flow and Stance Check's empty-`guideIssues` gate — both features
- * read and write the same `guideIssues` list, so there is deliberately one
- * picker rather than two. `kicker`/`title`/`description`/`continueLabel`
- * default to HUSH Guide's own copy (and `onBack` defaults to hidden), so
- * HUSH Guide's call site below needs no changes; a caller that wants
- * different wording (Stance Check) passes its own strings instead of
- * branching on `hasGuide` here.
+ * own setup flow and Stance Check's empty-`topics` gate — both features read
+ * and write the same `topics` list that also drives "My Top Issues" and
+ * Value Match on Profile/Compare, so there is deliberately one picker rather
+ * than two or three. This picker is an unranked toggle, unlike the
+ * drag-to-reorder list on Profile — an issue picked here just appends to the
+ * end of the ranking. `kicker`/`title`/`description`/`continueLabel` default
+ * to HUSH Guide's own copy (and `onBack` defaults to hidden), so HUSH
+ * Guide's call site below needs no changes; a caller that wants different
+ * wording (Stance Check) passes its own strings instead of branching on
+ * `hasGuide` here.
  */
 export function IssuesStep({
   topicPool,
@@ -238,16 +242,16 @@ export function IssuesStep({
   description?: ReactNode;
   continueLabel?: string;
 }) {
-  const { guideIssues, toggleGuideIssue } = usePrefs();
+  const { topics, toggleTopic } = usePrefs();
   const [capNote, setCapNote] = useState(false);
 
   function handleToggle(name: string) {
-    if (!guideIssues.includes(name) && guideIssues.length >= MAX_GUIDE_ISSUES) {
+    if (!topics.includes(name) && topics.length >= MAX_GUIDE_ISSUES) {
       setCapNote(true);
       return;
     }
     setCapNote(false);
-    toggleGuideIssue(name);
+    toggleTopic(name);
   }
 
   return (
@@ -273,9 +277,9 @@ export function IssuesStep({
           {description ?? (
             <>
               Pick up to {MAX_GUIDE_ISSUES} issues. HUSH Guide researches sourced candidate
-              positions on each one you choose — this is separate from the ranked issues that
-              drive Value Match elsewhere in the app, so picking issues here doesn&apos;t change
-              your match scores.
+              positions on each one you choose — this is the same list as &quot;My Top
+              Issues&quot; on your Profile, so picking issues here also updates your Value
+              Match scores.
             </>
           )}
         </span>
@@ -283,13 +287,13 @@ export function IssuesStep({
 
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>
-          {guideIssues.length}/{MAX_GUIDE_ISSUES} selected
+          {topics.length}/{MAX_GUIDE_ISSUES} selected
         </span>
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
         {topicPool.map((name) => (
-          <Chip key={name} on={guideIssues.includes(name)} onClick={() => handleToggle(name)}>
+          <Chip key={name} on={topics.includes(name)} onClick={() => handleToggle(name)}>
             {name}
           </Chip>
         ))}
@@ -303,13 +307,13 @@ export function IssuesStep({
       <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
         {onBack ? <GhostButton onClick={onBack}>Back</GhostButton> : null}
         <RustButton
-          onClick={() => guideIssues.length > 0 && onContinue()}
-          style={{ flex: 1, opacity: guideIssues.length === 0 ? 0.5 : 1, cursor: guideIssues.length === 0 ? "not-allowed" : "pointer" }}
+          onClick={() => topics.length > 0 && onContinue()}
+          style={{ flex: 1, opacity: topics.length === 0 ? 0.5 : 1, cursor: topics.length === 0 ? "not-allowed" : "pointer" }}
         >
           {continueLabel ?? (hasGuide ? "Save & view guide" : "Generate my guide")}
         </RustButton>
       </div>
-      {guideIssues.length === 0 ? (
+      {topics.length === 0 ? (
         <span style={{ fontSize: 12, color: C.muted }}>Select at least one issue to continue.</span>
       ) : null}
     </Card>
@@ -336,7 +340,7 @@ function TileGrid({
   onEditIssues: () => void;
 }) {
   const router = useRouter();
-  const { streetAddress, city, state, zip, guideIssues } = usePrefs();
+  const { streetAddress, city, state, zip, topics } = usePrefs();
   const knownIds = new Set(politicians.map((p) => p.id));
 
   return (
@@ -405,10 +409,10 @@ function TileGrid({
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
             <span style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Your {guideIssues.length} issue{guideIssues.length === 1 ? "" : "s"}
+              Your {topics.length} issue{topics.length === 1 ? "" : "s"}
             </span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {guideIssues.map((i) => (
+              {topics.map((i) => (
                 <span
                   key={i}
                   style={{
@@ -477,7 +481,7 @@ function TileGrid({
         >
           {races.map((race) => {
             const { office, district } = parseRaceTitle(race.title);
-            const { covered, total } = issueCoverage(race, guideIssues, positions);
+            const { covered, total } = issueCoverage(race, topics, positions);
             return (
               <Card
                 key={race.id}

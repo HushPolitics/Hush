@@ -117,8 +117,9 @@ interface Candidacy {
 }
 
 /**
- * Stance Check — a short quiz built from the same `guideIssues` list HUSH
- * Guide's own setup step fills in. Each issue becomes one specific
+ * Stance Check — a short quiz built from the same shared `topics` list HUSH
+ * Guide's own setup step fills in (and "My Top Issues" on Profile ranks).
+ * Each issue becomes one specific
  * statement; the user answers Agree / Neutral / Disagree and immediately
  * sees which politicians actually running in their races (the same
  * candidate set `Race`/`RACES` already defines for Your Ballot, HUSH Guide
@@ -140,13 +141,13 @@ export default function StanceCheckView({
   statements: Record<string, string>;
   positions: Record<string, Record<string, StanceCheckPosition>>;
 }) {
-  const { guideIssues } = usePrefs();
+  const { topics } = usePrefs();
   // Mirrors GuideView's own `manualStep` pattern: once the picker is shown
   // or dismissed on purpose, stay on that choice rather than reacting to
-  // every `guideIssues` toggle — otherwise the picker would vanish out from
+  // every `topics` toggle — otherwise the picker would vanish out from
   // under the user the instant they check the first box.
   const [showPicker, setShowPicker] = useState<boolean | null>(null);
-  const picking = showPicker ?? guideIssues.length === 0;
+  const picking = showPicker ?? topics.length === 0;
 
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, StanceCheckAnswer>>({});
@@ -174,8 +175,8 @@ export default function StanceCheckView({
             <>
               Stance Check turns each issue you pick into one specific statement and shows you
               which politicians on your ballot agree or disagree — up to 10 statements, one per
-              issue. This is the exact same list HUSH Guide uses, so picking issues here updates
-              it there too, and vice versa.
+              issue. This is the same list as HUSH Guide and &quot;My Top Issues&quot; on your
+              Profile, so picking issues here updates them too, and vice versa.
             </>
           }
           continueLabel="Start Stance Check"
@@ -184,13 +185,13 @@ export default function StanceCheckView({
     );
   }
 
-  const total = guideIssues.length;
+  const total = topics.length;
   // Clamped rather than stored: if the user edits the issue list down to
   // fewer entries mid-quiz, this keeps the view in bounds without a
   // separate effect just to re-sync `index`.
   const at = Math.min(index, total);
   const done = at >= total;
-  const issue = done ? undefined : guideIssues[at];
+  const issue = done ? undefined : topics[at];
   const answer = issue ? answers[issue] : undefined;
 
   function pickAnswer(a: StanceCheckAnswer) {
@@ -279,7 +280,7 @@ export default function StanceCheckView({
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 6 }}>
           <Kicker color={C.muted}>Your answers</Kicker>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-            {guideIssues.map((q, i) => {
+            {topics.map((q, i) => {
               const a = answers[q];
               return (
                 <button

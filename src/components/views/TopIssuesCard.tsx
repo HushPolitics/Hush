@@ -5,7 +5,7 @@ import { useState, type DragEvent } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { rankWeights } from "@/lib/scoring";
-import { Bar, Card, Display, EmptyState, GhostButton, Kicker } from "@/components/ui";
+import { Bar, Card, Display, EmptyState, GhostButton, Kicker, RustButton } from "@/components/ui";
 
 const MAX_TOP_ISSUES = 10;
 
@@ -24,12 +24,33 @@ export function TopIssuesCard({
   topicPool,
   showEditLink = true,
   id,
+  draft,
 }: {
   topicPool: string[];
   showEditLink?: boolean;
   id?: string;
+  /**
+   * Opt-in controlled mode: when set, every toggle/reorder edits
+   * `draft.topics` through `draft.onChange` instead of writing straight to
+   * the live `topics` in usePrefs(), and nothing reaches `prefs.topics`
+   * until `draft.onSave` runs (plus an optional `draft.onDiscard` to back
+   * out without saving). This is what the "My Top Issues" quiz's results
+   * step uses to let its suggested order be edited locally before an
+   * explicit Save commits it — same "review, then confirm" pattern as HUSH
+   * Guide's issue picker requiring Continue rather than auto-saving each
+   * toggle. Leave unset for the card's normal live-editing behavior (used
+   * as-is on /profile and /profile/top-issues).
+   */
+  draft?: {
+    topics: string[];
+    onChange: (next: string[]) => void;
+    onSave: () => void;
+    onDiscard?: () => void;
+    saveLabel?: string;
+  };
 }) {
-  const { topics, toggleTopic, reorderTopic } = usePrefs();
+  const live = usePrefs();
+  const topics = draft ? draft.topics : live.topics;
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
 
@@ -37,9 +58,26 @@ export function TopIssuesCard({
   const atCap = topics.length >= MAX_TOP_ISSUES;
   const available = topicPool.filter((name) => !topics.includes(name));
 
+  function toggle(name: string) {
+    if (!draft) {
+      live.toggleTopic(name);
+      return;
+    }
+    const has = draft.topics.includes(name);
+    if (!has && draft.topics.length >= MAX_TOP_ISSUES) return;
+    draft.onChange(has ? draft.topics.filter((t) => t !== name) : draft.topics.concat(name));
+  }
+
   function dropOnto(index: number) {
     if (dragIndex === null || dragIndex === index) return;
-    reorderTopic(dragIndex, index);
+    if (draft) {
+      const next = draft.topics.slice();
+      const [moved] = next.splice(dragIndex, 1);
+      next.splice(index, 0, moved);
+      draft.onChange(next);
+    } else {
+      live.reorderTopic(dragIndex, index);
+    }
     setDragIndex(null);
   }
 
@@ -94,7 +132,7 @@ export function TopIssuesCard({
               <Bar pct={Math.min(100, i.pct)} height={5} color={C.ink} />
               <button
                 type="button"
-                onClick={() => toggleTopic(i.name)}
+                onClick={() => toggle(i.name)}
                 aria-label={`Remove ${i.name} from your top issues`}
                 style={{
                   border: 0,
@@ -152,7 +190,7 @@ export function TopIssuesCard({
                     key={name}
                     type="button"
                     className="chip"
-                    onClick={() => toggleTopic(name)}
+                    onClick={() => toggle(name)}
                     disabled={atCap}
                     style={{
                       padding: "7px 13px",
@@ -172,6 +210,22 @@ export function TopIssuesCard({
           )
         ) : null}
       </div>
+
+      {draft ? (
+        <div style={{ display: "flex", gap: 10, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
+          {draft.onDiscard ? (
+            <GhostButton onClick={draft.onDiscard} style={{ padding: "10px 16px", fontSize: 13 }}>
+              Discard
+            </GhostButton>
+          ) : null}
+          <RustButton
+            onClick={draft.onSave}
+            style={{ flex: 1, padding: "11px 18px" }}
+          >
+            {draft.saveLabel ?? "Save my top issues"}
+          </RustButton>
+        </div>
+      ) : null}
     </Card>
   );
 }
