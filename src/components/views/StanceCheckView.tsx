@@ -26,6 +26,40 @@ const BUCKET_STYLE: Record<Bucket, { bg: string; fg: string; dot: string }> = {
   "No record": { bg: C.shell, fg: C.muted, dot: C.muted },
 };
 
+/**
+ * The per-question results grid (StatementBreakdown) deliberately does NOT
+ * use `BUCKET_STYLE`'s navy/tan/rust: that vocabulary is fine for the user's
+ * own answer above (their own pick, no comparison implied), but coloring
+ * *politicians'* Agree/Neutral/Disagree here would read as the UI signaling
+ * who's "right" -- exactly what the no-score requirement says this feature
+ * must not do. Agree/Neutral/Disagree all get one identical neutral ink/body
+ * treatment; "No record" keeps the same muted/shell treatment the rest of
+ * the app uses for "nothing sourced." Which group matters more is carried by
+ * column order (see `orderedBuckets`), never by color.
+ */
+const RESULT_STYLE: Record<Bucket, { bg: string; fg: string; dot: string }> = {
+  Agree: { bg: C.shell, fg: C.ink, dot: C.body },
+  Neutral: { bg: C.shell, fg: C.ink, dot: C.body },
+  Disagree: { bg: C.shell, fg: C.ink, dot: C.body },
+  "No record": { bg: C.shell, fg: C.muted, dot: C.muted },
+};
+
+const ANSWER_RANK: Record<StanceCheckAnswer, number> = { Agree: 0, Neutral: 1, Disagree: 2 };
+
+/**
+ * Column order for one question's results, driven by the user's own answer
+ * rather than a fixed Agree/Neutral/Disagree order: whichever bucket
+ * matches the user's pick leads, then Neutral, then the opposing bucket --
+ * so picking "Disagree" surfaces the politicians who also picked Disagree
+ * first, not last, regardless of which answer was picked. "No record" has
+ * no agreement signal to rank, so it always trails the other three.
+ */
+function orderedBuckets(userAnswer: StanceCheckAnswer): Bucket[] {
+  const distance = (b: StanceCheckAnswer) => Math.abs(ANSWER_RANK[b] - ANSWER_RANK[userAnswer]);
+  const comparison: StanceCheckAnswer[] = ["Agree", "Neutral", "Disagree"];
+  return [...comparison.sort((a, b) => distance(a) - distance(b)), "No record"];
+}
+
 interface Candidacy {
   politicianId: string;
   name: string;
@@ -174,7 +208,13 @@ export default function StanceCheckView({
       {/* Breakdown: shown once the current question is answered, or for every
           answered question while reviewing from the completion state. */}
       {!done && issue && answer ? (
-        <StatementBreakdown issue={issue} candidacies={candidacies} positions={positions} knownIds={knownIds} />
+        <StatementBreakdown
+          issue={issue}
+          candidacies={candidacies}
+          positions={positions}
+          knownIds={knownIds}
+          userAnswer={answer}
+        />
       ) : null}
 
       {!done && issue && answer ? (
@@ -227,11 +267,13 @@ function StatementBreakdown({
   candidacies,
   positions,
   knownIds,
+  userAnswer,
 }: {
   issue: string;
   candidacies: Candidacy[];
   positions: Record<string, Record<string, StanceCheckPosition>>;
   knownIds: Set<string>;
+  userAnswer: StanceCheckAnswer;
 }) {
   const grouped = new Map<Bucket, { candidacy: Candidacy; position?: StanceCheckPosition }[]>(
     BUCKETS.map((b) => [b, []]),
@@ -250,9 +292,9 @@ function StatementBreakdown({
         gap: 14,
       }}
     >
-      {BUCKETS.map((bucket) => {
+      {orderedBuckets(userAnswer).map((bucket) => {
         const entries = grouped.get(bucket)!;
-        const style = BUCKET_STYLE[bucket];
+        const style = RESULT_STYLE[bucket];
         return (
           <Card key={bucket} style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
