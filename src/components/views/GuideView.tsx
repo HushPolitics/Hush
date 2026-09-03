@@ -8,6 +8,8 @@ import { usePrefs } from "@/lib/prefs";
 import { issueCoverage, parseRaceTitle } from "@/lib/guide";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, GhostButton, Kicker, RustButton } from "@/components/ui";
+import ElectionCountdownBanner from "@/components/ElectionCountdownBanner";
+import PollingPlaceCard from "@/components/PollingPlaceCard";
 import { BillsSection } from "./GuideBills";
 
 const fieldStyle = {
@@ -339,6 +341,8 @@ function TileGrid({
 
   return (
     <>
+      <ElectionCountdownBanner />
+
       <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
         <Kicker>HUSH Guide</Kicker>
         <Display size={25}>Your ballot, by the issues you picked</Display>
@@ -441,6 +445,8 @@ function TileGrid({
           </button>
         </Card>
       </div>
+
+      <PollingPlaceCard />
 
       {/*
         RACES has 6 entries seeded (U.S. House, U.S. Senate, Mayor, State
