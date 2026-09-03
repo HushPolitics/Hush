@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle } from "@/lib/guide";
 import type { Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
-import { Card, Chip, Display, Kicker, Pill, RustButton } from "@/components/ui";
+import { Card, Display, Kicker, Pill, RustButton } from "@/components/ui";
 import { IssuesStep } from "./GuideView";
 
 type Bucket = StanceCheckAnswer | "No record";
@@ -43,6 +43,55 @@ const RESULT_STYLE: Record<Bucket, { bg: string; fg: string; dot: string }> = {
   Disagree: { bg: C.shell, fg: C.ink, dot: C.body },
   "No record": { bg: C.shell, fg: C.muted, dot: C.muted },
 };
+
+/**
+ * The answer picker itself (Agree/Neutral/Disagree, in the question box)
+ * gets the same no-color-coding treatment as the results grid below, and for
+ * the same reason: a per-choice color there would still read as the UI
+ * hinting which answer is "normal" before the user even picks. This is
+ * deliberately not the shared `Chip` from ui.tsx -- Chip's selected state
+ * inverts to a solid ink background, which would swallow a same-toned dot
+ * into invisibility, so selection here is instead carried by the ring
+ * (hollow outline -> solid navy fill) plus a bolder ink label, identical for
+ * whichever of the three is picked. The "Your answers" review strip below
+ * keeps its existing per-answer accent color -- it's reviewing the user's
+ * own past picks, not a live choice between them, and the ask here is scoped
+ * to the picker.
+ */
+function AnswerChip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "8px 14px",
+        borderRadius: 20,
+        fontSize: 13,
+        fontWeight: on ? 600 : 500,
+        whiteSpace: "nowrap",
+        cursor: "pointer",
+        background: on ? C.shell : "transparent",
+        color: on ? C.ink : C.body,
+        border: `1px solid ${on ? C.ink : "rgba(21,21,21,0.18)"}`,
+      }}
+    >
+      <span
+        style={{
+          width: 9,
+          height: 9,
+          borderRadius: "50%",
+          boxSizing: "border-box",
+          border: `1.5px solid ${on ? C.navy : C.faint}`,
+          background: on ? C.navy : "transparent",
+        }}
+      />
+      {children}
+    </button>
+  );
+}
 
 const ANSWER_RANK: Record<StanceCheckAnswer, number> = { Agree: 0, Neutral: 1, Disagree: 2 };
 
@@ -197,9 +246,9 @@ export default function StanceCheckView({
           </Display>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {(["Agree", "Neutral", "Disagree"] as StanceCheckAnswer[]).map((a) => (
-              <Chip key={a} on={answer === a} onClick={() => pickAnswer(a)} dot={BUCKET_STYLE[a].dot}>
+              <AnswerChip key={a} on={answer === a} onClick={() => pickAnswer(a)}>
                 {a}
-              </Chip>
+              </AnswerChip>
             ))}
           </div>
         </Card>
