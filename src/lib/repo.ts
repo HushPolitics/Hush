@@ -17,6 +17,7 @@ import {
   TRENDING,
   STANCES,
   TOPIC_POOL,
+  TOP_ISSUES_QUIZ,
   GUIDE_POSITIONS,
   BILLS,
   STANCE_STATEMENTS,
@@ -88,6 +89,11 @@ export function stanceGrid() {
 
 export function topicPool(): string[] {
   return TOPIC_POOL;
+}
+
+/** "My Top Issues" quiz's question bank: issue -> its 8 specific sub-questions. */
+export function topIssuesQuiz(): Record<string, string[]> {
+  return TOP_ISSUES_QUIZ;
 }
 
 /** HUSH Guide's "Bills Being Considered" seed data — no real bill lookup yet. */

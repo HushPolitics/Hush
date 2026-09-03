@@ -187,6 +187,15 @@ export interface StanceCheckPosition {
   date?: string;
 }
 
+/** One answer choice on the "My Top Issues" quiz — see TOP_ISSUES_QUIZ. */
+export type TopIssuesQuizAnswer = "Not important" | "Somewhat important" | "Very important";
+
+/**
+ * How many of each issue's 8 quiz sub-questions a sitting asks — see
+ * lib/quiz.ts's QUIZ_DEPTHS for the label/count/total each maps to.
+ */
+export type QuizDepth = "quick" | "standard" | "thorough";
+
 export interface TrendingClaim {
   text: string;
   meta: string;
