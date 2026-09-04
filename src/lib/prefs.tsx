@@ -94,14 +94,6 @@ export interface Prefs {
   picks: string[];
   polling: { name: string; detail: string };
   /**
-   * Broader watch-list shown on Profile's "Topics You Follow" card —
-   * unranked, no cap. Deliberately a separate list from `topics`: `topics`
-   * is "what matters most" and drives ranking/matching everywhere; this is
-   * just "keep an eye on this for me," with no weight attached. Toggling a
-   * topic here has no effect on `topics` or vice versa.
-   */
-  followedTopics: string[];
-  /**
    * Every answer ever given on the "My Top Issues" quiz, keyed by a stable
    * question id (`lib/quiz.ts`'s `questionId(issue, index)` — an index into
    * that issue's entry in `TOP_ISSUES_QUIZ`, so it stays stable across
@@ -125,12 +117,11 @@ const [DEFAULT_CITY, DEFAULT_STATE] = DEFAULT_DISTRICT.city.split(", ");
 const DEFAULTS: Prefs = {
   // Empty rather than pre-populated: `topics` now gates HUSH Guide's and
   // Stance Check's own setup steps (see hasGuide/picking in GuideView.tsx and
-  // StanceCheckView.tsx) in addition to driving Value Match, so a fresh
-  // session needs to start with nothing picked or those setup flows would
-  // never show. Every consumer already treats an empty list as a normal
-  // state, not an edge case — matchDetail()/computeMatch() fall back to each
-  // politician's static seeded `match` score, and TopIssuesCard/SignupWizard
-  // both render their own "nothing picked yet" empty state.
+  // StanceCheckView.tsx), so a fresh session needs to start with nothing
+  // picked or those setup flows would never show. Every consumer already
+  // treats an empty list as a normal state, not an edge case —
+  // TopIssuesCard/SignupWizard both render their own "nothing picked yet"
+  // empty state.
   topics: [],
   saved: ["marchetti", "bellweather", "vance", "ainsley", "oseihart"],
   zip: DEFAULT_DISTRICT.zip,
@@ -149,7 +140,6 @@ const DEFAULTS: Prefs = {
   },
   picks: ["marchetti", "vance", "pike"],
   polling: DEFAULT_POLLING_PLACE,
-  followedTopics: ["Education", "Economy", "Transit"],
   quizAnswers: {},
 };
 
@@ -246,8 +236,6 @@ interface PrefsContextValue extends Prefs {
   setEmailPref: (key: keyof EmailPrefs, value: boolean) => void;
   setPicks: (picks: string[]) => void;
   setPolling: (p: { name: string; detail: string }) => void;
-  /** Toggles `name` in `followedTopics`. Unranked, uncapped. */
-  toggleFollowedTopic: (name: string) => void;
   /**
    * Records one "My Top Issues" quiz answer, stamped with the time it was
    * answered. Overwrites any prior answer to the same question id (e.g. from
@@ -309,12 +297,6 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
       setEmailPref: (key, value) => patch({ emailPrefs: { ...snapshot.emailPrefs, [key]: value } }),
       setPicks: (picks) => patch({ picks }),
       setPolling: (polling) => patch({ polling }),
-      toggleFollowedTopic: (name) =>
-        patch({
-          followedTopics: snapshot.followedTopics.includes(name)
-            ? snapshot.followedTopics.filter((t) => t !== name)
-            : snapshot.followedTopics.concat(name),
-        }),
       recordQuizAnswer: (questionId, value) =>
         patch({
           quizAnswers: {

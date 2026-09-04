@@ -110,12 +110,12 @@ const FULL_CONFIDENCE_AT = QUIZ_DEPTHS.thorough.perIssue;
  * the latest sitting), most important first, capped at the same 10 issues
  * `topics` allows everywhere else.
  *
- * Same "shrink toward neutral" philosophy `matchDetail()` in scoring.ts
- * already uses for Value Match: an issue's raw average answer is pulled
- * toward the neutral midpoint in proportion to how few of its sub-questions
- * have been answered, so a single "Very important" answer doesn't outrank an
- * issue with a consistent "Very important" record across several answers —
- * more retakes sharpen an issue's position instead of just adding noise.
+ * Uses a "shrink toward neutral" approach: an issue's raw average answer is
+ * pulled toward the neutral midpoint in proportion to how few of its
+ * sub-questions have been answered, so a single "Very important" answer
+ * doesn't outrank an issue with a consistent "Very important" record across
+ * several answers — more retakes sharpen an issue's position instead of just
+ * adding noise.
  * Ties (including issues nobody has answered anything for yet, which sit at
  * the neutral score) fall back to `topicPool`'s own order, so the result is
  * always fully deterministic.

@@ -28,8 +28,6 @@ export type StanceCell = [StanceTag, string, string?];
 export interface PolicyPosition {
   issue: string;
   stance: string;
-  /** 0-100 alignment with the signed-in user's ranked issues. */
-  align: number;
 }
 
 export interface PromiseRecord {
@@ -73,8 +71,6 @@ export interface Politician {
   level: Level;
   party: Party;
   since: number;
-  /** Value match, 0-100. Recomputed per user once issue weights exist. */
-  match: number;
   /** Trust score, 0-100. 60% promises kept, 25% recency, 15% significance. */
   trust: number;
   kept: number;
@@ -104,7 +100,6 @@ export interface RaceCandidate {
   politicianId: string;
   name: string;
   party: Party;
-  align: number;
 }
 
 export interface Race {
