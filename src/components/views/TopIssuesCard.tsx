@@ -5,7 +5,7 @@ import { useState, type DragEvent } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { rankWeights } from "@/lib/scoring";
-import { Bar, Card, Display, EmptyState, GhostButton, Kicker, RustButton } from "@/components/ui";
+import { Card, Display, EmptyState, GhostButton, Kicker, RustButton } from "@/components/ui";
 
 const MAX_TOP_ISSUES = 10;
 
@@ -14,11 +14,10 @@ const MAX_TOP_ISSUES = 10;
  * remove, add up to the cap) used both as a Card on /profile and as the
  * full-page view at /profile/top-issues.
  *
- * The bars below only communicate relative rank within this list — width is
- * the only signal, and every bar uses the same color, deliberately, so it
- * never reads as a political-alignment or candidate-match score the way a
- * threshold-colored bar elsewhere in the app (e.g. Compare's match bars)
- * does.
+ * Rank is communicated by list position and the rank number alone — no bar.
+ * A per-row bar used to sit here (flat-colored, width from list position)
+ * but was redundant with the rank number and was removed; don't reintroduce
+ * one, least of all a threshold-colored bar, which would read as a score.
  */
 export function TopIssuesCard({
   topicPool,
@@ -129,12 +128,12 @@ export function TopIssuesCard({
               >
                 {i.name}
               </span>
-              <Bar pct={Math.min(100, i.pct)} height={5} color={C.ink} />
               <button
                 type="button"
                 onClick={() => toggle(i.name)}
                 aria-label={`Remove ${i.name} from your top issues`}
                 style={{
+                  marginLeft: "auto",
                   border: 0,
                   background: "transparent",
                   color: C.faint,
