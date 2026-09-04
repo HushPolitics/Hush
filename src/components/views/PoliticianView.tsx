@@ -253,7 +253,7 @@ export default function PoliticianView({
                 className="card-hover stack-grid"
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "160px 1fr 140px",
+                  gridTemplateColumns: "160px 1fr",
                   gap: 16,
                   alignItems: "center",
                   padding: "14px 16px",
@@ -273,31 +273,6 @@ export default function PoliticianView({
                   {pol.issue}
                 </span>
                 <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{pol.stance}</span>
-                <span style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                  <span style={{ fontSize: 11, color: C.muted }}>
-                    Aligns with you {pol.align}%
-                  </span>
-                  <span
-                    style={{
-                      height: 5,
-                      borderRadius: 3,
-                      background: C.shell,
-                      display: "block",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <span
-                      style={{
-                        display: "block",
-                        height: 5,
-                        borderRadius: 3,
-                        width: `${pol.align}%`,
-                        background:
-                          pol.align >= 80 ? C.navy : pol.align >= 55 ? C.olive : C.rust,
-                      }}
-                    />
-                  </span>
-                </span>
               </div>
             ))}
           </div>

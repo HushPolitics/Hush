@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { C, PARTY, PARTY_LABEL, cond, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { computeMatch, initials, lastNameOf } from "@/lib/scoring";
+import { initials, lastNameOf } from "@/lib/scoring";
 import type { Level, Politician } from "@/lib/types";
 import { Avatar, Bar, Chip, Kicker, RustButton } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
@@ -46,22 +46,17 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
   const router = useRouter();
   const params = useSearchParams();
   const q = params.get("q") ?? "";
-  const { topics, saved, toggleSaved } = usePrefs();
+  const { saved, toggleSaved } = usePrefs();
 
   const [level, setLevel] = useState<Level | "All">("All");
   const [sortKey, setSortKey] = useState<SortKey>("trust");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [sortOpen, setSortOpen] = useState(false);
 
-  const scored = useMemo(
-    () => politicians.map((p) => ({ ...p, match: computeMatch(p, topics) })),
-    [politicians, topics],
-  );
-
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();
     const dir = sortDir === "asc" ? 1 : -1;
-    return scored
+    return politicians
       .filter((p) => level === "All" || p.level === level)
       .filter(
         (p) =>
@@ -84,21 +79,25 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
         }
         return cmp * dir;
       });
-  }, [scored, level, q, sortKey, sortDir]);
+  }, [politicians, level, q, sortKey, sortDir]);
 
   const counts = useMemo(
     () => ({
-      All: scored.length,
-      Local: scored.filter((p) => p.level === "Local").length,
-      State: scored.filter((p) => p.level === "State").length,
-      Federal: scored.filter((p) => p.level === "Federal").length,
+      All: politicians.length,
+      Local: politicians.filter((p) => p.level === "Local").length,
+      State: politicians.filter((p) => p.level === "State").length,
+      Federal: politicians.filter((p) => p.level === "Federal").length,
     }),
-    [scored],
+    [politicians],
   );
 
+  // Same HUSH. Score the table sorts by default — the hero banner and the
+  // table agree on who's "best" for the same reason, rather than the hero
+  // picking a different, match-based winner. See HushScoreInfo for how the
+  // score itself is computed.
   const hero = useMemo(
-    () => scored.slice().sort((a, b) => b.match - a.match)[0],
-    [scored],
+    () => politicians.slice().sort((a, b) => b.trust - a.trust)[0],
+    [politicians],
   );
 
   function sortBy(key: SortKey) {
@@ -127,7 +126,7 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 18 }}>
-      {/* Top match */}
+      {/* Highest HUSH. Score */}
       <section
         className="split"
         style={{ display: "flex", background: C.ink, borderRadius: 12, overflow: "hidden" }}
@@ -144,7 +143,7 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
-              Top match on your ballot
+              Highest HUSH. Score on your ballot
             </Kicker>
             <span style={{ height: 1, flex: 1, background: "rgba(243,239,228,0.2)" }} />
           </div>
@@ -161,18 +160,36 @@ export default function FeedView({ politicians }: { politicians: Politician[] })
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
-            {hero.policies.slice(0, 3).map((p) => (
-              <div key={p.issue} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <span style={{ fontSize: 12, color: C.tan }}>{p.issue}</span>
-                <Bar
-                  pct={p.align}
-                  height={5}
-                  track="rgba(243,239,228,0.16)"
-                  color={C.sand}
-                />
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <span style={{ fontSize: 12, color: C.tan }}>Recent tracked-promise activity</span>
+            {hero.timeline.length === 0 ? (
+              <span style={{ fontSize: 12, color: C.tan }}>Nothing tracked yet.</span>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                {hero.timeline
+                  .slice(-3)
+                  .reverse()
+                  .map((t) => (
+                    <div key={`${t.date}-${t.label}`} style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                      <span
+                        style={{ width: 6, height: 6, borderRadius: "50%", background: t.dot, flex: "0 0 6px" }}
+                      />
+                      <span style={{ fontSize: 12, color: C.tan, whiteSpace: "nowrap" }}>{t.date}</span>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: C.sand,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {t.label}
+                      </span>
+                    </div>
+                  ))}
               </div>
-            ))}
+            )}
           </div>
         </div>
 

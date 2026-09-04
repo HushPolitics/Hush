@@ -7,7 +7,7 @@ import { usePrefs } from "@/lib/prefs";
 import { DEFAULT_DISTRICT } from "@/lib/seed-data";
 import { initials } from "@/lib/scoring";
 import type { Politician, Race, StanceCell } from "@/lib/types";
-import { Avatar, Bar, Display, Kicker, RustButton } from "@/components/ui";
+import { Avatar, Display, Kicker, RustButton } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 
 export default function CompareView({
@@ -156,22 +156,12 @@ export default function CompareView({
                     <span
                       style={{
                         fontSize: 13,
-                        width: 150,
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                       }}
                     >
                       {c.name}
-                    </span>
-                    <Bar
-                      pct={c.align}
-                      color={c.align >= 70 ? C.navy : c.align >= 45 ? C.olive : C.rust}
-                    />
-                    <span
-                      style={{ fontFamily: cond, fontSize: 15, width: 36, textAlign: "right" }}
-                    >
-                      {c.align}%
                     </span>
                   </button>
                 );

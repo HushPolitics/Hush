@@ -328,12 +328,12 @@ function VotingLocationSection() {
 
 // ---------------------------------------------------------------------------
 // HUSH Preferences — a live summary; the actual editing surfaces stay on
-// /profile (ranked issues, followed topics, followed politicians) so there
-// is exactly one place each of those is edited, not two.
+// /profile (ranked issues, followed politicians) so there is exactly one
+// place each of those is edited, not two.
 // ---------------------------------------------------------------------------
 
 function HushPreferencesSection({ topicPool }: { topicPool: string[] }) {
-  const { topics, followedTopics, saved } = usePrefs();
+  const { topics, saved } = usePrefs();
   return (
     <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 4 }}>
       <SectionHeader
@@ -346,12 +346,6 @@ function HushPreferencesSection({ topicPool }: { topicPool: string[] }) {
           label="Top issues"
           value={topics.length ? topics.join(", ") : "None selected yet"}
           href="/profile#top-issues"
-          cta="Edit on Profile →"
-        />
-        <PrefRow
-          label="Topics you follow"
-          value={followedTopics.length ? followedTopics.join(", ") : "None selected yet"}
-          href="/profile#topics-you-follow"
           cta="Edit on Profile →"
         />
         <PrefRow

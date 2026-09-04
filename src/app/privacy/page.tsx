@@ -24,7 +24,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "Staying in control",
-    body: "You can review or change your address, your ranked issues, your followed topics, and your email preferences at any time from Profile Settings.",
+    body: "You can review or change your address, your ranked issues, and your email preferences at any time from Profile Settings.",
   },
 ];
 

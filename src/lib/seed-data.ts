@@ -29,7 +29,6 @@ export const POLITICIANS: Politician[] = [
     "level": "Federal",
     "party": "D",
     "since": 2018,
-    "match": 94,
     "trust": 78,
     "kept": 31,
     "prog": 6,
@@ -45,28 +44,23 @@ export const POLITICIANS: Politician[] = [
     "policies": [
       {
         "issue": "Healthcare",
-        "stance": "Backs a public insurance option and caps on out-of-pocket prescription costs.",
-        "align": 96
+        "stance": "Backs a public insurance option and caps on out-of-pocket prescription costs."
       },
       {
         "issue": "Housing",
-        "stance": "Supports federal density incentives and a renter's tax credit.",
-        "align": 91
+        "stance": "Supports federal density incentives and a renter's tax credit."
       },
       {
         "issue": "Climate",
-        "stance": "Voted for grid resilience; declined to back a fossil subsidy phase-out.",
-        "align": 74
+        "stance": "Voted for grid resilience; declined to back a fossil subsidy phase-out."
       },
       {
         "issue": "Labor",
-        "stance": "Co-sponsored sectoral bargaining rules for service workers.",
-        "align": 88
+        "stance": "Co-sponsored sectoral bargaining rules for service workers."
       },
       {
         "issue": "Voting rights",
-        "stance": "Supports automatic registration and restoring pre-clearance review.",
-        "align": 93
+        "stance": "Supports automatic registration and restoring pre-clearance review."
       }
     ],
     "promises": [
@@ -224,7 +218,6 @@ export const POLITICIANS: Politician[] = [
     "level": "State",
     "party": "D",
     "since": 2015,
-    "match": 88,
     "trust": 71,
     "kept": 24,
     "prog": 5,
@@ -239,28 +232,23 @@ export const POLITICIANS: Politician[] = [
     "policies": [
       {
         "issue": "Healthcare",
-        "stance": "Led the state Medicaid expansion push through two sessions.",
-        "align": 92
+        "stance": "Led the state Medicaid expansion push through two sessions."
       },
       {
         "issue": "Housing",
-        "stance": "Backs supply reform; has not supported tenant protections.",
-        "align": 66
+        "stance": "Backs supply reform; has not supported tenant protections."
       },
       {
         "issue": "Climate",
-        "stance": "Sponsored the coastal resilience fund and grid weatherization.",
-        "align": 90
+        "stance": "Sponsored the coastal resilience fund and grid weatherization."
       },
       {
         "issue": "Labor",
-        "stance": "Supports a wage floor but not sectoral bargaining.",
-        "align": 71
+        "stance": "Supports a wage floor but not sectoral bargaining."
       },
       {
         "issue": "Voting rights",
-        "stance": "Voted no on every mail-ballot restriction this session.",
-        "align": 95
+        "stance": "Voted no on every mail-ballot restriction this session."
       }
     ],
     "promises": [
@@ -392,7 +380,6 @@ export const POLITICIANS: Politician[] = [
     "level": "Federal",
     "party": "R",
     "since": 2013,
-    "match": 34,
     "trust": 41,
     "kept": 17,
     "prog": 4,
@@ -407,28 +394,23 @@ export const POLITICIANS: Politician[] = [
     "policies": [
       {
         "issue": "Healthcare",
-        "stance": "Voted against subsidy renewal three times.",
-        "align": 18
+        "stance": "Voted against subsidy renewal three times."
       },
       {
         "issue": "Housing",
-        "stance": "Opposes federal preemption of local zoning.",
-        "align": 24
+        "stance": "Opposes federal preemption of local zoning."
       },
       {
         "issue": "Climate",
-        "stance": "Calls emissions targets unworkable; backs LNG expansion.",
-        "align": 12
+        "stance": "Calls emissions targets unworkable; backs LNG expansion."
       },
       {
         "issue": "Labor",
-        "stance": "No floor votes on labor bills since 2023.",
-        "align": 30
+        "stance": "No floor votes on labor bills since 2023."
       },
       {
         "issue": "Voting rights",
-        "stance": "Backs stricter ID and roll-maintenance rules.",
-        "align": 15
+        "stance": "Backs stricter ID and roll-maintenance rules."
       }
     ],
     "promises": [
@@ -560,7 +542,6 @@ export const POLITICIANS: Politician[] = [
     "level": "Local",
     "party": "I",
     "since": 2021,
-    "match": 81,
     "trust": 66,
     "kept": 19,
     "prog": 8,
@@ -574,28 +555,23 @@ export const POLITICIANS: Politician[] = [
     "policies": [
       {
         "issue": "Healthcare",
-        "stance": "Funds city clinics; defers to county on coverage.",
-        "align": 70
+        "stance": "Funds city clinics; defers to county on coverage."
       },
       {
         "issue": "Housing",
-        "stance": "Upzoned three corridors in first term.",
-        "align": 84
+        "stance": "Upzoned three corridors in first term."
       },
       {
         "issue": "Climate",
-        "stance": "Fleet electrification on schedule.",
-        "align": 78
+        "stance": "Fleet electrification on schedule."
       },
       {
         "issue": "Labor",
-        "stance": "Signed the city prevailing wage order.",
-        "align": 74
+        "stance": "Signed the city prevailing wage order."
       },
       {
         "issue": "Voting rights",
-        "stance": "Expanded early voting sites citywide.",
-        "align": 86
+        "stance": "Expanded early voting sites citywide."
       }
     ],
     "promises": [
@@ -718,7 +694,6 @@ export const POLITICIANS: Politician[] = [
     "level": "Local",
     "party": "D",
     "since": 2012,
-    "match": 79,
     "trust": 84,
     "kept": 22,
     "prog": 2,
@@ -732,28 +707,23 @@ export const POLITICIANS: Politician[] = [
     "policies": [
       {
         "issue": "Healthcare",
-        "stance": "Expanded school-based clinics to nine campuses.",
-        "align": 88
+        "stance": "Expanded school-based clinics to nine campuses."
       },
       {
         "issue": "Housing",
-        "stance": "Backs teacher housing on district land.",
-        "align": 76
+        "stance": "Backs teacher housing on district land."
       },
       {
         "issue": "Climate",
-        "stance": "Solar on 12 campuses since 2019.",
-        "align": 80
+        "stance": "Solar on 12 campuses since 2019."
       },
       {
         "issue": "Labor",
-        "stance": "Negotiated the aide wage floor.",
-        "align": 90
+        "stance": "Negotiated the aide wage floor."
       },
       {
         "issue": "Voting rights",
-        "stance": "Opened all campuses as polling sites.",
-        "align": 84
+        "stance": "Opened all campuses as polling sites."
       }
     ],
     "promises": [
@@ -869,7 +839,6 @@ export const POLITICIANS: Politician[] = [
     "level": "Local",
     "party": "D",
     "since": 2019,
-    "match": 74,
     "trust": 69,
     "kept": 15,
     "prog": 6,
@@ -883,28 +852,23 @@ export const POLITICIANS: Politician[] = [
     "policies": [
       {
         "issue": "Healthcare",
-        "stance": "Kept the county hospital district levy flat.",
-        "align": 78
+        "stance": "Kept the county hospital district levy flat."
       },
       {
         "issue": "Housing",
-        "stance": "Funded a homelessness diversion pilot.",
-        "align": 72
+        "stance": "Funded a homelessness diversion pilot."
       },
       {
         "issue": "Climate",
-        "stance": "Adopted the county resilience plan.",
-        "align": 68
+        "stance": "Adopted the county resilience plan."
       },
       {
         "issue": "Labor",
-        "stance": "Raised county contractor wage floor.",
-        "align": 75
+        "stance": "Raised county contractor wage floor."
       },
       {
         "issue": "Voting rights",
-        "stance": "Expanded ballot drop sites.",
-        "align": 80
+        "stance": "Expanded ballot drop sites."
       }
     ],
     "promises": [
@@ -1016,7 +980,6 @@ export const POLITICIANS: Politician[] = [
     "level": "State",
     "party": "R",
     "since": 2017,
-    "match": 41,
     "trust": 52,
     "kept": 14,
     "prog": 5,
@@ -1030,28 +993,23 @@ export const POLITICIANS: Politician[] = [
     "policies": [
       {
         "issue": "Healthcare",
-        "stance": "Opposed Medicaid expansion; backs price transparency.",
-        "align": 34
+        "stance": "Opposed Medicaid expansion; backs price transparency."
       },
       {
         "issue": "Housing",
-        "stance": "Supports supply reform, opposes mandates.",
-        "align": 52
+        "stance": "Supports supply reform, opposes mandates."
       },
       {
         "issue": "Climate",
-        "stance": "Voted for weatherization, against targets.",
-        "align": 40
+        "stance": "Voted for weatherization, against targets."
       },
       {
         "issue": "Labor",
-        "stance": "Supports right-to-work protections.",
-        "align": 28
+        "stance": "Supports right-to-work protections."
       },
       {
         "issue": "Voting rights",
-        "stance": "Sponsored stricter ID rules.",
-        "align": 22
+        "stance": "Sponsored stricter ID rules."
       }
     ],
     "promises": [
@@ -1172,7 +1130,6 @@ export const POLITICIANS: Politician[] = [
     "level": "State",
     "party": "R",
     "since": 2015,
-    "match": 22,
     "trust": 37,
     "kept": 11,
     "prog": 3,
@@ -1186,28 +1143,23 @@ export const POLITICIANS: Politician[] = [
     "policies": [
       {
         "issue": "Healthcare",
-        "stance": "Scores expansion as unaffordable.",
-        "align": 16
+        "stance": "Scores expansion as unaffordable."
       },
       {
         "issue": "Housing",
-        "stance": "No published position.",
-        "align": 30
+        "stance": "No published position."
       },
       {
         "issue": "Climate",
-        "stance": "Opposes fund divestment screens.",
-        "align": 14
+        "stance": "Opposes fund divestment screens."
       },
       {
         "issue": "Labor",
-        "stance": "Opposes prevailing wage rules.",
-        "align": 20
+        "stance": "Opposes prevailing wage rules."
       },
       {
         "issue": "Voting rights",
-        "stance": "No published position.",
-        "align": 28
+        "stance": "No published position."
       }
     ],
     "promises": [
@@ -1849,14 +1801,12 @@ export const RACES: Race[] = [
       {
         "politicianId": "marchetti",
         "name": "Delia Marchetti (D)",
-        "party": "D",
-        "align": 94
+        "party": "D"
       },
       {
         "politicianId": "wexler",
         "name": "Grant Wexler (R)",
-        "party": "R",
-        "align": 21
+        "party": "R"
       }
     ]
   },
@@ -1868,14 +1818,12 @@ export const RACES: Race[] = [
       {
         "politicianId": "pike",
         "name": "Carsten Prause (R)",
-        "party": "R",
-        "align": 34
+        "party": "R"
       },
       {
         "politicianId": "olamide",
         "name": "Bisi Olamide (D)",
-        "party": "D",
-        "align": 77
+        "party": "D"
       }
     ]
   },
@@ -1887,20 +1835,17 @@ export const RACES: Race[] = [
       {
         "politicianId": "ainsley",
         "name": "Marcus Ainsley (I)",
-        "party": "I",
-        "align": 81
+        "party": "I"
       },
       {
         "politicianId": "kohl",
         "name": "Priya Kohl (D)",
-        "party": "D",
-        "align": 76
+        "party": "D"
       },
       {
         "politicianId": "rausch",
         "name": "Ed Rausch (R)",
-        "party": "R",
-        "align": 29
+        "party": "R"
       }
     ]
   },
@@ -1912,14 +1857,12 @@ export const RACES: Race[] = [
       {
         "politicianId": "vance",
         "name": "Rosa Vance (D)",
-        "party": "D",
-        "align": 88
+        "party": "D"
       },
       {
         "politicianId": "torrance",
         "name": "Clay Torrance (R)",
-        "party": "R",
-        "align": 41
+        "party": "R"
       }
     ]
   },
@@ -1931,14 +1874,12 @@ export const RACES: Race[] = [
       {
         "politicianId": "oseihart",
         "name": "Naomi Osei-Hart (D)",
-        "party": "D",
-        "align": 74
+        "party": "D"
       },
       {
         "politicianId": "trask",
         "name": "Bill Trask (R)",
-        "party": "R",
-        "align": 33
+        "party": "R"
       }
     ]
   },
@@ -1950,14 +1891,12 @@ export const RACES: Race[] = [
       {
         "politicianId": "bellweather",
         "name": "Junie Bellweather (D)",
-        "party": "D",
-        "align": 79
+        "party": "D"
       },
       {
         "politicianId": "mora",
         "name": "Sal Mora (I)",
-        "party": "I",
-        "align": 44
+        "party": "I"
       }
     ]
   }

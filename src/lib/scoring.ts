@@ -37,54 +37,6 @@ export function computeTrust(p: Pick<Politician, "kept" | "prog" | "broken" | "t
   return p.trust ?? Math.round((p.kept / total) * 100);
 }
 
-/**
- * Value match: how closely a politician's positions track the user's ranked
- * issues. Weights fall off linearly by rank, so the #1 issue counts most.
- *
- * Coverage matters as much as agreement. An official with one position on file
- * that happens to align perfectly is not a better match than one who aligns
- * closely across every issue the voter ranked — but a raw average scores them
- * 100 and puts them at the top of the feed. So the raw score is shrunk toward
- * neutral (50) in proportion to how much of the voter's ranked weight is
- * actually evidenced.
- *
- * This mirrors compute_match() in migration 0003. Keep the two in step.
- */
-export function matchDetail(
-  p: Politician,
-  rankedTopics: string[],
-): { score: number; raw: number; coverage: number } {
-  if (!rankedTopics.length) return { score: p.match, raw: p.match, coverage: 1 };
-
-  const n = rankedTopics.length;
-  let totalWeight = 0;
-  let coveredWeight = 0;
-  let scoreSum = 0;
-
-  rankedTopics.forEach((topic, i) => {
-    const w = n - i;
-    totalWeight += w;
-    const pos = p.policies.find((x) => x.issue.toLowerCase() === topic.toLowerCase());
-    if (!pos) return;
-    coveredWeight += w;
-    scoreSum += w * pos.align;
-  });
-
-  if (!coveredWeight) return { score: p.match, raw: p.match, coverage: 0 };
-
-  const raw = scoreSum / coveredWeight;
-  const coverage = coveredWeight / totalWeight;
-  return {
-    score: Math.round(raw * coverage + 50 * (1 - coverage)),
-    raw: Math.round(raw),
-    coverage: Math.round(coverage * 100) / 100,
-  };
-}
-
-export function computeMatch(p: Politician, rankedTopics: string[]): number {
-  return matchDetail(p, rankedTopics).score;
-}
-
 /** Linear-falloff weight bars shown on the profile's ranked-issue list. */
 export function rankWeights(topics: string[]): { name: string; rank: number; pct: number }[] {
   const n = topics.length;

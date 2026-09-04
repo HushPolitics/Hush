@@ -33,9 +33,11 @@ const heroSecondaryBtn = {
  * next.config.ts.) `topics` (ranked, edited from the "Your Top Issues" card
  * below) drives Value Match everywhere else in the app, and is also the same
  * list HUSH Guide and Stance Check read/write — so `hushGuideReady` below
- * just checks whether it's non-empty. `followedTopics` ("Topics You Follow")
- * is a separate, unranked watch-list with no effect on matching — see the
- * doc comments on both fields in lib/prefs.tsx.
+ * just checks whether it's non-empty. There used to be a second, separate
+ * "Topics You Follow" watch-list (`followedTopics`) with no effect on
+ * matching; it's been retired — `topics` is now the only issue list, for
+ * following and for ranking both. See the doc comment on `topics` in
+ * lib/prefs.tsx.
  */
 export default function ProfileView({
   politicians,
@@ -47,17 +49,7 @@ export default function ProfileView({
   checks: FactCheck[];
 }) {
   const router = useRouter();
-  const {
-    saved,
-    city,
-    state,
-    zip,
-    firstName,
-    lastName,
-    followedTopics,
-    toggleFollowedTopic,
-    topics,
-  } = usePrefs();
+  const { saved, city, state, zip, firstName, lastName, topics } = usePrefs();
   const [sort, setSort] = useState<Sort>("Seniority");
 
   const displayName = `${firstName} ${lastName}`.trim() || "HUSH Member";
@@ -141,23 +133,6 @@ export default function ProfileView({
       </section>
 
       <TopIssuesCard id="top-issues" topicPool={topicPool} />
-
-      <Card id="topics-you-follow" style={{ padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <Kicker>Watching</Kicker>
-          <Display size={25}>Topics You Follow</Display>
-          <span style={{ fontSize: 13, color: C.body }}>
-            Other issues you want HUSH to keep an eye on.
-          </span>
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-          {topicPool.map((name) => (
-            <Chip key={name} on={followedTopics.includes(name)} onClick={() => toggleFollowedTopic(name)}>
-              {name}
-            </Chip>
-          ))}
-        </div>
-      </Card>
 
       <Card id="hush-guide" style={{ padding: 18, display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
