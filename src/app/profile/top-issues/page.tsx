@@ -8,9 +8,11 @@ import { C } from "@/lib/theme";
 export const metadata: Metadata = { title: "My Top Issues" };
 
 /**
- * The full-page destination for the Profile hero's "My Top Issues" button
- * and the "Your Top Issues" card's "Edit Issues →" link. Same editor either
- * place — see TopIssuesCard — just given the whole page to itself.
+ * The full-page destination for the "Your Top Issues" card's "Edit Issues
+ * →" link, the quiz's results-step Save (see TopIssuesQuizView), and the
+ * quiz's "Skip the quiz — rank your own issues" link for anyone who'd
+ * rather not answer questions. Same editor everywhere — see TopIssuesCard —
+ * just given the whole page to itself here.
  */
 export default function TopIssuesPage() {
   return (

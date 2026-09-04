@@ -7,8 +7,10 @@ export const metadata: Metadata = { title: "My Top Issues Quiz" };
 
 /**
  * The quiz's own route, nested under /profile/top-issues rather than a new
- * top-level nav tab — Profile's hero links here ("Take the Issues Quiz"),
- * same as it links to /profile/top-issues itself. See TopIssuesQuizView.
+ * top-level nav tab — Profile's hero "My Top Issues" button links here now
+ * (the button used to link straight to /profile/top-issues; that page is
+ * still reachable, via the quiz's own "Skip the quiz" link). See
+ * TopIssuesQuizView.
  */
 export default function TopIssuesQuizPage() {
   return (

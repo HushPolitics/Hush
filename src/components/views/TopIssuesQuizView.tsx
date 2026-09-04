@@ -17,13 +17,19 @@ type Step = "depth" | "quiz" | "results";
 
 /**
  * The quiz entry point into "My Top Issues" (see TopIssuesCard) — not a new
- * top-level nav tab, just a route Profile links into. Depth pick -> one
- * specific policy-detail question at a time -> a suggested ranked order,
- * landed on the same TopIssuesCard editor in its draft mode so the
- * suggestion can be reordered, added to, or trimmed before an explicit Save
- * writes it to `topics` — nothing here auto-saves as the user answers,
- * mirroring HUSH Guide's issue picker requiring Continue rather than
- * committing each toggle live.
+ * top-level nav tab, just a route Profile's "My Top Issues" button links
+ * into. Depth pick -> one specific policy-detail question at a time -> a
+ * suggested ranked order, landed on the same TopIssuesCard editor in its
+ * draft mode so the suggestion can be reordered, added to, or trimmed before
+ * an explicit Save writes it to `topics` — nothing here auto-saves as the
+ * user answers, mirroring HUSH Guide's issue picker requiring Continue
+ * rather than committing each toggle live.
+ *
+ * The depth-pick step also offers a "Skip the quiz" link straight to
+ * /profile/top-issues (TopIssuesCard's own full-page route, live-editing
+ * mode) for anyone who'd rather rank issues by hand — that's the same
+ * destination Profile's "My Top Issues" button used to point to directly,
+ * before this quiz became the button's target.
  *
  * Per-question answers are a different matter: those record immediately via
  * `recordQuizAnswer` as the user goes, because they're this feature's raw
@@ -129,6 +135,13 @@ export default function TopIssuesQuizView({
             );
           })}
         </div>
+
+        <Link
+          href="/profile/top-issues"
+          style={{ fontSize: 13, color: C.muted, textDecoration: "underline" }}
+        >
+          Skip the quiz — rank your own issues
+        </Link>
 
         <Link href="/profile" style={{ fontSize: 13, color: C.navy, textDecoration: "underline" }}>
           Back to Profile

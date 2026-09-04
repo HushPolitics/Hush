@@ -125,17 +125,10 @@ export default function ProfileView({
           </RustButton>
           <button
             type="button"
-            onClick={() => router.push("/profile/top-issues")}
-            style={heroSecondaryBtn}
-          >
-            My Top Issues
-          </button>
-          <button
-            type="button"
             onClick={() => router.push("/profile/top-issues/quiz")}
             style={heroSecondaryBtn}
           >
-            Take the Issues Quiz
+            My Top Issues
           </button>
           <button
             type="button"
