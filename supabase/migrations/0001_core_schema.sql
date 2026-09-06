@@ -32,7 +32,7 @@ create type review_state as enum ('draft', 'in_review', 'published', 'rejected',
 create table jurisdictions (
   id           uuid primary key default gen_random_uuid(),
   slug         text unique not null,
-  name         text not null,          -- 'Travis County', 'Texas', 'United States'
+  name         text not null,          -- 'Duval County', 'Florida', 'United States'
   level        gov_level not null,
   parent_id    uuid references jurisdictions(id) on delete set null,
   state_code   char(2),
@@ -42,8 +42,8 @@ create table jurisdictions (
 create table districts (
   id              uuid primary key default gen_random_uuid(),
   jurisdiction_id uuid not null references jurisdictions(id) on delete cascade,
-  slug            text unique not null, -- 'tx-35', 'd-14', 'austin-citywide'
-  name            text not null,        -- 'TX-35'
+  slug            text unique not null, -- 'fl-04', 'district-4', 'jacksonville-citywide'
+  name            text not null,        -- 'FL-04'
   kind            text not null,        -- 'congressional', 'state_senate', 'school_board', 'citywide'
   created_at      timestamptz not null default now()
 );
