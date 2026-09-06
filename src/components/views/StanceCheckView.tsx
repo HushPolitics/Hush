@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
-import { C, cond } from "@/lib/theme";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
+import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { parseRaceTitle } from "@/lib/guide";
-import type { Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
+import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
+import type { Party, Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
 import { Card, Display, Kicker, Pill, RustButton } from "@/components/ui";
 import { IssuesStep } from "./GuideView";
 
@@ -58,7 +59,20 @@ const RESULT_STYLE: Record<Bucket, { bg: string; fg: string; dot: string }> = {
  * own past picks, not a live choice between them, and the ask here is scoped
  * to the picker.
  */
-function AnswerChip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+/**
+ * `variant="tertiary"` is Neutral's demoted treatment (see 1.4): smaller,
+ * lower-contrast, visually subordinate to the primary Agree/Disagree pair
+ * without being removed as a choice. Neutral is a legitimate answer, it
+ * just produces a dead reveal (no one to be surprised about), so the picker
+ * shouldn't present it as an equal-weight third option.
+ */
+function AnswerChip({ on, onClick, children, variant = "primary" }: {
+  on: boolean;
+  onClick: () => void;
+  children: ReactNode;
+  variant?: "primary" | "tertiary";
+}) {
+  const tertiary = variant === "tertiary";
   return (
     <button
       type="button"
@@ -66,22 +80,23 @@ function AnswerChip({ on, onClick, children }: { on: boolean; onClick: () => voi
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 8,
-        padding: "8px 14px",
-        borderRadius: 20,
-        fontSize: 13,
+        gap: tertiary ? 6 : 8,
+        padding: tertiary ? "5px 11px" : "8px 14px",
+        borderRadius: tertiary ? 16 : 20,
+        fontSize: tertiary ? 12 : 13,
         fontWeight: on ? 600 : 500,
         whiteSpace: "nowrap",
         cursor: "pointer",
-        background: on ? C.shell : "transparent",
-        color: on ? C.ink : C.body,
-        border: `1px solid ${on ? C.ink : "rgba(21,21,21,0.18)"}`,
+        background: on ? (tertiary ? C.hover : C.shell) : "transparent",
+        color: on ? (tertiary ? C.body : C.ink) : tertiary ? C.faint : C.body,
+        border: `1px solid ${on ? (tertiary ? C.line : C.ink) : "rgba(21,21,21,0.14)"}`,
+        opacity: tertiary && !on ? 0.85 : 1,
       }}
     >
       <span
         style={{
-          width: 9,
-          height: 9,
+          width: tertiary ? 7 : 9,
+          height: tertiary ? 7 : 9,
           borderRadius: "50%",
           boxSizing: "border-box",
           border: `1.5px solid ${on ? C.navy : C.faint}`,
@@ -93,25 +108,41 @@ function AnswerChip({ on, onClick, children }: { on: boolean; onClick: () => voi
   );
 }
 
-const ANSWER_RANK: Record<StanceCheckAnswer, number> = { Agree: 0, Neutral: 1, Disagree: 2 };
+/**
+ * Column order for one question's results, driven by the user's own answer:
+ * whichever bucket matches the user's pick leads, then the true opposite of
+ * that pick, then the remaining stance, so answering Agree surfaces Agree,
+ * Disagree, Neutral -- not Agree, Neutral, Disagree, which buried the actual
+ * opposite behind the least interesting bucket. A Neutral answer has no
+ * true opposite (Agree and Disagree are equally "not neutral"), so it keeps
+ * its own bucket first and leaves Agree/Disagree in their natural order.
+ * "No record" is never a grid column (see 1.3's collapsed line) so it isn't
+ * part of this ordering at all.
+ */
+function orderedBuckets(userAnswer: StanceCheckAnswer): StanceCheckAnswer[] {
+  if (userAnswer === "Neutral") return ["Neutral", "Agree", "Disagree"];
+  const opposite: StanceCheckAnswer = userAnswer === "Agree" ? "Disagree" : "Agree";
+  return [userAnswer, opposite, "Neutral"];
+}
 
 /**
- * Column order for one question's results, driven by the user's own answer
- * rather than a fixed Agree/Neutral/Disagree order: whichever bucket
- * matches the user's pick leads, then Neutral, then the opposing bucket --
- * so picking "Disagree" surfaces the politicians who also picked Disagree
- * first, not last, regardless of which answer was picked. "No record" has
- * no agreement signal to rank, so it always trails the other three.
+ * Second-person column headers so the grid reads as a finding about the
+ * user rather than a sorting bucket. Only meaningful relative to the user's
+ * own answer: the bucket that matches it is framed as agreement, its true
+ * opposite (only defined for an Agree/Disagree answer) as difference, and
+ * the third bucket keeps its plain stance name.
  */
-function orderedBuckets(userAnswer: StanceCheckAnswer): Bucket[] {
-  const distance = (b: StanceCheckAnswer) => Math.abs(ANSWER_RANK[b] - ANSWER_RANK[userAnswer]);
-  const comparison: StanceCheckAnswer[] = ["Agree", "Neutral", "Disagree"];
-  return [...comparison.sort((a, b) => distance(a) - distance(b)), "No record"];
+function bucketHeader(bucket: StanceCheckAnswer, userAnswer: StanceCheckAnswer): string {
+  if (bucket === userAnswer) return "Where you match";
+  const opposite: StanceCheckAnswer | null = userAnswer === "Agree" ? "Disagree" : userAnswer === "Disagree" ? "Agree" : null;
+  if (bucket === opposite) return "Where you differ";
+  return bucket;
 }
 
 interface Candidacy {
   politicianId: string;
   name: string;
+  party: Party;
   office: string;
   district?: string;
 }
@@ -159,7 +190,13 @@ export default function StanceCheckView({
   // Guide and Compare already use, not a generic national list.
   const candidacies: Candidacy[] = races.flatMap((race) => {
     const { office, district } = parseRaceTitle(race.title);
-    return race.candidates.map((c) => ({ politicianId: c.politicianId, name: c.name, office, district }));
+    return race.candidates.map((c) => ({
+      politicianId: c.politicianId,
+      name: c.name,
+      party: c.party,
+      office,
+      district,
+    }));
   });
 
   if (picking) {
@@ -227,30 +264,29 @@ export default function StanceCheckView({
       </div>
 
       {done ? (
-        <Card style={{ maxWidth: 640, padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
-          <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
-            No score, no match percentage — just what you said next to who&apos;s on record saying
-            the same or the opposite. Pick any question below to see its breakdown again.
-          </span>
-          <RustButton
-            onClick={() => setIndex(0)}
-            style={{ alignSelf: "flex-start", padding: "10px 16px", fontSize: 13 }}
-          >
-            Review from the start
-          </RustButton>
-        </Card>
+        <StanceSummary
+          topics={topics}
+          answers={answers}
+          candidacies={candidacies}
+          positions={positions}
+          onReviewFromStart={() => setIndex(0)}
+        />
       ) : (
         <Card style={{ maxWidth: 640, padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
           <Kicker color={C.muted}>{issue}</Kicker>
           <Display size={22} style={{ lineHeight: 1.3 }}>
             {statements[issue!]}
           </Display>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {(["Agree", "Neutral", "Disagree"] as StanceCheckAnswer[]).map((a) => (
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+            {(["Agree", "Disagree"] as StanceCheckAnswer[]).map((a) => (
               <AnswerChip key={a} on={answer === a} onClick={() => pickAnswer(a)}>
                 {a}
               </AnswerChip>
             ))}
+            <span aria-hidden style={{ width: 1, height: 20, background: C.line }} />
+            <AnswerChip on={answer === "Neutral"} onClick={() => pickAnswer("Neutral")} variant="tertiary">
+              Neutral
+            </AnswerChip>
           </div>
         </Card>
       )}
@@ -333,78 +369,362 @@ function StatementBreakdown({
     const bucket: Bucket = position?.stance ?? "No record";
     grouped.get(bucket)!.push({ candidacy, position });
   }
+  const noRecord = grouped.get("No record")!;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))",
+          gap: 14,
+        }}
+      >
+        {orderedBuckets(userAnswer).map((bucket) => {
+          const entries = grouped.get(bucket)!;
+          const style = RESULT_STYLE[bucket];
+          const header = bucketHeader(bucket, userAnswer);
+          return (
+            <Card key={bucket} style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: style.dot }} />
+                <span style={{ fontFamily: cond, fontSize: 15, letterSpacing: "0.04em" }}>{header}</span>
+                <Pill bg={style.bg} fg={style.fg} style={{ marginLeft: "auto" }}>
+                  {entries.length}
+                </Pill>
+              </div>
+
+              {entries.length === 0 ? (
+                <span style={{ fontSize: 12, color: C.muted, fontStyle: "italic" }}>Nobody on your ballot, so far.</span>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {entries.map(({ candidacy, position }) => (
+                    <CandidateCard
+                      key={candidacy.politicianId}
+                      candidacy={candidacy}
+                      position={position}
+                      known={knownIds.has(candidacy.politicianId)}
+                    />
+                  ))}
+                </div>
+              )}
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* "No record" (see 1.3) is deliberately not a fourth grid column --
+          six-plus of thirteen candidates having no public position on a
+          given statement is honest and worth saying, but it doesn't deserve
+          the same prime real estate as an actual stance. It collapses to
+          one line instead, expandable on demand. */}
+      {noRecord.length > 0 ? <NoRecordDisclosure entries={noRecord} knownIds={knownIds} /> : null}
+    </div>
+  );
+}
+
+function NoRecordDisclosure({
+  entries,
+  knownIds,
+}: {
+  entries: { candidacy: Candidacy; position?: StanceCheckPosition }[];
+  knownIds: Set<string>;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        style={{
+          border: 0,
+          background: "transparent",
+          padding: 0,
+          fontSize: 12.5,
+          color: C.muted,
+          cursor: "pointer",
+          textDecoration: "underline",
+          textUnderlineOffset: 3,
+        }}
+      >
+        {entries.length} candidate{entries.length === 1 ? "" : "s"} have no public position on this.{" "}
+        {open ? "Hide them." : "Show them."}
+      </button>
+
+      {open ? (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+          {entries.map(({ candidacy }) => {
+            const name = stripPartySuffix(candidacy.name);
+            const label = `${name}, ${candidacy.office}${candidacy.district ? `, ${candidacy.district}` : ""}`;
+            const inner = (
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "5px 10px",
+                  borderRadius: 14,
+                  background: C.shell,
+                  fontSize: 12,
+                  color: C.body,
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: PARTY[candidacy.party] }} />
+                {name}
+              </span>
+            );
+            return knownIds.has(candidacy.politicianId) ? (
+              <Link
+                key={candidacy.politicianId}
+                href={`/politician/${candidacy.politicianId}`}
+                aria-label={label}
+                style={{ textDecoration: "none" }}
+              >
+                {inner}
+              </Link>
+            ) : (
+              <span key={candidacy.politicianId} aria-label={label}>
+                {inner}
+              </span>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * One candidate's card in a results column -- 1.1's delayed party reveal.
+ * Name, office, district, quote, source, and date all render immediately;
+ * party is the one thing that's held back and animated in, after a short
+ * delay or on hover/tap/keyboard focus of the card, whichever comes first.
+ * That's a genuine transparency delay, not a transparency gap: the party
+ * dot and label stay in the DOM (opacity only, never `display: none` or
+ * `aria-hidden`) from first render, so a screen reader announces them
+ * immediately even while they're still visually faded out for a sighted
+ * user. Nothing else on the card animates.
+ */
+function CandidateCard({
+  candidacy,
+  position,
+  known,
+}: {
+  candidacy: Candidacy;
+  position?: StanceCheckPosition;
+  known: boolean;
+}) {
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setRevealed(true), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+  const reveal = () => setRevealed(true);
+  const name = stripPartySuffix(candidacy.name);
+
+  const partyBadge = (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        fontSize: 11,
+        color: C.muted,
+        opacity: revealed ? 1 : 0,
+        transform: revealed ? "translateX(0)" : "translateX(-4px)",
+        transition: "opacity 260ms ease, transform 260ms ease",
+      }}
+    >
+      <span style={{ width: 6, height: 6, borderRadius: "50%", background: PARTY[candidacy.party] }} />
+      {PARTY_LABEL[candidacy.party]}
+    </span>
+  );
 
   return (
     <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))",
-        gap: 14,
-      }}
+      onMouseEnter={reveal}
+      onFocus={reveal}
+      onTouchStart={reveal}
+      onClick={reveal}
+      style={{ display: "flex", flexDirection: "column", gap: 3 }}
     >
-      {orderedBuckets(userAnswer).map((bucket) => {
-        const entries = grouped.get(bucket)!;
-        const style = RESULT_STYLE[bucket];
-        return (
-          <Card key={bucket} style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: style.dot }} />
-              <span style={{ fontFamily: cond, fontSize: 15, letterSpacing: "0.04em" }}>{bucket}</span>
-              <Pill bg={style.bg} fg={style.fg} style={{ marginLeft: "auto" }}>
-                {entries.length}
-              </Pill>
-            </div>
-
-            {entries.length === 0 ? (
-              <span style={{ fontSize: 12, color: C.muted, fontStyle: "italic" }}>Nobody on your ballot, so far.</span>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {entries.map(({ candidacy, position }) => (
-                  <div key={candidacy.politicianId} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                    {knownIds.has(candidacy.politicianId) ? (
-                      <Link
-                        href={`/politician/${candidacy.politicianId}`}
-                        style={{ fontFamily: cond, fontSize: 14, color: C.ink, textDecoration: "none" }}
-                      >
-                        {candidacy.name}
-                      </Link>
-                    ) : (
-                      <span style={{ fontFamily: cond, fontSize: 14, color: C.body }}>{candidacy.name}</span>
-                    )}
-                    <span style={{ fontSize: 11, color: C.muted }}>
-                      {candidacy.office}
-                      {candidacy.district ? ` · ${candidacy.district}` : ""}
-                    </span>
-                    {position ? (
-                      <>
-                        <p style={{ margin: 0, fontSize: 12, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
-                          &ldquo;{position.excerpt}&rdquo;
-                        </p>
-                        <span style={{ fontSize: 11, color: C.muted }}>
-                          {position.sourceTitle} · {position.sourceType}
-                          {position.date ? ` · ${position.date}` : ""}
-                        </span>
-                        <a
-                          href={position.sourceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ fontSize: 12, color: C.navy }}
-                        >
-                          View Original Source →
-                        </a>
-                      </>
-                    ) : (
-                      <span style={{ fontSize: 12, color: C.muted, fontStyle: "italic" }}>
-                        No official position found
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-        );
-      })}
+      <div style={{ display: "flex", alignItems: "baseline", gap: 7, flexWrap: "wrap" }}>
+        {known ? (
+          <Link
+            href={`/politician/${candidacy.politicianId}`}
+            style={{ fontFamily: cond, fontSize: 14, color: C.ink, textDecoration: "none" }}
+          >
+            {name}
+          </Link>
+        ) : (
+          <span style={{ fontFamily: cond, fontSize: 14, color: C.body }}>{name}</span>
+        )}
+        {partyBadge}
+      </div>
+      <span style={{ fontSize: 11, color: C.muted }}>
+        {candidacy.office}
+        {candidacy.district ? ` · ${candidacy.district}` : ""}
+      </span>
+      {position ? (
+        <>
+          <p style={{ margin: 0, fontSize: 12, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
+            &ldquo;{position.excerpt}&rdquo;
+          </p>
+          <span style={{ fontSize: 11, color: C.muted }}>
+            {position.sourceTitle} · {position.sourceType}
+            {position.date ? ` · ${position.date}` : ""}
+          </span>
+          <a
+            href={position.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 12, color: C.navy }}
+          >
+            View Original Source →
+          </a>
+        </>
+      ) : (
+        <span style={{ fontSize: 12, color: C.muted, fontStyle: "italic" }}>No official position found</span>
+      )}
     </div>
+  );
+}
+
+/** One (issue, candidate) pair where the user's answer matched a candidate's
+ * sourced stance -- the atomic unit `StanceSummary` below rolls up into the
+ * cross-party headline and the "strongest surprise." */
+interface Match {
+  issue: string;
+  candidacy: Candidacy;
+  position: StanceCheckPosition;
+}
+
+function partyCountList(counts: { party: Party; count: number }[]): string {
+  const parts = counts.map(({ party, count }) => `${count} ${count === 1 ? PARTY_LABEL[party] : `${PARTY_LABEL[party]}s`}`);
+  if (parts.length === 1) return parts[0];
+  if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
+  return `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
+}
+
+/**
+ * Stance Check's end-of-run screen (see 1.5) -- the payoff for the whole
+ * feature, so it leads with the finding rather than a generic wrap-up.
+ * Every number here is computed from the user's own answers and the same
+ * sourced `STANCE_POSITIONS` the per-question breakdown already used; there
+ * is still no score anywhere on this screen, only findings, in priority
+ * order: the cross-party headline (if the data actually produced one), the
+ * single strongest surprise, the issues where nobody on the ballot matched,
+ * and one way back into HUSH Guide.
+ */
+function StanceSummary({
+  topics,
+  answers,
+  candidacies,
+  positions,
+  onReviewFromStart,
+}: {
+  topics: string[];
+  answers: Record<string, StanceCheckAnswer>;
+  candidacies: Candidacy[];
+  positions: Record<string, Record<string, StanceCheckPosition>>;
+  onReviewFromStart: () => void;
+}) {
+  const router = useRouter();
+  const answeredTopics = topics.filter((t) => answers[t]);
+
+  // Every (issue, candidate) pair where the candidate's sourced stance
+  // matches what the user picked -- "matched" means the same stance, not
+  // just an Agree/Agree pair, since a shared Disagree or Neutral is just as
+  // much a real match.
+  const matches: Match[] = [];
+  for (const issue of answeredTopics) {
+    for (const candidacy of candidacies) {
+      const position = positions[candidacy.politicianId]?.[issue];
+      if (position && position.stance === answers[issue]) {
+        matches.push({ issue, candidacy, position });
+      }
+    }
+  }
+
+  const matchedIdsByParty: Record<Party, Set<string>> = { D: new Set(), R: new Set(), I: new Set() };
+  for (const m of matches) matchedIdsByParty[m.candidacy.party].add(m.candidacy.politicianId);
+  const partyCounts = (["D", "R", "I"] as Party[])
+    .map((party) => ({ party, count: matchedIdsByParty[party].size }))
+    .filter((p) => p.count > 0);
+  const crossesParty = partyCounts.length >= 2;
+
+  // The strongest surprise: a match against the party the user matched with
+  // *least* overall -- among parties matched at all, never a party with
+  // zero matches, since there's nothing to surprise the user with there.
+  const leastMatchedParty = crossesParty
+    ? partyCounts.reduce((min, p) => (p.count < min.count ? p : min))
+    : null;
+  const surprise = leastMatchedParty ? matches.find((m) => m.candidacy.party === leastMatchedParty.party) : undefined;
+
+  const noMatchIssues = answeredTopics.filter((issue) => !matches.some((m) => m.issue === issue));
+
+  return (
+    <Card style={{ maxWidth: 640, padding: 24, display: "flex", flexDirection: "column", gap: 18 }}>
+      <Kicker color={C.muted}>Your Stance Check, so far</Kicker>
+
+      {crossesParty ? (
+        <Display size={22} style={{ lineHeight: 1.3 }}>
+          You agreed with {partyCountList(partyCounts)}.
+        </Display>
+      ) : partyCounts.length === 1 ? (
+        <Display size={22} style={{ lineHeight: 1.3 }}>
+          You agreed with {partyCountList(partyCounts)} — no matches outside that party yet.
+        </Display>
+      ) : (
+        <Display size={22} style={{ lineHeight: 1.3 }}>
+          You didn&apos;t match with anyone on your ballot on the issues you answered.
+        </Display>
+      )}
+
+      {surprise ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
+          <Kicker size={11}>Your strongest surprise</Kicker>
+          <span style={{ fontSize: 13, color: C.ink, lineHeight: 1.5 }}>
+            On <strong>{surprise.issue}</strong>, you matched {PARTY_LABEL[surprise.candidacy.party]}{" "}
+            <Link href={`/politician/${surprise.candidacy.politicianId}`} style={{ color: C.navy }}>
+              {stripPartySuffix(surprise.candidacy.name)}
+            </Link>{" "}
+            — the party you matched with least overall.
+          </span>
+          <p style={{ margin: 0, fontSize: 12, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
+            &ldquo;{surprise.position.excerpt}&rdquo;
+          </p>
+        </div>
+      ) : null}
+
+      {noMatchIssues.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
+          <Kicker size={11}>Where nobody on your ballot matched you</Kicker>
+          <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{noMatchIssues.join(", ")}</span>
+        </div>
+      ) : null}
+
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", paddingTop: 4 }}>
+        <RustButton onClick={() => router.push("/hush-guide")} style={{ padding: "11px 18px" }}>
+          Go to HUSH Guide →
+        </RustButton>
+        <button
+          type="button"
+          className="link-quiet"
+          onClick={onReviewFromStart}
+          style={{
+            border: 0,
+            background: "transparent",
+            color: C.navy,
+            fontSize: 13,
+            cursor: "pointer",
+            padding: "11px 4px",
+          }}
+        >
+          Review from the start
+        </button>
+      </div>
+    </Card>
   );
 }
