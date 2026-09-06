@@ -3,15 +3,30 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { C, PARTY, TAG_STYLE, cond, trustBand } from "@/lib/theme";
+import { C, PARTY, TAG_STYLE, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { DEFAULT_DISTRICT } from "@/lib/seed-data";
 import { stripPartySuffix } from "@/lib/guide";
 import { initials } from "@/lib/scoring";
 import type { IssuePosition, Politician, Race, StanceCell } from "@/lib/types";
 import { Avatar, Display, ExpandableQuote, Kicker, RustButton } from "@/components/ui";
-import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 
+/**
+ * Side-by-side stance grid -- app IA restructure phase 5. Two changes from
+ * the original brief's "ranked-issue rows plus a score row": the amendment
+ * overrides the score row entirely (no HUSH. Score anywhere in Compare, ever
+ * -- it's a single politician's own number, and this view exists specifically
+ * to put politicians next to each other; the header used to show every pick's
+ * score in the same row, which is exactly the "two scores visible at once"
+ * case the amendment rules out). What ships instead is the ranked-issue half:
+ * rows are reordered so the issues the user ranked lead, in rank order, each
+ * tagged "Your #N" -- same convention HUSH Guide's race cards already use for
+ * "Your #N issue". `stances` only ever covers a handful of issues (whichever
+ * ones have seeded StanceCell data); rows still come from those keys, same as
+ * before this phase -- ranking only changes their order and adds the label,
+ * it doesn't add or remove rows. Any of the user's ranked issues outside that
+ * set simply have no row here, same as always.
+ */
 export default function CompareView({
   politicians,
   races,
@@ -36,10 +51,16 @@ export default function CompareView({
     [politicians],
   );
 
-  const heads = picks.map((id) => {
-    const p = byId.get(id) ?? politicians[0];
-    return { ...p, band: trustBand(p.trust) };
-  });
+  const heads = picks.map((id) => byId.get(id) ?? politicians[0]);
+
+  // Issues the user ranked, in rank order, promoted to the top of the grid;
+  // everything else keeps its original order after them. `stances` only
+  // covers a handful of issues (whichever have seeded StanceCell data), so
+  // this reorders that fixed set rather than adding or removing rows.
+  const rankOf = new Map(topics.map((t, i) => [t, i + 1]));
+  const orderedIssues = Object.keys(stances)
+    .map((issue) => ({ issue, rank: rankOf.get(issue) }))
+    .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity));
 
   const gridCols = `150px ${picks.map(() => "1fr").join(" ")}`;
 
@@ -299,15 +320,18 @@ export default function CompareView({
                 <span style={{ fontSize: 11, color: C.muted }}>
                   {h.office} · {h.district}
                 </span>
-                <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: h.band.color }}>
-                  HUSH. {h.trust}
-                  <HushScoreInfoIcon politicianId={h.id} />
-                </span>
               </div>
             ))}
 
-            {Object.keys(stances).map((issue) => (
-              <Row key={issue} issue={issue} picks={picks} stances={stances} guidePositions={guidePositions} />
+            {orderedIssues.map(({ issue, rank }) => (
+              <Row
+                key={issue}
+                issue={issue}
+                rank={rank}
+                picks={picks}
+                stances={stances}
+                guidePositions={guidePositions}
+              />
             ))}
           </div>
         </div>
@@ -318,11 +342,14 @@ export default function CompareView({
 
 function Row({
   issue,
+  rank,
   picks,
   stances,
   guidePositions,
 }: {
   issue: string;
+  /** This issue's 1-based position in the user's ranked list, if it's on it. */
+  rank?: number;
   picks: string[];
   stances: Record<string, Record<string, StanceCell>>;
   guidePositions: Record<string, Record<string, IssuePosition>>;
@@ -334,13 +361,36 @@ function Row({
           padding: "11px 12px",
           borderBottom: `1px solid ${C.lineSoft}`,
           background: C.hover,
-          fontFamily: cond,
-          fontSize: 14,
-          letterSpacing: "0.04em",
-          textTransform: "uppercase",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
         }}
       >
-        {issue}
+        <span
+          style={{
+            fontFamily: cond,
+            fontSize: 14,
+            letterSpacing: "0.04em",
+            textTransform: "uppercase",
+          }}
+        >
+          {issue}
+        </span>
+        {rank ? (
+          <span
+            style={{
+              padding: "2px 7px",
+              borderRadius: 10,
+              fontSize: 10,
+              letterSpacing: "0.02em",
+              whiteSpace: "nowrap",
+              background: "rgba(156,63,50,0.10)",
+              color: C.rust,
+            }}
+          >
+            Your #{rank}
+          </span>
+        ) : null}
       </span>
       {picks.map((id, i) => {
         const fallback: StanceCell = ["No record", "Not tracked for this office"];
