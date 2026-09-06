@@ -9,7 +9,7 @@ import { DEFAULT_DISTRICT } from "@/lib/seed-data";
 import { stripPartySuffix } from "@/lib/guide";
 import { initials } from "@/lib/scoring";
 import type { IssuePosition, Politician, Race, StanceCell } from "@/lib/types";
-import { Avatar, Display, Kicker, RustButton } from "@/components/ui";
+import { Avatar, Display, ExpandableQuote, Kicker, RustButton } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 
 export default function CompareView({
@@ -381,7 +381,14 @@ function Row({
               gap: 4,
             }}
           >
-            <span style={{ fontSize: 12, color: C.body, lineHeight: 1.45 }}>{blurb}</span>
+            {position ? (
+              <ExpandableQuote
+                text={position.excerpt}
+                style={{ fontSize: 12, color: C.body, lineHeight: 1.45 }}
+              />
+            ) : (
+              <span style={{ fontSize: 12, color: C.body, lineHeight: 1.45 }}>{blurb}</span>
+            )}
             {isLinkable ? (
               sourceUrl ? (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>

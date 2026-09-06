@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { issueCoverage, parseRaceTitle, shortPhrase, stripPartySuffix, topRankedIssueForRace } from "@/lib/guide";
+import { issueCoverage, parseRaceTitle, stripPartySuffix, topRankedIssueForRace } from "@/lib/guide";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
-import { Card, Chip, Display, EmptyState, GhostButton, Kicker, RustButton } from "@/components/ui";
+import { Card, Chip, Display, EmptyState, ExpandableQuote, GhostButton, Kicker, RustButton } from "@/components/ui";
 import ElectionCountdownBanner from "@/components/ElectionCountdownBanner";
 import PollingPlaceCard from "@/components/PollingPlaceCard";
 import { BillsSection } from "./GuideBills";
@@ -557,9 +557,16 @@ function TileGrid({
                               {nameEl}
                               <span style={{ fontSize: 11, color: C.muted }}>{PARTY_LABEL[c.party]}</span>
                             </div>
-                            <span style={{ fontSize: 12, color: pos ? C.body : C.muted, fontStyle: pos ? "normal" : "italic", lineHeight: 1.4 }}>
-                              {pos ? shortPhrase(pos.excerpt) : "No official position found"}
-                            </span>
+                            {pos ? (
+                              <ExpandableQuote
+                                text={pos.excerpt}
+                                style={{ fontSize: 12, color: C.body, lineHeight: 1.4 }}
+                              />
+                            ) : (
+                              <span style={{ fontSize: 12, color: C.muted, fontStyle: "italic", lineHeight: 1.4 }}>
+                                No official position found
+                              </span>
+                            )}
                             {pos ? (
                               <span style={{ fontSize: 11, color: C.muted, display: "flex", gap: 6, flexWrap: "wrap" }}>
                                 <a
