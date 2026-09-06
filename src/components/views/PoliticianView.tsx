@@ -153,7 +153,7 @@ export default function PoliticianView({
         }}
       >
         {/* 2. The score, with its breakdown */}
-        <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <section id="score" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div className="stack-row" style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
             <Card
               style={{
@@ -437,7 +437,7 @@ export default function PoliticianView({
         </section>
 
         {/* 5. Claims checked */}
-        <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <section id="claims-checked" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <Kicker>Claims checked</Kicker>
             <span style={{ fontFamily: cond, fontSize: 18 }}>Fact-checks on {p.name}</span>

@@ -1,451 +1,233 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
-import { C, PARTY, PARTY_LABEL, cond, trustBand } from "@/lib/theme";
+import { useSearchParams } from "next/navigation";
+import { useMemo, useState, type ReactNode } from "react";
+import { C, STATUS_STYLE, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { initials, lastNameOf } from "@/lib/scoring";
-import type { Level, Politician } from "@/lib/types";
-import { Avatar, Bar, Chip, Kicker, RustButton } from "@/components/ui";
-import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
+import { initials } from "@/lib/scoring";
+import {
+  ballotPoliticianIds,
+  buildFeedEvents,
+  type FactCheckFeedEvent,
+  type FeedEvent,
+  type PositionFeedEvent,
+  type PromiseFeedEvent,
+  type ScoreFeedEvent,
+} from "@/lib/feed";
+import type { FactCheck, IssuePosition, Politician, Race, StanceCheckPosition } from "@/lib/types";
+import { Avatar, Card, Chip, Display, EmptyState, ExpandableQuote, Kicker, Pill } from "@/components/ui";
+import { FactCheckCard } from "./FactCheckView";
 
-type SortKey = "name" | "office" | "level" | "party" | "trust" | "lastName";
+type Scope = "ballot" | "following";
 
-const COLUMNS: { key: SortKey; label: string; align: "left" | "right" }[] = [
-  { key: "name", label: "Name", align: "left" },
-  { key: "office", label: "Office", align: "left" },
-  { key: "level", label: "Level", align: "left" },
-  { key: "party", label: "Party", align: "left" },
-  { key: "trust", label: "HUSH. Score", align: "left" },
-];
+function eventText(e: FeedEvent): string {
+  switch (e.type) {
+    case "score":
+      return e.reason;
+    case "promise":
+      return e.text;
+    case "factcheck":
+      return `${e.check.claim} ${e.check.finding} ${e.check.topic}`;
+    case "position":
+      return `${e.issue} ${e.excerpt}`;
+  }
+}
 
-const SORT_LABEL: Record<SortKey, string> = {
-  name: "Name",
-  office: "Office",
-  level: "Level",
-  party: "Party",
-  trust: "HUSH. Score",
-  lastName: "Alphabetical (A-Z)",
-};
-
-const GRID = "2.1fr 1.7fr 0.8fr 0.9fr 1.6fr";
-const LEVELS: (Level | "All")[] = ["All", "Local", "State", "Federal"];
-
-// Federal > State > Local, so the default (desc) direction reads
-// highest-office-first — matching sortBy()'s existing "new key = desc" default.
-const LEVEL_RANK: Record<Level, number> = { Federal: 2, State: 1, Local: 0 };
-
-const SORT_OPTIONS: { label: string; key: SortKey }[] = [
-  { label: "HUSH. Score", key: "trust" },
-  { label: "Alphabetical (A-Z)", key: "lastName" },
-  { label: "Level", key: "level" },
-];
-
-export default function FeedView({ politicians }: { politicians: Politician[] }) {
-  const router = useRouter();
+/**
+ * The Feed, rebuilt for app IA restructure phase 4. What replaced the old
+ * sortable directory table (every politician, every score, side by side) is
+ * a reverse-chronological event list -- score changes, promise status
+ * changes, fact-check verdicts, and new/updated positions -- scoped to the
+ * user's ballot by default, with a toggle to Following. A HUSH. Score only
+ * ever appears here as one politician's own change event, with its reason
+ * attached; it is never shown next to anyone else's, matching the amendment's
+ * standing rule enforced in CompareView/GuideView.
+ */
+export default function FeedView({
+  politicians,
+  factChecks,
+  races,
+  guide,
+  stance,
+}: {
+  politicians: Politician[];
+  factChecks: FactCheck[];
+  races: Race[];
+  guide: Record<string, Record<string, IssuePosition>>;
+  stance: Record<string, Record<string, StanceCheckPosition>>;
+}) {
   const params = useSearchParams();
   const q = params.get("q") ?? "";
-  const { saved, toggleSaved } = usePrefs();
+  const { saved } = usePrefs();
+  const [scope, setScope] = useState<Scope>("ballot");
 
-  const [level, setLevel] = useState<Level | "All">("All");
-  const [sortKey, setSortKey] = useState<SortKey>("trust");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-  const [sortOpen, setSortOpen] = useState(false);
+  const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
+  const scopedIds = scope === "ballot" ? ballotIds : new Set(saved);
 
-  const rows = useMemo(() => {
+  const allEvents = useMemo(
+    () => buildFeedEvents(politicians, factChecks, guide, stance),
+    [politicians, factChecks, guide, stance],
+  );
+
+  const events = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    const dir = sortDir === "asc" ? 1 : -1;
-    return politicians
-      .filter((p) => level === "All" || p.level === level)
-      .filter(
-        (p) =>
-          !needle ||
-          `${p.name} ${p.office} ${p.tags.join(" ")}`.toLowerCase().includes(needle),
-      )
-      .sort((a, b) => {
-        let cmp: number;
-        if (sortKey === "level") {
-          cmp = LEVEL_RANK[a.level] - LEVEL_RANK[b.level];
-        } else if (sortKey === "lastName") {
-          cmp = lastNameOf(a.name).localeCompare(lastNameOf(b.name));
-        } else {
-          const va = a[sortKey];
-          const vb = b[sortKey];
-          cmp =
-            typeof va === "number" && typeof vb === "number"
-              ? va - vb
-              : String(va).localeCompare(String(vb));
-        }
-        return cmp * dir;
-      });
-  }, [politicians, level, q, sortKey, sortDir]);
+    return allEvents.filter((e) => {
+      if (!scopedIds.has(e.politician.id)) return false;
+      if (!needle) return true;
+      const haystack = [e.politician.name, e.politician.office, ...e.politician.tags, eventText(e)]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(needle);
+    });
+  }, [allEvents, scopedIds, q]);
 
-  const counts = useMemo(
-    () => ({
-      All: politicians.length,
-      Local: politicians.filter((p) => p.level === "Local").length,
-      State: politicians.filter((p) => p.level === "State").length,
-      Federal: politicians.filter((p) => p.level === "Federal").length,
-    }),
-    [politicians],
-  );
-
-  // Same HUSH. Score the table sorts by default — the hero banner and the
-  // table agree on who's "best" for the same reason, rather than the hero
-  // picking a different, match-based winner. See HushScoreInfo for how the
-  // score itself is computed.
-  const hero = useMemo(
-    () => politicians.slice().sort((a, b) => b.trust - a.trust)[0],
-    [politicians],
-  );
-
-  function sortBy(key: SortKey) {
-    if (key === sortKey) setSortDir(sortDir === "desc" ? "asc" : "desc");
-    else {
-      setSortKey(key);
-      setSortDir("desc");
-    }
-  }
-
-  function selectSort(key: SortKey) {
-    // Same toggle pattern as sortBy() above: re-selecting the active key
-    // flips direction. Newly selecting a key defaults to descending (the
-    // Trust Score and Level rank orders both read correctly highest-first
-    // that way) except Alphabetical, which reads correctly A→Z first.
-    if (key === sortKey) setSortDir(sortDir === "desc" ? "asc" : "desc");
-    else {
-      setSortKey(key);
-      setSortDir(key === "lastName" ? "asc" : "desc");
-    }
-    setSortOpen(false);
-  }
-
-  const heroSaved = saved.includes(hero.id);
-  const heroTotal = hero.kept + hero.prog + hero.broken;
+  const followingEmpty = scope === "following" && saved.length === 0;
 
   return (
-    <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 18 }}>
-      {/* Highest HUSH. Score */}
-      <section
-        className="split"
-        style={{ display: "flex", background: C.ink, borderRadius: 12, overflow: "hidden" }}
-      >
-        <div
-          style={{
-            flex: 1,
-            padding: 24,
-            display: "flex",
-            flexDirection: "column",
-            gap: 14,
-            minWidth: 0,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
-              Highest HUSH. Score on your ballot
-            </Kicker>
-            <span style={{ height: 1, flex: 1, background: "rgba(243,239,228,0.2)" }} />
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-            <Avatar text={initials(hero.name)} size={66} bg={C.tan} fg={C.ink} radius={12} font={23} />
-            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              <span style={{ fontFamily: cond, fontSize: 32, color: C.sand, lineHeight: 1.05 }}>
-                {hero.name}
-              </span>
-              <span style={{ fontSize: 13, color: C.tan }}>
-                {hero.office} · {hero.district} · {PARTY_LABEL[hero.party]} · in office since {hero.since}
-              </span>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <span style={{ fontSize: 12, color: C.tan }}>Recent tracked-promise activity</span>
-            {hero.timeline.length === 0 ? (
-              <span style={{ fontSize: 12, color: C.tan }}>Nothing tracked yet.</span>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                {hero.timeline
-                  .slice(-3)
-                  .reverse()
-                  .map((t) => (
-                    <div key={`${t.date}-${t.label}`} style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                      <span
-                        style={{ width: 6, height: 6, borderRadius: "50%", background: t.dot, flex: "0 0 6px" }}
-                      />
-                      <span style={{ fontSize: 12, color: C.tan, whiteSpace: "nowrap" }}>{t.date}</span>
-                      <span
-                        style={{
-                          fontSize: 12,
-                          color: C.sand,
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {t.label}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div
-          style={{
-            width: 310,
-            flex: "0 0 310px",
-            borderLeft: "1px solid rgba(243,239,228,0.18)",
-            padding: 24,
-            display: "flex",
-            flexDirection: "column",
-            gap: 14,
-            background: C.inkSoft,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", flexDirection: "column", textAlign: "center" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <Kicker color={C.tan} style={{ letterSpacing: "0.16em" }}>
-                HUSH. Score
-              </Kicker>
-              <HushScoreInfoIcon politicianId={hero.id} style={{ color: C.tan }} />
-            </span>
-            <span style={{ fontFamily: cond, fontSize: 46, lineHeight: 1, color: C.sand }}>
-              {hero.trust}
-            </span>
-          </div>
-
-          <div style={{ fontSize: 12, color: C.tan, lineHeight: 1.5 }}>
-            {hero.kept} of {heroTotal} tracked promises delivered · {hero.prog} in progress ·{" "}
-            {hero.broken} with no movement
-          </div>
-
-          <div style={{ display: "flex", gap: 9, marginTop: "auto" }}>
-            <RustButton
-              onClick={() => router.push(`/politician/${hero.id}`)}
-              style={{ flex: 1, padding: 11, borderRadius: 7, fontSize: 14 }}
-            >
-              View profile
-            </RustButton>
-            <button
-              type="button"
-              onClick={() => toggleSaved(hero.id)}
-              style={{
-                padding: "11px 14px",
-                borderRadius: 7,
-                border: "1px solid rgba(243,239,228,0.32)",
-                background: "transparent",
-                color: C.sand,
-                fontFamily: cond,
-                fontSize: 14,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                cursor: "pointer",
-              }}
-            >
-              {heroSaved ? "Saved" : "Save"}
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Filters */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        {LEVELS.map((l) => (
-          <Chip key={l} on={level === l} onClick={() => setLevel(l)}>
-            {(l === "All" ? "All levels" : l) + " · " + counts[l]}
+    <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <Kicker>Feed</Kicker>
+        <Display size={25}>What&apos;s happened · {events.length}</Display>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+          <Chip on={scope === "ballot"} onClick={() => setScope("ballot")}>
+            Your ballot
           </Chip>
-        ))}
-        <span style={{ marginLeft: "auto", fontSize: 12, color: C.muted }}>Sorted by</span>
-        <div style={{ position: "relative" }}>
-          <button
-            type="button"
-            onClick={() => setSortOpen((o) => !o)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              border: 0,
-              background: "transparent",
-              padding: 0,
-              cursor: "pointer",
-              fontFamily: cond,
-              fontSize: 15,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-              color: C.ink,
-            }}
-          >
-            {SORT_LABEL[sortKey]}
-            <span style={{ fontSize: 10, color: C.muted }}>{sortOpen ? "⌃" : "⌄"}</span>
-          </button>
-
-          {sortOpen ? (
-            <>
-              <div
-                onClick={() => setSortOpen(false)}
-                style={{ position: "fixed", inset: 0, zIndex: 9 }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  top: "calc(100% + 6px)",
-                  right: 0,
-                  zIndex: 10,
-                  minWidth: 190,
-                  border: `1px solid ${C.line}`,
-                  borderRadius: 10,
-                  background: C.white,
-                  boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
-                  padding: 6,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
-                }}
-              >
-                {SORT_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.label}
-                    type="button"
-                    className="row-hover"
-                    onClick={() => selectSort(opt.key)}
-                    style={{
-                      border: 0,
-                      background: "transparent",
-                      borderRadius: 6,
-                      padding: "9px 10px",
-                      textAlign: "left",
-                      fontSize: 13,
-                      cursor: "pointer",
-                      color: opt.key === sortKey ? C.ink : C.body,
-                      fontWeight: opt.key === sortKey ? 600 : 400,
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </>
-          ) : null}
+          <Chip on={scope === "following"} onClick={() => setScope("following")}>
+            Following
+          </Chip>
         </div>
       </div>
 
-      {/* Table */}
-      <div
-        style={{
-          border: `1px solid ${C.line}`,
-          borderRadius: 10,
-          overflow: "hidden",
-          background: C.white,
-        }}
-      >
-        <div
-          className="stack-grid-head"
-          style={{
-            display: "grid",
-            gridTemplateColumns: GRID,
-            gap: 12,
-            padding: "0 18px",
-            background: C.sand,
-            borderBottom: `1px solid ${C.line}`,
-          }}
-        >
-          {COLUMNS.map((c) => (
-            <button
-              key={c.key}
-              type="button"
-              className="tab"
-              onClick={() => sortBy(c.key)}
-              style={{
-                border: 0,
-                background: "transparent",
-                padding: "12px 0",
-                textAlign: c.align,
-                fontFamily: cond,
-                fontSize: 11,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: sortKey === c.key ? C.ink : C.muted,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {c.label}
-              {sortKey === c.key ? (sortDir === "asc" ? " ⌃" : " ⌄") : ""}
-            </button>
-          ))}
-        </div>
-
-        {rows.map((r) => {
-          const band = trustBand(r.trust);
-          return (
-            <Link
-              key={r.id}
-              href={`/politician/${r.id}`}
-              className="row-hover stack-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: GRID,
-                gap: 12,
-                padding: "12px 18px",
-                alignItems: "center",
-                borderBottom: `1px solid ${C.lineSoft}`,
-                color: C.ink,
-              }}
-            >
-              <span style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-                <Avatar text={initials(r.name)} size={28} radius={7} font={11} />
-                <span
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 500,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {r.name}
-                </span>
-              </span>
-              <span style={{ fontSize: 13, color: C.body }}>
-                {r.office} · {r.district}
-              </span>
-              <span
-                style={{
-                  fontFamily: cond,
-                  fontSize: 12,
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase",
-                  color: C.muted,
-                }}
-              >
-                {r.level}
-              </span>
-              <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: C.body }}>
-                <span
-                  style={{ width: 8, height: 8, borderRadius: 2, background: PARTY[r.party] }}
-                />
-                {r.party}
-              </span>
-              <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <Bar pct={r.trust} color={C.ink} style={{ maxWidth: 92 }} />
-                <span style={{ fontFamily: cond, fontSize: 16, color: C.ink, width: 24 }}>
-                  {r.trust}
-                </span>
-                <span style={{ fontSize: 11, color: C.muted, whiteSpace: "nowrap" }}>{band.label}</span>
-              </span>
-            </Link>
-          );
-        })}
-
-        {rows.length === 0 ? (
-          <div style={{ padding: "26px 18px", fontSize: 13, color: C.muted }}>
-            No politicians match “{q}” at this level.
-          </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+        {events.map((e) => (
+          <FeedEventCard key={e.id} event={e} />
+        ))}
+        {events.length === 0 ? (
+          <EmptyState>
+            {followingEmpty
+              ? "Nothing followed yet — open a profile and hit “Save to my list”."
+              : q.trim()
+                ? `Nothing matches "${q.trim()}".`
+                : "Nothing to show yet."}
+          </EmptyState>
         ) : null}
       </div>
     </div>
+  );
+}
+
+function FeedEventCard({ event }: { event: FeedEvent }) {
+  switch (event.type) {
+    case "score":
+      return <ScoreEventCard event={event} />;
+    case "promise":
+      return <PromiseEventCard event={event} />;
+    case "factcheck":
+      return <FactCheckEventCard event={event} />;
+    case "position":
+      return <PositionEventCard event={event} />;
+  }
+}
+
+function EventShell({ accent, children }: { accent: string; children: ReactNode }) {
+  return (
+    <Card
+      className="lift"
+      style={{
+        borderLeft: `3px solid ${accent}`,
+        padding: "15px 18px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+      }}
+    >
+      {children}
+    </Card>
+  );
+}
+
+function EventHeader({
+  politician,
+  anchor,
+  label,
+  date,
+}: {
+  politician: Politician;
+  anchor: string;
+  label: string;
+  date: string;
+}) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+      <Avatar text={initials(politician.name)} size={26} radius={7} font={11} />
+      <Link href={`/politician/${politician.id}`} style={{ fontSize: 13, fontWeight: 500, color: C.ink }}>
+        {politician.name}
+      </Link>
+      <Link href={`/politician/${politician.id}#${anchor}`} style={{ fontSize: 12, color: C.muted }}>
+        {label}
+      </Link>
+      <span style={{ marginLeft: "auto", fontSize: 12, color: C.muted }}>{date}</span>
+    </div>
+  );
+}
+
+function ScoreEventCard({ event }: { event: ScoreFeedEvent }) {
+  const up = event.to >= event.from;
+  const accent = up ? C.navy : C.rust;
+  return (
+    <EventShell accent={accent}>
+      <EventHeader politician={event.politician} anchor="score" label="HUSH. Score" date={event.date} />
+      <span style={{ fontFamily: cond, fontSize: 20, color: accent }}>
+        {event.from} → {event.to}
+      </span>
+      <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{event.reason}</span>
+    </EventShell>
+  );
+}
+
+function PromiseEventCard({ event }: { event: PromiseFeedEvent }) {
+  const s = STATUS_STYLE[event.status];
+  return (
+    <EventShell accent={s.fg}>
+      <EventHeader politician={event.politician} anchor="ledger" label="Promise ledger" date={event.date} />
+      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <Pill bg={s.bg} fg={s.fg}>
+          {event.status}
+        </Pill>
+        <span style={{ fontSize: 14, lineHeight: 1.5 }}>{event.text}</span>
+      </div>
+    </EventShell>
+  );
+}
+
+function FactCheckEventCard({ event }: { event: FactCheckFeedEvent }) {
+  return (
+    <FactCheckCard
+      check={event.check}
+      who={event.politician.name}
+      href={`/politician/${event.politician.id}#claims-checked`}
+      showSources={false}
+    />
+  );
+}
+
+function PositionEventCard({ event }: { event: PositionFeedEvent }) {
+  const label =
+    event.kind === "guide" ? "HUSH Guide position" : `Stance Check · ${event.stance}`;
+  return (
+    <EventShell accent={C.tan}>
+      <EventHeader politician={event.politician} anchor="positions" label={label} date={event.date} />
+      <span style={{ fontSize: 12, color: C.muted }}>{event.issue}</span>
+      <ExpandableQuote text={event.excerpt} style={{ fontSize: 14 }} />
+      <a
+        href={event.sourceUrl}
+        target="_blank"
+        rel="noreferrer"
+        style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}
+      >
+        {event.sourceTitle}
+      </a>
+    </EventShell>
   );
 }
