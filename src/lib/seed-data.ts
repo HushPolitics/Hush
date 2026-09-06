@@ -186,6 +186,14 @@ export const POLITICIANS: Politician[] = [
         "dot": "#253746"
       }
     ],
+    "scoreEvents": [
+      {
+        "date": "Q2 2026",
+        "from": 75,
+        "to": 78,
+        "reason": "Marked \"Hold quarterly town halls in every county\" delivered."
+      }
+    ],
     "career": [
       {
         "year": "2014",
@@ -348,6 +356,14 @@ export const POLITICIANS: Politician[] = [
         "dot": "#253746"
       }
     ],
+    "scoreEvents": [
+      {
+        "date": "Apr 2026",
+        "from": 68,
+        "to": 71,
+        "reason": "Marked \"Block mail-ballot restrictions\" delivered."
+      }
+    ],
     "career": [
       {
         "year": "2011",
@@ -508,6 +524,14 @@ export const POLITICIANS: Politician[] = [
         "date": "Feb 2026",
         "label": "Restated pledge for next term",
         "dot": "#B5A88A"
+      }
+    ],
+    "scoreEvents": [
+      {
+        "date": "Dec 2025",
+        "from": 44,
+        "to": 41,
+        "reason": "No movement on \"Hold 20 county listening sessions.\""
       }
     ],
     "career": [
@@ -953,6 +977,14 @@ export const POLITICIANS: Politician[] = [
         "dot": "#B5A88A"
       }
     ],
+    "scoreEvents": [
+      {
+        "date": "Oct 2025",
+        "from": 72,
+        "to": 69,
+        "reason": "No movement on \"Open two ballot drop sites.\""
+      }
+    ],
     "career": [
       {
         "year": "2010",
@@ -1096,6 +1128,14 @@ export const POLITICIANS: Politician[] = [
         "date": "Jun 2026",
         "label": "Still in progress",
         "dot": "#B5A88A"
+      }
+    ],
+    "scoreEvents": [
+      {
+        "date": "Jun 2026",
+        "from": 48,
+        "to": 52,
+        "reason": "Marked \"Expand the voucher pilot\" delivered."
       }
     ],
     "career": [
@@ -1246,6 +1286,14 @@ export const POLITICIANS: Politician[] = [
         "date": "Jan 2026",
         "label": "Marked no movement",
         "dot": "#9C3F32"
+      }
+    ],
+    "scoreEvents": [
+      {
+        "date": "Jun 2026",
+        "from": 40,
+        "to": 37,
+        "reason": "No movement on \"Audit every state agency by 2026.\""
       }
     ],
     "career": [

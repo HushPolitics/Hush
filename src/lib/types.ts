@@ -57,6 +57,23 @@ export interface TimelineEvent {
   dot: string;
 }
 
+/**
+ * A dated change to a politician's HUSH Score, with the reason attached --
+ * per the app IA restructure brief's amendment, the score is never shown
+ * comparing two candidates at once (see CompareView/GuideView: no score row,
+ * no score column). The only two places it's allowed to appear are the
+ * politician's own page and here, as a single politician's own change event
+ * in the Feed. Optional per politician, same "illustrative, not universal"
+ * convention as `timeline`/`terms`/`career` below -- most politicians have
+ * no recorded change yet, which is a normal state, not a gap to fill.
+ */
+export interface ScoreChangeEvent {
+  date: string;
+  from: number;
+  to: number;
+  reason: string;
+}
+
 export interface CareerEntry {
   year: string;
   what: string;
@@ -83,6 +100,8 @@ export interface Politician {
   terms: TermScore[];
   timeline: TimelineEvent[];
   career: CareerEntry[];
+  /** Dated HUSH Score changes with their reason -- see ScoreChangeEvent. */
+  scoreEvents?: ScoreChangeEvent[];
 }
 
 export interface FactCheck {
