@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { C, PARTY, TAG_STYLE, cond, trustBand } from "@/lib/theme";
@@ -7,7 +8,7 @@ import { usePrefs } from "@/lib/prefs";
 import { DEFAULT_DISTRICT } from "@/lib/seed-data";
 import { stripPartySuffix } from "@/lib/guide";
 import { initials } from "@/lib/scoring";
-import type { Politician, Race, StanceCell } from "@/lib/types";
+import type { IssuePosition, Politician, Race, StanceCell } from "@/lib/types";
 import { Avatar, Display, Kicker, RustButton } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 
@@ -15,10 +16,16 @@ export default function CompareView({
   politicians,
   races,
   stances,
+  guidePositions,
 }: {
   politicians: Politician[];
   races: Race[];
   stances: Record<string, Record<string, StanceCell>>;
+  /** Same sourced excerpts the politician page's "Positions" section reads
+   * from -- when a stance row's candidate has one for this issue, the row
+   * links to a real source + retrieval date instead of the inert
+   * "coming soon" placeholder, and through to the full quote there. */
+  guidePositions: Record<string, Record<string, IssuePosition>>;
 }) {
   const router = useRouter();
   const { zip, setZip, picks, setPicks, topics } = usePrefs();
@@ -300,7 +307,7 @@ export default function CompareView({
             ))}
 
             {Object.keys(stances).map((issue) => (
-              <Row key={issue} issue={issue} picks={picks} stances={stances} />
+              <Row key={issue} issue={issue} picks={picks} stances={stances} guidePositions={guidePositions} />
             ))}
           </div>
         </div>
@@ -313,10 +320,12 @@ function Row({
   issue,
   picks,
   stances,
+  guidePositions,
 }: {
   issue: string;
   picks: string[];
   stances: Record<string, Record<string, StanceCell>>;
+  guidePositions: Record<string, Record<string, IssuePosition>>;
 }) {
   return (
     <>
@@ -336,13 +345,21 @@ function Row({
       {picks.map((id, i) => {
         const fallback: StanceCell = ["No record", "Not tracked for this office"];
         const cell = stances[issue]?.[id] ?? fallback;
-        const [tag, blurb, sourceUrl] = cell;
+        const [tag, blurb, cellSourceUrl] = cell;
         const style = TAG_STYLE[tag];
+        // Prefer the sourced HUSH Guide position for this exact (candidate,
+        // issue) pair when one exists -- it carries a real source URL and a
+        // retrieval date, and is the same excerpt the politician page's
+        // "Positions" section renders in full, so this row can link there
+        // rather than promising a source that isn't populated on `StanceCell`
+        // itself (see its own doc comment: no seed data sets `sourceUrl` yet).
+        const position = guidePositions[id]?.[issue];
         // "No record" has nothing sourced to link to; the other three tags
-        // are link bubbles that will deep-link to the sourced passage once
-        // sourceUrl is populated (see StanceCell) — until then they're
-        // link-styled but inert rather than pointing somewhere fake.
+        // are link bubbles that deep-link to the sourced passage when
+        // `position` (or, later, `cellSourceUrl`) is populated — until then
+        // they're link-styled but inert rather than pointing somewhere fake.
         const isLinkable = tag !== "No record";
+        const sourceUrl = position?.sourceUrl ?? cellSourceUrl;
         const bubbleStyle = {
           alignSelf: "flex-start" as const,
           padding: "3px 8px",
@@ -367,15 +384,23 @@ function Row({
             <span style={{ fontSize: 12, color: C.body, lineHeight: 1.45 }}>{blurb}</span>
             {isLinkable ? (
               sourceUrl ? (
-                <a
-                  href={sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="stance-tag-link"
-                  style={{ ...bubbleStyle, textDecoration: "none", cursor: "pointer" }}
-                >
-                  Source
-                </a>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  <a
+                    href={sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="stance-tag-link"
+                    style={{ ...bubbleStyle, textDecoration: "none", cursor: "pointer" }}
+                  >
+                    Source
+                  </a>
+                  {position?.date ? <span style={{ fontSize: 11, color: C.muted }}>{position.date}</span> : null}
+                  {position ? (
+                    <Link href={`/politician/${id}#positions`} style={{ fontSize: 11, color: C.navy }}>
+                      Full quote →
+                    </Link>
+                  ) : null}
+                </div>
               ) : (
                 <span
                   className="stance-tag-link"

@@ -182,7 +182,7 @@ function AddressStep({
             <input
               value={draftCity}
               onChange={(e) => setDraftCity(e.target.value)}
-              placeholder="Austin"
+              placeholder="Jacksonville"
               aria-label="City"
               style={fieldStyle}
             />
@@ -193,7 +193,7 @@ function AddressStep({
               value={draftState}
               onChange={(e) => setDraftState(e.target.value.toUpperCase().slice(0, 2))}
               maxLength={2}
-              placeholder="TX"
+              placeholder="FL"
               aria-label="State"
               style={{ ...fieldStyle, textTransform: "uppercase" }}
             />
@@ -205,7 +205,7 @@ function AddressStep({
               onChange={(e) => setDraftZip(e.target.value.replace(/[^0-9]/g, "").slice(0, 5))}
               maxLength={5}
               inputMode="numeric"
-              placeholder="78701"
+              placeholder="32202"
               aria-label="ZIP code"
               style={fieldStyle}
             />
@@ -485,7 +485,7 @@ function TileGrid({
 
       {/*
         RACES has 6 entries seeded (U.S. House, U.S. Senate, Mayor, State
-        Senate, County Judge, School Board), all for the same Austin/Travis
+        Senate, County Judge, School Board), all for the same Jacksonville/Duval
         County sample ballot BallotView and CompareView already use — there's
         no real address-to-ballot lookup behind it yet, so every address
         shows the same six races. The seed dataset still has no Governor,
@@ -560,6 +560,27 @@ function TileGrid({
                             <span style={{ fontSize: 12, color: pos ? C.body : C.muted, fontStyle: pos ? "normal" : "italic", lineHeight: 1.4 }}>
                               {pos ? shortPhrase(pos.excerpt) : "No official position found"}
                             </span>
+                            {pos ? (
+                              <span style={{ fontSize: 11, color: C.muted, display: "flex", gap: 6, flexWrap: "wrap" }}>
+                                <a
+                                  href={pos.sourceUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: C.navy }}
+                                >
+                                  Source
+                                </a>
+                                {pos.date ? <span>· {pos.date}</span> : null}
+                                {knownIds.has(c.politicianId) ? (
+                                  <>
+                                    <span>·</span>
+                                    <Link href={`/politician/${c.politicianId}#positions`} style={{ color: C.navy }}>
+                                      Full quote →
+                                    </Link>
+                                  </>
+                                ) : null}
+                              </span>
+                            ) : null}
                           </div>
                         );
                       })}

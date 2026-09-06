@@ -365,7 +365,7 @@ export default function PoliticianView({
         </section>
 
         {/* 4. Positions on the user's ranked issues */}
-        <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <section id="positions" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <Kicker>Positions</Kicker>
             <span style={{ fontFamily: cond, fontSize: 18 }}>On the issues you ranked</span>
