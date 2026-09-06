@@ -11,7 +11,6 @@ import type {
   FactCheck,
   Race,
   BallotItem,
-  TrendingClaim,
   StanceCell,
   IssuePosition,
   StanceCheckPosition,
@@ -3188,42 +3187,6 @@ export const BALLOT: BallotItem[] = [
     "politicianId": "ainsley"
   }
 ];
-
-export const TRENDING: TrendingClaim[] = [
-  {
-    "text": "Prause's rent claim, repeated in three debates",
-    "meta": "47 checks · False",
-    "dot": "#9C3F32"
-  },
-  {
-    "text": "Clinic funding attribution",
-    "meta": "31 checks · True",
-    "dot": "#253746"
-  },
-  {
-    "text": "Transit budget framing",
-    "meta": "28 checks · Misleading",
-    "dot": "#B5A88A"
-  },
-  {
-    "text": "Voucher pilot enrollment numbers",
-    "meta": "22 checks · Misleading",
-    "dot": "#B5A88A"
-  },
-  {
-    "text": "State reserve record claim",
-    "meta": "19 checks · False",
-    "dot": "#9C3F32"
-  }
-];
-
-/** Verdict tallies shown on the fact-check filter pills. */
-export const VERDICT_COUNTS: Record<string, number> = {
-  All: FACT_CHECKS.length,
-  True: 96,
-  Misleading: 71,
-  False: 47,
-};
 
 /** Election the prototype counts down to. */
 export const ELECTION_ISO = "2026-11-03T19:00:00-06:00";

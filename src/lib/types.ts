@@ -191,12 +191,6 @@ export type TopIssuesQuizAnswer = "Not important" | "Somewhat important" | "Very
  */
 export type QuizDepth = "quick" | "standard" | "thorough";
 
-export interface TrendingClaim {
-  text: string;
-  meta: string;
-  dot: string;
-}
-
 /**
  * A piece of legislation shown in HUSH Guide's "Bills Being Considered"
  * section. `explanation`/`yesMeans`/`noMeans` are HUSH's own paraphrase, not
