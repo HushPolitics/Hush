@@ -149,7 +149,7 @@ interface Candidacy {
 
 /**
  * Stance Check — a short quiz built from the same shared `topics` list HUSH
- * Guide's own setup step fills in (and "My Top Issues" on Profile ranks).
+ * Guide's own setup step fills in (and "My Top Issues" in the account menu ranks).
  * Each issue becomes one specific
  * statement; the user answers Agree / Neutral / Disagree and immediately
  * sees which politicians actually running in their races (the same
@@ -212,8 +212,8 @@ export default function StanceCheckView({
             <>
               Stance Check turns each issue you pick into one specific statement and shows you
               which politicians on your ballot agree or disagree — up to 10 statements, one per
-              issue. This is the same list as HUSH Guide and &quot;My Top Issues&quot; on your
-              Profile, so picking issues here updates them too, and vice versa.
+              issue. This is the same list as HUSH Guide and &quot;My Top Issues&quot; in your
+              account menu, so picking issues here updates them too, and vice versa.
             </>
           }
           continueLabel="Start Stance Check"

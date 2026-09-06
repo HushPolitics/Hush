@@ -327,9 +327,9 @@ function VotingLocationSection() {
 }
 
 // ---------------------------------------------------------------------------
-// HUSH Preferences — a live summary; the actual editing surfaces stay on
-// /profile (ranked issues, followed politicians) so there is exactly one
-// place each of those is edited, not two.
+// HUSH Preferences — a live summary; the actual editing surfaces are the
+// avatar menu's "My issues" and "Following" destinations, so there is
+// exactly one place each of those is edited, not two.
 // ---------------------------------------------------------------------------
 
 function HushPreferencesSection({ topicPool }: { topicPool: string[] }) {
@@ -339,20 +339,20 @@ function HushPreferencesSection({ topicPool }: { topicPool: string[] }) {
       <SectionHeader
         kicker="Personalization"
         title="HUSH Preferences"
-        subtitle="These live on your Profile page — edit them there, they'll show up here too."
+        subtitle="These live in the account menu's My issues and Following — edit them there, they'll show up here too."
       />
       <div style={{ marginTop: 10 }}>
         <PrefRow
           label="Top issues"
           value={topics.length ? topics.join(", ") : "None selected yet"}
-          href="/profile#top-issues"
-          cta="Edit on Profile →"
+          href="/profile/top-issues"
+          cta="Edit My Issues →"
         />
         <PrefRow
           label="Politicians you follow"
           value={`${saved.length} politician${saved.length === 1 ? "" : "s"}`}
-          href="/profile#saved"
-          cta="View on Profile →"
+          href="/following"
+          cta="View Following →"
           last
         />
       </div>
@@ -482,7 +482,7 @@ function PrivacySection() {
           HUSH shows you first and how it scores how well a politician matches you — they&apos;re a
           personalization signal, not a political label attached to your account.
         </PrivacyItem>
-        <PrivacyItem>You can update or clear any of this any time from this page or your Profile.</PrivacyItem>
+        <PrivacyItem>You can update or clear any of this any time from this page or the account menu.</PrivacyItem>
       </ul>
       <Link href="/privacy" style={{ fontFamily: cond, fontSize: 13, color: C.navy }}>
         Read the full privacy policy →

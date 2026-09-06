@@ -32,14 +32,22 @@ const labelStyle: CSSProperties = {
 type Step = "address" | "issues" | "grid";
 
 /**
- * HUSH Guide's own three-step flow (address -> issues -> tile grid), gated
- * on `topics` — the same ranked issue list "My Top Issues" on Profile edits
- * — rather than a separate "setup done" flag: an empty list means the user
- * hasn't been through setup, so /hush-guide opens on step one; once
- * populated, it opens straight on the tile grid. `manualStep` overrides that
- * default once the user navigates on purpose (Edit address / Edit issues
- * from the grid, or Continue/Back between steps) — see the render below for
- * how each step's actions clear or set it.
+ * HUSH Guide's own flow, gated on `topics` — the same ranked issue list "My
+ * Top Issues" in the account menu edits — rather than a separate "setup
+ * done" flag: an empty list means the user hasn't been through setup, so
+ * /hush-guide opens on the address step; once populated, it opens straight
+ * on the tile grid. `manualStep` overrides that default once the user
+ * navigates on purpose (Edit address / Edit issues from the grid, or
+ * Continue/Back between steps) — see the render below for how each step's
+ * actions clear or set it.
+ *
+ * First-time setup (empty `topics`) no longer uses this file's own inline
+ * `IssuesStep` for ranking — AddressStep's onContinue instead routes out to
+ * the shared "My Top Issues" quiz/editor (same drag-to-rank component
+ * everywhere else), which sends the visitor back here via `?next=` once
+ * they've ranked something. `IssuesStep` stays in place for the grid's
+ * "Edit issues" action (topics already non-empty) and for Stance Check's own
+ * gate, both unchanged.
  */
 export default function GuideView({
   politicians,
@@ -58,6 +66,7 @@ export default function GuideView({
   positions: Record<string, Record<string, IssuePosition>>;
   bills?: Bill[];
 }) {
+  const router = useRouter();
   const { topics } = usePrefs();
   const [manualStep, setManualStep] = useState<Step | null>(null);
   const hasGuide = topics.length > 0;
@@ -69,7 +78,17 @@ export default function GuideView({
         <AddressStep
           hasGuide={hasGuide}
           onCancel={hasGuide ? () => setManualStep("grid") : undefined}
-          onContinue={() => setManualStep(hasGuide ? "grid" : "issues")}
+          onContinue={() => {
+            // Already have topics ranked (this is a manual "Edit address"
+            // visit, not first-time setup): stay in-page and go straight to
+            // the grid, same as before. A visitor with no ranked issues at
+            // all is routed out to the shared ranking flow instead of an
+            // inline, unranked issue-toggle step — same drag-to-rank editor
+            // "My issues" uses everywhere else, just reached from here too
+            // now, and it lands back on the Guide via `next` once done.
+            if (hasGuide) setManualStep("grid");
+            else router.push("/profile/top-issues/quiz?next=/hush-guide");
+          }}
         />
       ) : step === "issues" ? (
         <IssuesStep
@@ -278,8 +297,8 @@ export function IssuesStep({
             <>
               Pick up to {MAX_GUIDE_ISSUES} issues. HUSH Guide researches sourced candidate
               positions on each one you choose — this is the same list as &quot;My Top
-              Issues&quot; on your Profile, so picking issues here also updates your Value
-              Match scores.
+              Issues&quot; in your account menu, so picking issues here updates that
+              ranking too.
             </>
           )}
         </span>
