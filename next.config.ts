@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
       // phase 2) — the politician page is now the canonical destination and
       // renders the full ledger inline as one of its sections.
       { source: "/politician/:id/trust", destination: "/politician/:id", permanent: true },
+      // Fact Check's standalone page is retired (app IA restructure phase 3)
+      // — the card component that page was built around still renders, just
+      // on the politician page, in Stance Check's reveal, and on the Feed.
+      { source: "/fact-check", destination: "/feed", permanent: true },
       // Voter's Guide moved from /ballot to /voters-guide.
       { source: "/ballot", destination: "/voters-guide", permanent: true },
       // Voter's Guide was renamed to Your Ballot, moving from /voters-guide to /your-ballot.
