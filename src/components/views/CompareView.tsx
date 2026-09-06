@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { C, PARTY, TAG_STYLE, cond, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { DEFAULT_DISTRICT } from "@/lib/seed-data";
+import { stripPartySuffix } from "@/lib/guide";
 import { initials } from "@/lib/scoring";
 import type { Politician, Race, StanceCell } from "@/lib/types";
 import { Avatar, Display, Kicker, RustButton } from "@/components/ui";
@@ -161,7 +162,7 @@ export default function CompareView({
                         textOverflow: "ellipsis",
                       }}
                     >
-                      {c.name}
+                      {stripPartySuffix(c.name)}
                     </span>
                   </button>
                 );

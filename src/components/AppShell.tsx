@@ -138,36 +138,43 @@ export default function AppShell({
           })}
         </nav>
 
-        <div
-          className="district-card"
-          style={{
-            marginTop: "auto",
-            padding: "17px 15px",
-            border: "1px solid rgba(21,21,21,0.14)",
-            borderRadius: 10,
-            background: "rgba(255,255,255,0.55)",
-          }}
-        >
+        {/*
+          `lookupDistrict` only covers a handful of seeded ZIPs -- for any
+          other ZIP this used to render "District info not available for
+          this ZIP yet" in the primary sidebar, on every screen in the app.
+          Rather than announce the gap, the card renders nothing when there's
+          no district to show rather than a permanent apology.
+        */}
+        {district ? (
           <div
+            className="district-card"
             style={{
-              fontFamily: cond,
-              fontSize: 10,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: C.rust,
+              marginTop: "auto",
+              padding: "17px 15px",
+              border: "1px solid rgba(21,21,21,0.14)",
+              borderRadius: 10,
+              background: "rgba(255,255,255,0.55)",
             }}
           >
-            Your district
+            <div
+              style={{
+                fontFamily: cond,
+                fontSize: 10,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: C.rust,
+              }}
+            >
+              Your district
+            </div>
+            <div style={{ fontFamily: cond, fontSize: 19, marginTop: 2 }}>
+              {district.district} · {zip}
+            </div>
+            <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.4, marginTop: 6 }}>
+              {district.county} · {district.raceCount} races on your ballot
+            </div>
           </div>
-          <div style={{ fontFamily: cond, fontSize: 19, marginTop: 2 }}>
-            {district ? `${district.district} · ${zip}` : zip}
-          </div>
-          <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.4, marginTop: 6 }}>
-            {district
-              ? `${district.county} · ${district.raceCount} races on your ballot`
-              : "District info not available for this ZIP yet"}
-          </div>
-        </div>
+        ) : null}
       </aside>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { C, cond } from "@/lib/theme";
+import { C } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { Card, Display, InkButton, Kicker } from "@/components/ui";
 
@@ -59,19 +59,28 @@ export default function PollingPlaceCard() {
         padding: 18,
       }}
     >
-      <div
-        style={{
-          flex: "1 1 320px",
-          minWidth: 260,
-          minHeight: 200,
-          border: `1px solid ${C.line}`,
-          borderRadius: 10,
-          overflow: "hidden",
-          position: "relative",
-          background: C.sand,
-        }}
-      >
-        {mapSrc ? (
+      {/*
+        With no Maps API key configured, this used to render a framed box
+        with the literal env var name in it -- a raw developer error in the
+        middle of the primary flow. Rather than show a broken map frame at
+        all, the key-less state below drops the frame entirely and folds the
+        address/hours/link it would have shown into the polling-info panel
+        on the right. See .env.example for how to set the key and get the
+        embedded map back.
+      */}
+      {mapSrc ? (
+        <div
+          style={{
+            flex: "1 1 320px",
+            minWidth: 260,
+            minHeight: 200,
+            border: `1px solid ${C.line}`,
+            borderRadius: 10,
+            overflow: "hidden",
+            position: "relative",
+            background: C.sand,
+          }}
+        >
           <iframe
             title="Map centered on your address"
             src={mapSrc}
@@ -82,58 +91,23 @@ export default function PollingPlaceCard() {
             referrerPolicy="no-referrer-when-downgrade"
             allowFullScreen
           />
-        ) : (
-          <div
-            style={{
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              padding: "16px 20px",
-              textAlign: "center",
-            }}
-          >
-            <span
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: "50% 50% 50% 4px",
-                transform: "rotate(-45deg)",
-                background: C.rust,
-                boxShadow: "0 3px 10px rgba(21,21,21,0.2)",
-              }}
-            />
-            <span
-              style={{
-                fontFamily: cond,
-                fontSize: 12,
-                letterSpacing: "0.04em",
-                color: C.muted,
-                lineHeight: 1.4,
-              }}
-            >
-              Map needs a Google Maps API key —
-              <br />
-              set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-            </span>
-            <a
-              href={openInMapsHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: 12, color: C.rust }}
-            >
-              Open in Google Maps →
-            </a>
-          </div>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       <div style={{ flex: "1 1 260px", minWidth: 240, display: "flex", flexDirection: "column", gap: 10 }}>
         <Kicker>Polling place</Kicker>
         <Display size={20}>{polling.name}</Display>
         <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{polling.detail}</span>
+        {!mapSrc ? (
+          <a
+            href={openInMapsHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 12, color: C.rust }}
+          >
+            Open in Google Maps →
+          </a>
+        ) : null}
         <form
           style={{ display: "flex", gap: 8, marginTop: "auto" }}
           onSubmit={(e) => {

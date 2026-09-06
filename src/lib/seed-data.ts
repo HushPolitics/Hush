@@ -2273,23 +2273,27 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
  * Stance Check reuses) always has something to ask about.
  */
 export const STANCE_STATEMENTS: Record<string, string> = {
-  "Healthcare":
-    "The government should guarantee health insurance coverage for every American, even if it means phasing out private insurance.",
-  "Housing": "Local governments should eliminate single-family-only zoning to allow denser housing everywhere.",
-  "Voting rights": "Voters should be required to show a government-issued photo ID to cast a ballot.",
-  "Climate": "The government should ban the sale of new gas-powered cars by 2035.",
-  "Labor": "The federal minimum wage should be raised to $20 an hour.",
-  "Education": "Public education dollars should be allowed to follow students to private schools through vouchers.",
-  "Economy": "The federal government should raise taxes on households earning over $400,000 a year.",
+  "Healthcare": "Medicare should be allowed to negotiate directly with drug manufacturers over prescription drug prices.",
+  "Housing":
+    "Local governments should ease single-family-only zoning to allow duplexes and small apartment buildings in more neighborhoods.",
+  "Voting rights": "Voters should be required to show valid photo ID to cast a ballot.",
+  "Climate": "State governments should be able to phase out sales of new gas-powered cars by 2035, as California has.",
+  "Labor": "The federal minimum wage should be raised for the first time since 2009.",
+  "Education":
+    "Public education funding should be able to follow a student to the public, charter, or private school their family chooses.",
+  "Economy": "The federal government should raise taxes on household income above $400,000 a year to help reduce the deficit.",
   "Immigration":
     "Undocumented immigrants who have lived in the U.S. for years without a criminal record should have a path to citizenship.",
-  "Criminal justice": "Cash bail should be eliminated for nonviolent offenses.",
-  "Guns": "Assault-style semiautomatic rifles should be banned for civilian sale.",
-  "Reproductive rights": "Abortion should be illegal in all cases.",
-  "Transit": "Cities should prioritize public transit funding over building new highway lanes.",
-  "Water": "Water utilities should be required to replace all lead service lines within 10 years, at public expense.",
+  "Criminal justice": "Cash bail should be ended for nonviolent, low-risk offenses.",
+  "Guns": "Federal law should require a background check for every firearm sale, including private sales at gun shows.",
+  "Reproductive rights":
+    "States should be able to restrict abortion after the point of fetal viability, with exceptions for the mother's life and health.",
+  "Transit":
+    "Cities facing traffic congestion should invest new transportation funding in public transit rather than expanding highway lanes.",
+  "Water":
+    "Water utilities should be required to replace all remaining lead service lines within a set deadline, funded by federal infrastructure dollars.",
   "Veterans":
-    "Veterans should be able to choose care from any private doctor at government expense instead of using the VA system.",
+    "Veterans should have the option to receive private-doctor care at government expense when VA wait times or distance don't meet certain standards.",
 };
 
 /**
@@ -2317,9 +2321,9 @@ export const STANCE_STATEMENTS: Record<string, string> = {
 export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition>> = {
   marchetti: {
     "Healthcare": {
-      stance: "Neutral",
+      stance: "Agree",
       excerpt:
-        "I've fought for a public option and I'll keep fighting for it, but I'm not for eliminating private coverage for people who want to keep the plan they have.",
+        "Seniors in my district are rationing insulin while manufacturers set the price unilaterally. Medicare negotiating is the least we can do.",
       sourceTitle: "Healthcare — Marchetti for Congress",
       sourceType: "Campaign site",
       sourceUrl: "https://delioforcongress.example/issues/healthcare",
@@ -2328,7 +2332,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     "Housing": {
       stance: "Agree",
       excerpt:
-        "Single-family-only zoning is exclusionary by design. My bill uses incentives today, but I'd support ending the mandate outright if I had the votes.",
+        "Single-family-only zoning is exclusionary by design. My bill uses incentives today, but I'd support easing the mandate outright if I had the votes.",
       sourceTitle: "Housing — Marchetti for Congress",
       sourceType: "Campaign site",
       sourceUrl: "https://delioforcongress.example/issues/housing",
@@ -2352,7 +2356,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Labor": {
       stance: "Agree",
-      excerpt: "Twenty dollars is closer to what a full-time wage should buy today than the number Congress last touched in 2009.",
+      excerpt: "Congress hasn't touched the federal wage floor since 2009. That's not a policy, that's neglect.",
       sourceTitle: "Labor — Marchetti for Congress",
       sourceType: "Campaign site",
       sourceUrl: "https://delioforcongress.example/issues/labor",
@@ -2361,7 +2365,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     "Education": {
       stance: "Neutral",
       excerpt:
-        "I split with my own caucus on this — I'll fund a narrow pilot for kids in the lowest-rated districts, but not a universal voucher that drains the public system.",
+        "I split with my own caucus on this — I'll fund a narrow pilot for kids in the lowest-rated districts, but not a universal choice program that drains the public system.",
       sourceTitle: "Education — Marchetti for Congress",
       sourceType: "Campaign site",
       sourceUrl: "https://delioforcongress.example/issues/education",
@@ -2370,7 +2374,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     "Economy": {
       stance: "Agree",
       excerpt:
-        "A family making under $400,000 shouldn't pay a higher effective rate than a hedge fund manager. I'd raise the top marginal rate and close the carried-interest loophole.",
+        "A family making under $400,000 shouldn't carry more of the deficit burden than someone earning millions. I'd raise the top marginal rate and close the carried-interest loophole.",
       sourceTitle: "Economy — Marchetti for Congress",
       sourceType: "Campaign site",
       sourceUrl: "https://delioforcongress.example/issues/economy",
@@ -2384,9 +2388,25 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       sourceUrl: "https://delioforcongress.example/issues/immigration",
       date: "Aug 2026",
     },
+    "Criminal justice": {
+      stance: "Agree",
+      excerpt: "Pretrial detention over an unpaid fine doesn't make anyone safer. I'd extend the diversion pilot statewide.",
+      sourceTitle: "Marchetti Statement on Pretrial Reform",
+      sourceType: "Official press release",
+      sourceUrl: "https://marchetti.house.gov.example/press/pretrial-reform-statement",
+      date: "Feb 2026",
+    },
+    "Guns": {
+      stance: "Agree",
+      excerpt: "Closing the gun-show loophole is the most basic fix Congress has failed to pass for twenty years.",
+      sourceTitle: "Marchetti Co-Sponsors Background Check Expansion",
+      sourceType: "Official press release",
+      sourceUrl: "https://marchetti.house.gov.example/press/background-check-expansion",
+      date: "May 2026",
+    },
     "Reproductive rights": {
       stance: "Disagree",
-      excerpt: "That decision belongs to a patient and their doctor. I'll never vote for a nationwide ban.",
+      excerpt: "That decision belongs to a patient and their doctor, not a viability line drawn by a state legislature.",
       sourceTitle: "Marchetti Statement on Reproductive Rights",
       sourceType: "Official press release",
       sourceUrl: "https://marchetti.house.gov.example/press/reproductive-rights-statement",
@@ -2395,8 +2415,9 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
   },
   wexler: {
     "Healthcare": {
-      stance: "Disagree",
-      excerpt: "Phasing out private insurance means phasing out choice. I'll never vote for that.",
+      stance: "Agree",
+      excerpt:
+        "I don't love more government in health care, but a government-run program letting drugmakers name their own price isn't a free market either. I'd vote to let Medicare negotiate.",
       sourceTitle: "Where Grant Stands",
       sourceType: "Campaign site",
       sourceUrl: "https://wexlerforcongress.example/platform",
@@ -2404,24 +2425,72 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Climate": {
       stance: "Disagree",
-      excerpt: "You don't ban a technology before you've built the replacement — that's how you get blackouts, not a cleaner grid.",
+      excerpt: "You don't force a transition like this before the grid can handle it — that's how you get blackouts, not a cleaner grid.",
       sourceTitle: "Where Grant Stands — Energy",
       sourceType: "Campaign site",
       sourceUrl: "https://wexlerforcongress.example/platform/energy",
       date: "May 2026",
     },
-    "Guns": {
+    "Labor": {
       stance: "Disagree",
-      excerpt: "A ban disarms law-abiding owners and does nothing to the people who ignore gun laws already.",
+      excerpt: "Washington shouldn't set a wage for every zip code in the country. A national increase kills jobs in low-cost areas.",
+      sourceTitle: "Where Grant Stands — Labor",
+      sourceType: "Campaign site",
+      sourceUrl: "https://wexlerforcongress.example/platform/labor",
+      date: "Jun 2026",
+    },
+    "Education": {
+      stance: "Agree",
+      excerpt: "Parents, not zip codes, should decide where education dollars go.",
+      sourceTitle: "Where Grant Stands — Education",
+      sourceType: "Campaign site",
+      sourceUrl: "https://wexlerforcongress.example/platform/education",
+      date: "Jun 2026",
+    },
+    "Immigration": {
+      stance: "Agree",
+      excerpt:
+        "I've got no interest in mass deportation of somebody who's worked here for fifteen years with a clean record. That's not the fight — the border is.",
+      sourceTitle: "Where Grant Stands — Immigration",
+      sourceType: "Campaign site",
+      sourceUrl: "https://wexlerforcongress.example/platform/immigration",
+      date: "Jul 2026",
+    },
+    "Criminal justice": {
+      stance: "Disagree",
+      excerpt:
+        "Ending bail outright, even for nonviolent charges, takes the discretion away from judges who know the specific case. I'd rather reform it than eliminate it.",
+      sourceTitle: "Where Grant Stands — Public Safety",
+      sourceType: "Campaign site",
+      sourceUrl: "https://wexlerforcongress.example/platform/public-safety",
+      date: "Jun 2026",
+    },
+    "Guns": {
+      stance: "Agree",
+      excerpt: "I'll defend the right to own a rifle all day, but closing the private-sale loophole at gun shows isn't the same fight. A background check should apply either way.",
       sourceTitle: "Where Grant Stands — Second Amendment",
       sourceType: "Campaign site",
       sourceUrl: "https://wexlerforcongress.example/platform/second-amendment",
       date: "Jun 2026",
     },
+    "Reproductive rights": {
+      stance: "Agree",
+      excerpt: "A viability standard with real exceptions for the mother is where I've always been — not an outright ban, not no limit at all.",
+      sourceTitle: "Where Grant Stands — Life",
+      sourceType: "Campaign site",
+      sourceUrl: "https://wexlerforcongress.example/platform/life",
+      date: "May 2026",
+    },
   },
   ainsley: {
-    // No official position found on Healthcare — the city funds clinics but
-    // Ainsley has not staked out a position beyond deferring to the county.
+    "Healthcare": {
+      stance: "Agree",
+      excerpt: "The city's retiree health costs go up every time a drug's price does. I support Medicare negotiating on that directly.",
+      sourceTitle: "@MayorAinsley",
+      sourceType: "Official social media",
+      sourceUrl: "https://x.com.example/mayorainsley/status/1234567902",
+      date: "Feb 2026",
+    },
     "Housing": {
       stance: "Agree",
       excerpt: "We upzoned three corridors and cut review time to 30 days. I'd take that citywide if state law let me.",
@@ -2456,7 +2525,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Labor": {
       stance: "Agree",
-      excerpt: "Every city contract meets our wage floor now. Twenty dollars federally would just catch the rest of the country up to where Austin already is.",
+      excerpt: "Every city contract meets our wage floor now. A federal increase would just catch the rest of the country up to where Austin already is.",
       sourceTitle: "Office of the Mayor — Labor",
       sourceType: "Official government site",
       sourceUrl: "https://austintexas.gov.example/mayor/labor",
@@ -2473,12 +2542,21 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       date: "Jun 2026",
     },
     "Transit": {
-      stance: "Disagree",
-      excerpt: "I'd freeze the rail budget and put the difference into bus rapid transit we can build in two years, not ten — that's not the same as more highway lanes.",
+      stance: "Agree",
+      excerpt: "I'd freeze the rail budget and put the difference into bus rapid transit we can build in two years, not ten — but transit still gets the next dollar before another highway lane does.",
       sourceTitle: "Kohl campaign platform",
       sourceType: "Official platform document",
       sourceUrl: "https://kohlforaustin.example/files/platform.pdf",
       date: "May 2026",
+    },
+    "Education": {
+      stance: "Agree",
+      excerpt:
+        "I fought for more charter seats as a council member, and I'd extend that same choice to private options for low-income families particularly.",
+      sourceTitle: "Priya Kohl for Austin — Education",
+      sourceType: "Campaign site",
+      sourceUrl: "https://kohlforaustin.example/education",
+      date: "Jul 2026",
     },
   },
   // No researched positions yet — every statement falls back to "No
@@ -2486,8 +2564,8 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
   rausch: {},
   vance: {
     "Healthcare": {
-      stance: "Neutral",
-      excerpt: "Our state Medicaid expansion covers 40,000 more families today. That's the fight I know how to win — I'm not there on eliminating private coverage.",
+      stance: "Agree",
+      excerpt: "Our state Medicaid expansion covers 40,000 more families today. Letting Medicare negotiate drug prices is the next fight worth winning.",
       sourceTitle: "Where I Stand: Healthcare",
       sourceType: "Official platform document",
       sourceUrl: "https://vanceforsenate.example/where-i-stand/healthcare",
@@ -2495,7 +2573,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Housing": {
       stance: "Agree",
-      excerpt: "I support building more supply, and ending single-family-only zoning is one of the clearest ways to do it.",
+      excerpt: "I support building more supply, and easing single-family-only zoning is one of the clearest ways to do it.",
       sourceTitle: "Where I Stand: Housing",
       sourceType: "Official platform document",
       sourceUrl: "https://vanceforsenate.example/where-i-stand/housing",
@@ -2510,8 +2588,8 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       date: "May 2025",
     },
     "Labor": {
-      stance: "Neutral",
-      excerpt: "I'll back a statewide wage floor, but I haven't committed to a specific number as high as $20 yet — that fight isn't finished for me.",
+      stance: "Agree",
+      excerpt: "I'll back a statewide wage floor increase — the federal number hasn't moved since 2009, and that's long overdue.",
       sourceTitle: "Where I Stand: Labor",
       sourceType: "Official platform document",
       sourceUrl: "https://vanceforsenate.example/where-i-stand/labor",
@@ -2525,9 +2603,33 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       sourceUrl: "https://vanceforsenate.example/files/platform.pdf",
       date: "Jun 2026",
     },
+    "Criminal justice": {
+      stance: "Agree",
+      excerpt: "I sponsored the diversion pilot my colleague on the county bench built on. Ending cash bail for nonviolent, low-risk charges is the obvious next step.",
+      sourceTitle: "Texas Senate Bill 940 — sponsor statement",
+      sourceType: "Official government site",
+      sourceUrl: "https://senate.texas.gov.example/members/dist14/sb940",
+      date: "Apr 2026",
+    },
+    "Reproductive rights": {
+      stance: "Agree",
+      excerpt: "I've voted for exceptions past that point for the health of the mother, and I think a viability standard with real exceptions is where most Texans actually land.",
+      sourceTitle: "Where I Stand: Reproductive Health",
+      sourceType: "Official platform document",
+      sourceUrl: "https://vanceforsenate.example/where-i-stand/reproductive-health",
+      date: "Mar 2026",
+    },
+    "Veterans": {
+      stance: "Agree",
+      excerpt: "The VA does excellent work, but nobody should wait weeks in rural Texas when private care is available and the VA can't meet the standard.",
+      sourceTitle: "Where I Stand: Veterans",
+      sourceType: "Official platform document",
+      sourceUrl: "https://vanceforsenate.example/where-i-stand/veterans",
+      date: "Sep 2026",
+    },
     "Water": {
       stance: "Agree",
-      excerpt: "The same resilience-fund approach I used on the coast belongs on our lead lines — a ten-year deadline is reasonable if the state helps pay for it.",
+      excerpt: "The same resilience-fund approach I used on the coast belongs on our lead lines — a hard deadline is reasonable if federal dollars help pay for it.",
       sourceTitle: "Where I Stand: Infrastructure",
       sourceType: "Official platform document",
       sourceUrl: "https://vanceforsenate.example/where-i-stand/infrastructure",
@@ -2537,7 +2639,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
   torrance: {
     "Healthcare": {
       stance: "Disagree",
-      excerpt: "I opposed the Medicaid expansion on cost grounds. A federal guarantee that phases out private insurance is a much bigger version of the same mistake.",
+      excerpt: "A federal price-setting scheme for one industry always finds its way to another. I'd rather increase competition than let Washington set the price.",
       sourceTitle: "Torrance for Senate — Healthcare",
       sourceType: "Campaign site",
       sourceUrl: "https://torranceforsenate.example/healthcare",
@@ -2545,7 +2647,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Housing": {
       stance: "Agree",
-      excerpt: "Single-family zoning is a government mandate on what you're allowed to build. Getting rid of it is getting government out of the way — I'm for that.",
+      excerpt: "Single-family zoning is a government mandate on what you're allowed to build. Easing it is getting government out of the way — I'm for that.",
       sourceTitle: "Torrance campaign platform",
       sourceType: "Official platform document",
       sourceUrl: "https://torranceforsenate.example/files/platform.pdf",
@@ -2559,35 +2661,107 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       sourceUrl: "https://torranceforsenate.example/election-integrity",
       date: "Jun 2026",
     },
+    "Climate": {
+      stance: "Agree",
+      excerpt: "I wouldn't take that deadline in Texas, but California has the right to run its own energy policy without Washington getting in the way. That cuts both directions.",
+      sourceTitle: "Torrance for Senate — Federalism",
+      sourceType: "Campaign site",
+      sourceUrl: "https://torranceforsenate.example/federalism",
+      date: "Jun 2026",
+    },
+    "Labor": {
+      stance: "Agree",
+      excerpt: "I supported a modest increase paired with tying it to regional cost of living — freezing it since 2009 doesn't make sense either.",
+      sourceTitle: "Torrance for Senate — Labor",
+      sourceType: "Campaign site",
+      sourceUrl: "https://torranceforsenate.example/labor",
+      date: "Jun 2026",
+    },
     "Education": {
       stance: "Agree",
-      excerpt: "Every parent deserves a voucher option if their zoned school isn't working for their kid.",
+      excerpt: "Every parent deserves a choice option if their zoned school isn't working for their kid.",
       sourceTitle: "Torrance campaign platform",
       sourceType: "Official platform document",
       sourceUrl: "https://torranceforsenate.example/files/platform.pdf",
       date: "May 2026",
     },
+    "Economy": {
+      stance: "Disagree",
+      excerpt: "Taxing success to fund deficit spending is a permanent tax for a temporary excuse. I'd cut spending first.",
+      sourceTitle: "Torrance for Senate — Economy",
+      sourceType: "Campaign site",
+      sourceUrl: "https://torranceforsenate.example/economy",
+      date: "Jul 2026",
+    },
+    "Immigration": {
+      stance: "Disagree",
+      excerpt: "This is a federal question, but if you're asking whether I'd support blanket legalization without addressing the border first, no.",
+      sourceTitle: "Torrance for Senate — Border Security",
+      sourceType: "Campaign site",
+      sourceUrl: "https://torranceforsenate.example/border-security",
+      date: "Jun 2026",
+    },
+    "Criminal justice": {
+      stance: "Agree",
+      excerpt: "Keeping someone in jail before trial just because they can't afford bail isn't public safety, it's a tax on being poor. I'd support ending it for nonviolent, low-risk charges.",
+      sourceTitle: "Torrance for Senate — Public Safety",
+      sourceType: "Campaign site",
+      sourceUrl: "https://torranceforsenate.example/public-safety",
+      date: "Jun 2026",
+    },
     "Guns": {
       stance: "Disagree",
-      excerpt: "A ban on lawfully-owned rifles is a nonstarter for me — I'll defend the Second Amendment every time this comes to the floor.",
+      excerpt: "Any new point-of-sale mandate becomes a registry by another name eventually. I'm not there — I'll defend the Second Amendment every time this comes to the floor.",
       sourceTitle: "Torrance for Senate — Second Amendment",
       sourceType: "Campaign site",
       sourceUrl: "https://torranceforsenate.example/second-amendment",
       date: "Jul 2026",
     },
+    "Reproductive rights": {
+      stance: "Disagree",
+      excerpt: "Viability isn't where I'd draw the line, and I don't think the exceptions should be as broad as 'health' allows for.",
+      sourceTitle: "Torrance for Senate — Life",
+      sourceType: "Campaign site",
+      sourceUrl: "https://torranceforsenate.example/life",
+      date: "May 2026",
+    },
+    "Transit": {
+      stance: "Disagree",
+      excerpt: "Every dollar into transit is a dollar not fixing the highway congestion drivers actually sit in every day.",
+      sourceTitle: "Torrance for Senate — Transportation",
+      sourceType: "Campaign site",
+      sourceUrl: "https://torranceforsenate.example/transportation",
+      date: "Jun 2026",
+    },
+    "Water": {
+      stance: "Agree",
+      excerpt: "Fixing lead pipes is one of the few infrastructure fights that shouldn't be partisan. I'd support federal dollars doing it faster.",
+      sourceTitle: "Torrance for Senate — Infrastructure",
+      sourceType: "Campaign site",
+      sourceUrl: "https://torranceforsenate.example/infrastructure",
+      date: "Jul 2026",
+    },
+    "Veterans": {
+      stance: "Agree",
+      excerpt: "Choice and accountability go together. If the VA can't meet the standard, veterans should have another option.",
+      sourceTitle: "Torrance for Senate — Veterans",
+      sourceType: "Campaign site",
+      sourceUrl: "https://torranceforsenate.example/veterans",
+      date: "Aug 2026",
+    },
   },
   oseihart: {
-    "Healthcare": {
-      stance: "Neutral",
-      excerpt: "I've held the hospital district levy flat three years running. That's a county budget fight, not a position on restructuring national insurance.",
-      sourceTitle: "County Judge — Hospital District Levy",
+    "Voting rights": {
+      stance: "Agree",
+      excerpt: "We already issue free county ID cards at every library branch. Pairing that with a photo ID requirement closes a real gap without closing anyone out.",
+      sourceTitle: "County Judge — Voter Access & Integrity",
       sourceType: "Official government site",
-      sourceUrl: "https://traviscountytx.gov.example/judge/hospital-district-levy",
-      date: "Oct 2025",
+      sourceUrl: "https://traviscountytx.gov.example/judge/voter-access-integrity",
+      date: "Feb 2026",
     },
     "Criminal justice": {
       stance: "Agree",
-      excerpt: "The diversion pilot keeps people housed instead of jailed over unpaid fines. Ending cash bail for nonviolent charges is the next logical step.",
+      excerpt: "The diversion pilot keeps people housed instead of jailed over unpaid fines. Ending cash bail for nonviolent, low-risk charges is the next logical step.",
       sourceTitle: "County Judge — Housing & Justice",
       sourceType: "Official government site",
       sourceUrl: "https://traviscountytx.gov.example/judge/housing-justice",
@@ -2595,23 +2769,15 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Labor": {
       stance: "Agree",
-      excerpt: "Every county contractor already meets our wage floor. No exceptions, no waivers — $20 federally would just make that the national norm.",
+      excerpt: "Every county contractor already meets our wage floor. No exceptions, no waivers — a federal increase would just make that the national norm.",
       sourceTitle: "Commissioners Court press release",
       sourceType: "Official press release",
       sourceUrl: "https://traviscountytx.gov.example/news/contractor-wage-floor",
       date: "Nov 2025",
     },
-    "Voting rights": {
-      stance: "Disagree",
-      excerpt: "Two new ballot drop sites did more for access than an ID mandate would ever do for security.",
-      sourceTitle: "Commissioners Court press release",
-      sourceType: "Official press release",
-      sourceUrl: "https://traviscountytx.gov.example/news/ballot-drop-sites",
-      date: "Sep 2025",
-    },
     "Water": {
       stance: "Agree",
-      excerpt: "We're already mapping every lead line in the county. A ten-year public-expense deadline is achievable if the funding shows up with it.",
+      excerpt: "We're already mapping every lead line in the county. A firm deadline is achievable if federal funding shows up with it.",
       sourceTitle: "County Judge — Infrastructure",
       sourceType: "Official government site",
       sourceUrl: "https://traviscountytx.gov.example/judge/infrastructure",
@@ -2623,7 +2789,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
   bellweather: {
     "Healthcare": {
       stance: "Agree",
-      excerpt: "Nine campuses now have a school-based clinic. Every kid deserves that kind of guaranteed access, not just the ones in my district.",
+      excerpt: "Nine campuses now have a school-based clinic. I support Medicare doing whatever it can to bring drug prices down for the families we serve too.",
       sourceTitle: "School-Based Health Clinics Update",
       sourceType: "Official press release",
       sourceUrl: "https://bellweatherfortrustee.example/press/school-based-health-clinics-update",
@@ -2647,7 +2813,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Labor": {
       stance: "Agree",
-      excerpt: "I negotiated the aide wage floor up to $22 an hour. A $20 federal floor is overdue everywhere else.",
+      excerpt: "I negotiated the aide wage floor up to $22 an hour. A federal floor is overdue everywhere else.",
       sourceTitle: "Bellweather Announces Aide Wage Agreement",
       sourceType: "Official press release",
       sourceUrl: "https://bellweatherfortrustee.example/press/aide-wage-agreement",
@@ -2673,7 +2839,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Education": {
       stance: "Neutral",
-      excerpt: "I'd pause the clinic expansion and put that money into aide pay instead. I haven't staked out a position on vouchers either way.",
+      excerpt: "I'd pause the clinic expansion and put that money into aide pay instead. I haven't staked out a position on school choice either way.",
       sourceTitle: "Sal Mora for District 4",
       sourceType: "Campaign site",
       sourceUrl: "https://moraford4.example/priorities",
@@ -2683,21 +2849,37 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
   pike: {
     "Healthcare": {
       stance: "Disagree",
-      excerpt: "I voted against the subsidy renewal because it grows the deficit without fixing the underlying cost of care. Phasing out private coverage entirely is a much bigger version of that mistake.",
-      sourceTitle: "Senator Pike Statement on Health Subsidy Vote",
+      excerpt: "A federal price-setting scheme for prescription drugs is a step toward Washington deciding prices everywhere else, too.",
+      sourceTitle: "Senator Pike on Health Policy",
       sourceType: "Official government site",
-      sourceUrl: "https://pike.senate.gov.example/press/health-subsidy-vote",
+      sourceUrl: "https://pike.senate.gov.example/issues/health-policy",
       date: "Nov 2025",
     },
     // No official position found on Housing — Pike has voted on the topic
     // but has not issued a public statement staking out a position.
     "Climate": {
       stance: "Disagree",
-      excerpt: "Emissions targets without a reliability plan are wishful thinking. I'll keep backing LNG as the bridge fuel that actually keeps the lights on — not a ban on what people can buy.",
+      excerpt: "Emissions targets without a reliability plan are wishful thinking. I'll keep backing LNG as the bridge fuel that actually keeps the lights on — not a phase-out of what people can buy.",
       sourceTitle: "Senator Pike on Energy Policy",
       sourceType: "Official government site",
       sourceUrl: "https://pike.senate.gov.example/issues/energy-policy",
       date: "Aug 2025",
+    },
+    "Labor": {
+      stance: "Disagree",
+      excerpt: "A federal mandate looks the same whether you're in Manhattan or rural Texas. That's the problem.",
+      sourceTitle: "Senator Pike on Labor Policy",
+      sourceType: "Official government site",
+      sourceUrl: "https://pike.senate.gov.example/issues/labor-policy",
+      date: "Sep 2025",
+    },
+    "Economy": {
+      stance: "Disagree",
+      excerpt: "The deficit is a spending problem, not a revenue problem.",
+      sourceTitle: "Senator Pike on Fiscal Policy",
+      sourceType: "Official government site",
+      sourceUrl: "https://pike.senate.gov.example/issues/fiscal-policy",
+      date: "Oct 2025",
     },
     "Voting rights": {
       stance: "Agree",
@@ -2709,7 +2891,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Guns": {
       stance: "Disagree",
-      excerpt: "A ban on lawfully-owned rifles punishes the wrong people. I'll defend the Second Amendment on the floor every time.",
+      excerpt: "A universal background-check mandate is how you eventually get a national gun registry. I'll defend the Second Amendment against that every time.",
       sourceTitle: "Senator Pike on the Second Amendment",
       sourceType: "Official government site",
       sourceUrl: "https://pike.senate.gov.example/issues/second-amendment",
@@ -2723,11 +2905,43 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       sourceUrl: "https://pike.senate.gov.example/issues/immigration",
       date: "Jun 2026",
     },
+    "Reproductive rights": {
+      stance: "Disagree",
+      excerpt: "I'd go further than viability. Every life should be protected earlier than that.",
+      sourceTitle: "Senator Pike on Life",
+      sourceType: "Official government site",
+      sourceUrl: "https://pike.senate.gov.example/issues/life",
+      date: "Apr 2026",
+    },
+    "Water": {
+      stance: "Disagree",
+      excerpt: "I backed infrastructure dollars in general, but a hard federal mandate on local utilities' timelines oversteps what Washington should be dictating.",
+      sourceTitle: "Senator Pike on Infrastructure",
+      sourceType: "Official government site",
+      sourceUrl: "https://pike.senate.gov.example/issues/infrastructure",
+      date: "Sep 2026",
+    },
+    "Veterans": {
+      stance: "Agree",
+      excerpt: "I hear it every town hall — a veteran driving two hours to the nearest VA clinic when there's a private doctor ten minutes away. I sponsored the standards that make that choice possible.",
+      sourceTitle: "Senator Pike Statement on Veterans' Care",
+      sourceType: "Official press release",
+      sourceUrl: "https://pike.senate.gov.example/press/veterans-care-statement",
+      date: "Mar 2026",
+    },
   },
   olamide: {
+    "Healthcare": {
+      stance: "Agree",
+      excerpt: "I'd co-sponsor a bill giving Medicare full negotiating power tomorrow.",
+      sourceTitle: "Olamide for Senate — Healthcare",
+      sourceType: "Campaign site",
+      sourceUrl: "https://olamideforsenate.example/healthcare",
+      date: "Apr 2026",
+    },
     "Housing": {
       stance: "Agree",
-      excerpt: "We need a statewide renters' bill of rights, and ending exclusionary zoning is part of the same fight.",
+      excerpt: "We need a statewide renters' bill of rights, and easing exclusionary zoning is part of the same fight.",
       sourceTitle: "Olamide for Senate — Housing",
       sourceType: "Campaign site",
       sourceUrl: "https://olamideforsenate.example/housing",
@@ -2735,11 +2949,59 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Climate": {
       stance: "Neutral",
-      excerpt: "I'd put the state's share of clean-energy credits behind grid batteries first. I haven't taken a position on a vehicle sales ban specifically.",
+      excerpt: "I'd put the state's share of clean-energy credits behind grid batteries first. I haven't taken a position on a state-level sales phase-out specifically.",
       sourceTitle: "Olamide for Senate — Climate",
       sourceType: "Campaign site",
       sourceUrl: "https://olamideforsenate.example/climate",
       date: "Feb 2026",
+    },
+    "Labor": {
+      stance: "Agree",
+      excerpt: "The deficit conversation always exempts the wealthy first, when it should exempt them last. Raising the wage floor is a separate, overdue fight.",
+      sourceTitle: "Olamide for Senate — Labor",
+      sourceType: "Campaign site",
+      sourceUrl: "https://olamideforsenate.example/labor",
+      date: "May 2026",
+    },
+    "Economy": {
+      stance: "Agree",
+      excerpt: "The deficit conversation always exempts the wealthy first, when it should exempt them last.",
+      sourceTitle: "Olamide for Senate — Economy",
+      sourceType: "Campaign site",
+      sourceUrl: "https://olamideforsenate.example/economy",
+      date: "May 2026",
+    },
+    "Immigration": {
+      stance: "Agree",
+      excerpt: "Years of contributing to your community and never getting a criminal record is exactly who a path to citizenship should include.",
+      sourceTitle: "Olamide for Senate — Immigration",
+      sourceType: "Campaign site",
+      sourceUrl: "https://olamideforsenate.example/immigration",
+      date: "Jun 2026",
+    },
+    "Guns": {
+      stance: "Agree",
+      excerpt: "Closing the gun-show loophole is common sense that ninety percent of the state already agrees on.",
+      sourceTitle: "Olamide for Senate — Public Safety",
+      sourceType: "Campaign site",
+      sourceUrl: "https://olamideforsenate.example/public-safety",
+      date: "Jun 2026",
+    },
+    "Reproductive rights": {
+      stance: "Disagree",
+      excerpt: "The state has no place drawing any line here at all.",
+      sourceTitle: "Olamide for Senate — Reproductive Freedom",
+      sourceType: "Campaign site",
+      sourceUrl: "https://olamideforsenate.example/reproductive-freedom",
+      date: "Mar 2026",
+    },
+    "Veterans": {
+      stance: "Agree",
+      excerpt: "No veteran should be stuck waiting six weeks for an appointment when a private option is right there. I'd expand the standards further.",
+      sourceTitle: "Olamide for Senate — Veterans",
+      sourceType: "Campaign site",
+      sourceUrl: "https://olamideforsenate.example/veterans",
+      date: "Jul 2026",
     },
   },
 };

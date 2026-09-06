@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
-import { C, cond } from "@/lib/theme";
+import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { issueCoverage, parseRaceTitle } from "@/lib/guide";
+import { issueCoverage, parseRaceTitle, shortPhrase, stripPartySuffix, topRankedIssueForRace } from "@/lib/guide";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, GhostButton, Kicker, RustButton } from "@/components/ui";
 import ElectionCountdownBanner from "@/components/ElectionCountdownBanner";
@@ -324,6 +324,16 @@ export function IssuesStep({
 // Step 3 — Tile grid
 // ---------------------------------------------------------------------------
 
+/**
+ * Which section leads the page: the legislation section (the only part of
+ * HUSH Guide that changes between visits, and the strongest differentiator
+ * the page has) or the race grid (the ballot itself). Legislation leads by
+ * default; flip this to "races" for the final weeks before an election,
+ * when the ballot should take priority over what's moving in the
+ * legislature. Nothing else about either section changes based on this.
+ */
+const GUIDE_LEAD: "bills" | "races" = "bills";
+
 function TileGrid({
   races,
   politicians,
@@ -452,6 +462,8 @@ function TileGrid({
 
       <PollingPlaceCard />
 
+      {GUIDE_LEAD === "bills" ? <BillsSection bills={bills} /> : null}
+
       {/*
         RACES has 6 entries seeded (U.S. House, U.S. Senate, Mayor, State
         Senate, County Judge, School Board), all for the same Austin/Travis
@@ -459,15 +471,10 @@ function TileGrid({
         no real address-to-ballot lookup behind it yet, so every address
         shows the same six races. The seed dataset still has no Governor,
         State House, or County Commission race with a full candidate roster
-        — those tile types are left out rather than invented. See
-        seed-data.ts.
+        — those tile types are left out rather than invented. The footer
+        disclaimer already covers this prototype limitation; it doesn't need
+        repeating here too. See seed-data.ts.
       */}
-      <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.5 }}>
-        Showing the {races.length} races in Hush&apos;s seed dataset for this sample ballot —
-        this prototype doesn&apos;t have real address-based ballot lookup yet, and the seed data
-        still doesn&apos;t include every race type (no Governor, State House, or County
-        Commission race with a full candidate list yet).
-      </span>
 
       {races.length === 0 ? (
         <EmptyState>No races found in the seed dataset.</EmptyState>
@@ -482,6 +489,8 @@ function TileGrid({
           {races.map((race) => {
             const { office, district } = parseRaceTitle(race.title);
             const { covered, total } = issueCoverage(race, topics, positions);
+            const top = topRankedIssueForRace(race, topics, positions);
+
             return (
               <Card
                 key={race.id}
@@ -499,35 +508,59 @@ function TileGrid({
                   ) : null}
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  {race.candidates.map((c) =>
-                    knownIds.has(c.politicianId) ? (
-                      <Link
-                        key={c.politicianId}
-                        href={`/politician/${c.politicianId}`}
-                        style={{ fontSize: 13, color: C.navy }}
-                      >
-                        {c.name}
-                      </Link>
-                    ) : (
-                      <span key={c.politicianId} style={{ fontSize: 13, color: C.body }}>
-                        {c.name}
-                      </span>
-                    ),
-                  )}
-                </div>
+                {top ? (
+                  <>
+                    <span style={{ fontSize: 11, color: C.rust, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      Your #{top.rank} issue: {top.issue}
+                    </span>
 
-                <span style={{ fontSize: 12, color: total > 0 && covered === 0 ? C.rust : C.muted }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                      {race.candidates.map((c) => {
+                        const pos = positions[c.politicianId]?.[top.issue];
+                        const nameEl = knownIds.has(c.politicianId) ? (
+                          <Link
+                            href={`/politician/${c.politicianId}`}
+                            style={{ fontSize: 13, color: C.navy, fontWeight: 600 }}
+                          >
+                            {stripPartySuffix(c.name)}
+                          </Link>
+                        ) : (
+                          <span style={{ fontSize: 13, color: C.body, fontWeight: 600 }}>
+                            {stripPartySuffix(c.name)}
+                          </span>
+                        );
+                        return (
+                          <div key={c.politicianId} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span
+                                style={{ width: 7, height: 7, borderRadius: "50%", background: PARTY[c.party], flex: "0 0 7px" }}
+                              />
+                              {nameEl}
+                              <span style={{ fontSize: 11, color: C.muted }}>{PARTY_LABEL[c.party]}</span>
+                            </div>
+                            <span style={{ fontSize: 12, color: pos ? C.body : C.muted, fontStyle: pos ? "normal" : "italic", lineHeight: 1.4 }}>
+                              {pos ? shortPhrase(pos.excerpt) : "No official position found"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <span style={{ fontSize: 13, color: C.muted, fontStyle: "italic" }}>
+                    No positions found yet on your top issues for this race.
+                  </span>
+                )}
+
+                <span style={{ fontSize: 11, color: C.muted, marginTop: "auto" }}>
                   {total === 0
                     ? "Pick issues to see coverage for this race."
-                    : covered === 0
-                      ? "No sourced positions found yet for your selected issues."
-                      : `Info found for ${covered} of ${total} of your issues`}
+                    : `Info found for ${covered} of ${total} of your issues`}
                 </span>
 
                 <RustButton
                   onClick={() => router.push(`/hush-guide/${race.id}`)}
-                  style={{ marginTop: "auto", padding: "10px 16px", fontSize: 13 }}
+                  style={{ padding: "10px 16px", fontSize: 13 }}
                 >
                   View Comparison
                 </RustButton>
@@ -537,7 +570,7 @@ function TileGrid({
         </div>
       )}
 
-      <BillsSection bills={bills} />
+      {GUIDE_LEAD === "races" ? <BillsSection bills={bills} /> : null}
     </>
   );
 }

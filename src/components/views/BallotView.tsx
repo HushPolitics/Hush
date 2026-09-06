@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { C, PARTY, cond } from "@/lib/theme";
 import { Display } from "@/components/ui";
+import { stripPartySuffix } from "@/lib/guide";
 import type { Politician, Race } from "@/lib/types";
 
 /**
@@ -80,7 +81,7 @@ export default function BallotView({ races, politicians }: { races: Race[]; poli
                     }}
                   >
                     {dot}
-                    {c.name}
+                    {stripPartySuffix(c.name)}
                   </Link>
                 ) : (
                   <span
@@ -95,7 +96,7 @@ export default function BallotView({ races, politicians }: { races: Race[]; poli
                     }}
                   >
                     {dot}
-                    {c.name}
+                    {stripPartySuffix(c.name)}
                   </span>
                 );
               })}
