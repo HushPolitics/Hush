@@ -163,6 +163,20 @@ export interface IssuePosition {
 export type StanceCheckAnswer = "Agree" | "Neutral" | "Disagree";
 
 /**
+ * The reader's raw pick on a Stance Check question -- five points, per the
+ * public site's spec. `directionOf()` in StanceCheckView collapses this to
+ * `StanceCheckAnswer` for every verdict computation (breakdown ordering, the
+ * cross-party summary, matching against a candidate's sourced `stance`):
+ * Strongly agree and Agree produce an identical verdict, because a sourced
+ * vote is binary and implying a gradient of agreement from it would be a
+ * claim the data can't support. The raw five-point value is still what's
+ * stored per answer, so strength is preserved for later weighting without a
+ * separate strength field -- a future weighting pass reads "Strongly agree"
+ * vs. "Agree" directly off the stored answer, rather than a derived flag.
+ */
+export type FivePointAnswer = "Strongly disagree" | "Disagree" | "Unsure" | "Agree" | "Strongly agree";
+
+/**
  * Same shape and sourcing rigor as `IssuePosition` — this only exists as a
  * separate type because it carries `stance`, which `IssuePosition`
  * deliberately does not: HUSH Guide shows what a candidate said with no
@@ -207,7 +221,7 @@ export type QuizDepth = "quick" | "standard" | "thorough";
  */
 export interface Bill {
   id: string;
-  /** Official bill number, e.g. "H.R. 2145", "Texas SB 214". */
+  /** Official bill number, e.g. "H.R. 2145", "Florida SB 214". */
   number: string;
   /** Official title. */
   title: string;

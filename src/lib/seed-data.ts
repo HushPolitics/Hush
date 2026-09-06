@@ -24,7 +24,7 @@ export const POLITICIANS: Politician[] = [
     "id": "marchetti",
     "name": "Rep. Delia Marchetti",
     "office": "U.S. Representative",
-    "district": "TX-35",
+    "district": "FL-04",
     "level": "Federal",
     "party": "D",
     "since": 2018,
@@ -71,7 +71,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Mar 2025",
         "sources": [
           "HHS",
-          "Statesman"
+          "Times-Union"
         ]
       },
       {
@@ -82,7 +82,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Jul 2024",
         "sources": [
           "Bill 214",
-          "KUT"
+          "WJCT"
         ]
       },
       {
@@ -93,7 +93,7 @@ export const POLITICIANS: Politician[] = [
         "date": "May 2024",
         "sources": [
           "Vote log",
-          "Tribune"
+          "Phoenix"
         ]
       },
       {
@@ -162,7 +162,7 @@ export const POLITICIANS: Politician[] = [
     "timeline": [
       {
         "date": "Nov 2022",
-        "label": "Promised at candidate forum in East Austin",
+        "label": "Promised at candidate forum in East Jacksonville",
         "dot": "#151515"
       },
       {
@@ -177,7 +177,7 @@ export const POLITICIANS: Politician[] = [
       },
       {
         "date": "Sep 2024",
-        "label": "First clinic opens in 78721",
+        "label": "First clinic opens in 32209",
         "dot": "#253746"
       },
       {
@@ -199,7 +199,7 @@ export const POLITICIANS: Politician[] = [
       },
       {
         "year": "2022",
-        "what": "Elected to U.S. House, TX-35",
+        "what": "Elected to U.S. House, FL-04",
         "detail": "Oversight and Ways & Means"
       },
       {
@@ -213,7 +213,7 @@ export const POLITICIANS: Politician[] = [
     "id": "vance",
     "name": "Sen. Rosa Vance",
     "office": "State Senator",
-    "district": "D-14",
+    "district": "District 4",
     "level": "State",
     "party": "D",
     "since": 2015,
@@ -259,7 +259,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Jun 2025",
         "sources": [
           "SB 71",
-          "Tribune"
+          "Phoenix"
         ]
       },
       {
@@ -281,7 +281,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Ongoing",
         "sources": [
           "Budget",
-          "TEA"
+          "FDOE"
         ]
       },
       {
@@ -292,7 +292,7 @@ export const POLITICIANS: Politician[] = [
         "date": "May 2025",
         "sources": [
           "Vote log",
-          "KUT"
+          "WJCT"
         ]
       },
       {
@@ -302,8 +302,8 @@ export const POLITICIANS: Politician[] = [
         "progress": 71,
         "date": "Ongoing",
         "sources": [
-          "PUC",
-          "Statesman"
+          "PSC",
+          "Times-Union"
         ]
       }
     ],
@@ -356,7 +356,7 @@ export const POLITICIANS: Politician[] = [
       },
       {
         "year": "2015",
-        "what": "Elected state senator, D-14",
+        "what": "Elected state senator, District 4",
         "detail": "Finance and education"
       },
       {
@@ -375,7 +375,7 @@ export const POLITICIANS: Politician[] = [
     "id": "pike",
     "name": "Sen. Carsten Prause",
     "office": "U.S. Senator",
-    "district": "Texas",
+    "district": "Florida",
     "level": "Federal",
     "party": "R",
     "since": 2013,
@@ -432,7 +432,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Aug 2024",
         "sources": [
           "S. 812",
-          "Statesman"
+          "Times-Union"
         ]
       },
       {
@@ -443,7 +443,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Dec 2025",
         "sources": [
           "Calendar",
-          "Tribune"
+          "Phoenix"
         ]
       },
       {
@@ -458,14 +458,14 @@ export const POLITICIANS: Politician[] = [
         ]
       },
       {
-        "id": "pike-expand-port-capacity-at-corpus",
-        "text": "Expand port capacity at Corpus",
+        "id": "pike-expand-port-capacity-at-jacksonville",
+        "text": "Expand port capacity at Jacksonville",
         "status": "In progress",
         "progress": 71,
         "date": "Ongoing",
         "sources": [
           "MARAD",
-          "Caller"
+          "Times-Union"
         ]
       }
     ],
@@ -513,7 +513,7 @@ export const POLITICIANS: Politician[] = [
     "career": [
       {
         "year": "1998",
-        "what": "Energy executive, Permian division",
+        "what": "Energy executive, utilities division",
         "detail": "—"
       },
       {
@@ -536,7 +536,7 @@ export const POLITICIANS: Politician[] = [
   {
     "id": "ainsley",
     "name": "Mayor Marcus Ainsley",
-    "office": "Mayor of Austin",
+    "office": "Mayor of Jacksonville",
     "district": "Citywide",
     "level": "Local",
     "party": "I",
@@ -581,8 +581,8 @@ export const POLITICIANS: Politician[] = [
         "progress": 52,
         "date": "Ongoing",
         "sources": [
-          "CapMetro",
-          "KUT"
+          "JTA",
+          "WJCT"
         ]
       },
       {
@@ -593,7 +593,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Nov 2024",
         "sources": [
           "Ordinance",
-          "Statesman"
+          "Times-Union"
         ]
       },
       {
@@ -604,7 +604,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Feb 2026",
         "sources": [
           "City audit",
-          "Tribune"
+          "Phoenix"
         ]
       },
       {
@@ -734,7 +734,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Aug 2025",
         "sources": [
           "District",
-          "KUT"
+          "WJCT"
         ]
       },
       {
@@ -745,7 +745,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Jun 2024",
         "sources": [
           "Bond",
-          "Statesman"
+          "Times-Union"
         ]
       },
       {
@@ -756,7 +756,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Sep 2025",
         "sources": [
           "Contract",
-          "Tribune"
+          "Phoenix"
         ]
       },
       {
@@ -834,7 +834,7 @@ export const POLITICIANS: Politician[] = [
     "id": "oseihart",
     "name": "Judge Naomi Osei-Hart",
     "office": "County Judge",
-    "district": "Travis County",
+    "district": "Duval County",
     "level": "Local",
     "party": "D",
     "since": 2019,
@@ -879,7 +879,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Oct 2024",
         "sources": [
           "County",
-          "Statesman"
+          "Times-Union"
         ]
       },
       {
@@ -890,7 +890,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Ongoing",
         "sources": [
           "Sheriff",
-          "KUT"
+          "WJCT"
         ]
       },
       {
@@ -975,7 +975,7 @@ export const POLITICIANS: Politician[] = [
     "id": "torrance",
     "name": "Rep. Clay Torrance",
     "office": "State Representative",
-    "district": "HD-52",
+    "district": "District 12",
     "level": "State",
     "party": "R",
     "since": 2017,
@@ -1020,7 +1020,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Aug 2025",
         "sources": [
           "HB 3",
-          "Tribune"
+          "Phoenix"
         ]
       },
       {
@@ -1030,8 +1030,8 @@ export const POLITICIANS: Politician[] = [
         "progress": 38,
         "date": "Ongoing",
         "sources": [
-          "TWDB",
-          "Statesman"
+          "SJRWMD",
+          "Times-Union"
         ]
       },
       {
@@ -1053,7 +1053,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Jun 2026",
         "sources": [
           "SB 12",
-          "TEA"
+          "FDOE"
         ]
       }
     ],
@@ -1102,7 +1102,7 @@ export const POLITICIANS: Politician[] = [
       {
         "year": "2006",
         "what": "Founded a supply business",
-        "detail": "Hill Country"
+        "detail": "First Coast"
       },
       {
         "year": "2013",
@@ -1124,7 +1124,7 @@ export const POLITICIANS: Politician[] = [
   {
     "id": "hollis",
     "name": "Bertram Hollis",
-    "office": "State Comptroller",
+    "office": "Chief Financial Officer",
     "district": "Statewide",
     "level": "State",
     "party": "R",
@@ -1133,7 +1133,7 @@ export const POLITICIANS: Politician[] = [
     "kept": 11,
     "prog": 3,
     "broken": 18,
-    "bio": "Statewide comptroller, former bank examiner. Publishes the revenue estimate that anchors each budget.",
+    "bio": "Statewide chief financial officer, former bank examiner. Publishes the revenue estimate that anchors each budget.",
     "tags": [
       "Budget",
       "Taxes",
@@ -1169,8 +1169,8 @@ export const POLITICIANS: Politician[] = [
         "progress": 0,
         "date": "Jan 2026",
         "sources": [
-          "Comptroller",
-          "Tribune"
+          "CFO",
+          "Phoenix"
         ]
       },
       {
@@ -1191,8 +1191,8 @@ export const POLITICIANS: Politician[] = [
         "progress": 0,
         "date": "Sep 2025",
         "sources": [
-          "LBB",
-          "Statesman"
+          "EDR",
+          "Times-Union"
         ]
       },
       {
@@ -1203,7 +1203,7 @@ export const POLITICIANS: Politician[] = [
         "date": "Jun 2026",
         "sources": [
           "Audit office",
-          "KUT"
+          "WJCT"
         ]
       }
     ],
@@ -1213,11 +1213,11 @@ export const POLITICIANS: Politician[] = [
         "score": 44
       },
       {
-        "label": "Comptroller 2015–20",
+        "label": "CFO 2015–20",
         "score": 39
       },
       {
-        "label": "Comptroller 2020–",
+        "label": "CFO 2020–",
         "score": 37
       }
     ],
@@ -1256,7 +1256,7 @@ export const POLITICIANS: Politician[] = [
       },
       {
         "year": "2015",
-        "what": "Elected comptroller",
+        "what": "Elected chief financial officer",
         "detail": "Revenue estimating"
       },
       {
@@ -1280,7 +1280,7 @@ export const FACT_CHECKS: FactCheck[] = [
     "sources": [
       "Appraisal district",
       "BLS",
-      "Statesman"
+      "Times-Union"
     ]
   },
   {
@@ -1294,7 +1294,7 @@ export const FACT_CHECKS: FactCheck[] = [
     "sources": [
       "HHS grants",
       "County board",
-      "KUT"
+      "WJCT"
     ]
   },
   {
@@ -1308,7 +1308,7 @@ export const FACT_CHECKS: FactCheck[] = [
     "sources": [
       "City audit",
       "Council minutes",
-      "Tribune"
+      "Phoenix"
     ]
   },
   {
@@ -1320,8 +1320,8 @@ export const FACT_CHECKS: FactCheck[] = [
     "claim": "State reserves are at an all-time high because of my office's cuts.",
     "finding": "Reserves peaked in 2022 on federal transfers and energy revenue; no net cuts are recorded since.",
     "sources": [
-      "Comptroller",
-      "Legislative Board",
+      "CFO",
+      "EDR",
       "AP"
     ]
   },
@@ -1348,9 +1348,9 @@ export const FACT_CHECKS: FactCheck[] = [
     "claim": "The voucher pilot has a waiting list of thousands.",
     "finding": "The agency reports 2,900 applications statewide, of which 1,100 were incomplete or duplicated.",
     "sources": [
-      "TEA",
+      "FDOE",
       "Agency data",
-      "Tribune"
+      "Phoenix"
     ]
   },
   {
@@ -1378,7 +1378,7 @@ export const FACT_CHECKS: FactCheck[] = [
     "sources": [
       "District",
       "Bond report",
-      "KUT"
+      "WJCT"
     ]
   },
   {
@@ -1392,7 +1392,7 @@ export const FACT_CHECKS: FactCheck[] = [
     "sources": [
       "Sheriff",
       "County data",
-      "Statesman"
+      "Times-Union"
     ]
   }
 ];
@@ -1793,8 +1793,8 @@ export const STANCES: Record<string, Record<string, StanceCell>> = {
 
 export const RACES: Race[] = [
   {
-    "id": "u-s-house-tx-35",
-    "title": "U.S. House · TX-35",
+    "id": "u-s-house-fl-04",
+    "title": "U.S. House · FL-04",
     "meta": "Nov 3 · federal",
     "candidates": [
       {
@@ -1810,8 +1810,8 @@ export const RACES: Race[] = [
     ]
   },
   {
-    "id": "u-s-senate-tx",
-    "title": "U.S. Senate · TX",
+    "id": "u-s-senate-fl",
+    "title": "U.S. Senate · FL",
     "meta": "Nov 3 · federal",
     "candidates": [
       {
@@ -1827,8 +1827,8 @@ export const RACES: Race[] = [
     ]
   },
   {
-    "id": "mayor-of-austin",
-    "title": "Mayor of Austin",
+    "id": "mayor-of-jacksonville",
+    "title": "Mayor of Jacksonville",
     "meta": "Nov 3 · local",
     "candidates": [
       {
@@ -1849,8 +1849,8 @@ export const RACES: Race[] = [
     ]
   },
   {
-    "id": "state-senate-d-14",
-    "title": "State Senate · D-14",
+    "id": "state-senate-district-4",
+    "title": "State Senate · District 4",
     "meta": "Nov 3 · state",
     "candidates": [
       {
@@ -1989,7 +1989,7 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
         "We upzoned three transit corridors this term and cut permit review time to 30 days — that's how a city keeps up with growth.",
       sourceTitle: "State of the City: Housing & Growth",
       sourceType: "Official government site",
-      sourceUrl: "https://austintexas.gov.example/mayor/state-of-the-city-housing-growth",
+      sourceUrl: "https://coj.net.example/mayor/state-of-the-city-housing-growth",
       date: "Mar 2026",
     },
     "Climate": {
@@ -1997,7 +1997,7 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
         "The municipal fleet goes fully electric on schedule, and I've asked the utility to move up the coal retirement date.",
       sourceTitle: "State of the City address",
       sourceType: "Official press release",
-      sourceUrl: "https://austintexas.gov.example/news/state-of-the-city-2026",
+      sourceUrl: "https://coj.net.example/news/state-of-the-city-2026",
       date: "Jan 2026",
     },
     "Transit": {
@@ -2012,7 +2012,7 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       excerpt: "I signed the prevailing wage order in my first hundred days — every city contract now has to meet it.",
       sourceTitle: "Office of the Mayor — Labor",
       sourceType: "Official government site",
-      sourceUrl: "https://austintexas.gov.example/mayor/labor",
+      sourceUrl: "https://coj.net.example/mayor/labor",
       date: "Feb 2026",
     },
     "Voting rights": {
@@ -2020,16 +2020,16 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
         "Fifteen new early voting sites are open citywide this cycle — turnout shouldn't depend on which zip code you live in.",
       sourceTitle: "Mayor Ainsley Expands Early Voting Access",
       sourceType: "Official press release",
-      sourceUrl: "https://austintexas.gov.example/news/early-voting-expansion",
+      sourceUrl: "https://coj.net.example/news/early-voting-expansion",
       date: "Sep 2025",
     },
   },
   kohl: {
     "Housing": {
-      excerpt: "Austin needs a housing bond on the ballot, not more incentive programs that never break ground.",
-      sourceTitle: "Priya Kohl for Austin — Housing",
+      excerpt: "Jacksonville needs a housing bond on the ballot, not more incentive programs that never break ground.",
+      sourceTitle: "Priya Kohl for Jacksonville — Housing",
       sourceType: "Campaign site",
-      sourceUrl: "https://kohlforaustin.example/housing",
+      sourceUrl: "https://kohlforjacksonville.example/housing",
       date: "Jun 2026",
     },
     "Transit": {
@@ -2037,14 +2037,14 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
         "I'd freeze the rail budget and put the difference into bus rapid transit we can build in two years, not ten.",
       sourceTitle: "Kohl campaign platform",
       sourceType: "Official platform document",
-      sourceUrl: "https://kohlforaustin.example/files/platform.pdf",
+      sourceUrl: "https://kohlforjacksonville.example/files/platform.pdf",
       date: "May 2026",
     },
     "Labor": {
       excerpt: "Every city contract should carry a local-hire requirement, not just a wage floor.",
       sourceTitle: "Kohl campaign platform",
       sourceType: "Official platform document",
-      sourceUrl: "https://kohlforaustin.example/files/platform.pdf",
+      sourceUrl: "https://kohlforjacksonville.example/files/platform.pdf",
       date: "May 2026",
     },
   },
@@ -2070,9 +2070,9 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
     "Climate": {
       excerpt:
         "The coastal resilience fund I sponsored is state law now. I want the same approach applied inland, to the aquifer.",
-      sourceTitle: "Texas Senate Bill 812 — sponsor statement",
+      sourceTitle: "Florida Senate Bill 812 — sponsor statement",
       sourceType: "Official government site",
-      sourceUrl: "https://senate.texas.gov.example/members/dist14/sb812",
+      sourceUrl: "https://flsenate.gov.example/members/dist4/sb812",
       date: "May 2025",
     },
     "Labor": {
@@ -2128,7 +2128,7 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
         "I held the hospital district levy flat for the third year running — you shouldn't need a tax hike every cycle to keep the county ER open.",
       sourceTitle: "County Judge — Hospital District Levy",
       sourceType: "Official government site",
-      sourceUrl: "https://traviscountytx.gov.example/judge/hospital-district-levy",
+      sourceUrl: "https://duvalcountyfl.gov.example/judge/hospital-district-levy",
       date: "Oct 2025",
     },
     "Housing": {
@@ -2136,22 +2136,22 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
         "The diversion pilot we funded keeps people housed instead of jailed over unpaid fines — I want to make it permanent.",
       sourceTitle: "County Judge — Housing & Justice",
       sourceType: "Official government site",
-      sourceUrl: "https://traviscountytx.gov.example/judge/housing-justice",
+      sourceUrl: "https://duvalcountyfl.gov.example/judge/housing-justice",
       date: "Mar 2026",
     },
     "Labor": {
       excerpt: "Every county contractor now has to meet our wage floor. No exceptions, no waivers.",
-      sourceTitle: "Commissioners Court press release",
+      sourceTitle: "County Judge's Office press release",
       sourceType: "Official press release",
-      sourceUrl: "https://traviscountytx.gov.example/news/contractor-wage-floor",
+      sourceUrl: "https://duvalcountyfl.gov.example/news/contractor-wage-floor",
       date: "Nov 2025",
     },
     "Voting rights": {
       excerpt:
         "Two new ballot drop sites opened this term, both in the districts that had the longest lines last cycle.",
-      sourceTitle: "Commissioners Court press release",
+      sourceTitle: "County Judge's Office press release",
       sourceType: "Official press release",
-      sourceUrl: "https://traviscountytx.gov.example/news/ballot-drop-sites",
+      sourceUrl: "https://duvalcountyfl.gov.example/news/ballot-drop-sites",
       date: "Sep 2025",
     },
   },
@@ -2245,7 +2245,7 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
   },
   olamide: {
     "Housing": {
-      excerpt: "We need a statewide renters' bill of rights — Texans shouldn't lose their home over one missed paycheck.",
+      excerpt: "We need a statewide renters' bill of rights — Floridians shouldn't lose their home over one missed paycheck.",
       sourceTitle: "Olamide for Senate — Housing",
       sourceType: "Campaign site",
       sourceUrl: "https://olamideforsenate.example/housing",
@@ -2495,7 +2495,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       excerpt: "We upzoned three corridors and cut review time to 30 days. I'd take that citywide if state law let me.",
       sourceTitle: "State of the City: Housing & Growth",
       sourceType: "Official government site",
-      sourceUrl: "https://austintexas.gov.example/mayor/state-of-the-city-housing-growth",
+      sourceUrl: "https://coj.net.example/mayor/state-of-the-city-housing-growth",
       date: "Mar 2026",
     },
     "Voting rights": {
@@ -2503,7 +2503,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       excerpt: "Fifteen new early voting sites did more for turnout than an ID requirement would ever do for security.",
       sourceTitle: "Mayor Ainsley Expands Early Voting Access",
       sourceType: "Official press release",
-      sourceUrl: "https://austintexas.gov.example/news/early-voting-expansion",
+      sourceUrl: "https://coj.net.example/news/early-voting-expansion",
       date: "Sep 2025",
     },
     "Climate": {
@@ -2511,7 +2511,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       excerpt: "The municipal fleet goes fully electric on schedule. I'd back a 2035 deadline citywide if the state let cities set one.",
       sourceTitle: "State of the City address",
       sourceType: "Official press release",
-      sourceUrl: "https://austintexas.gov.example/news/state-of-the-city-2026",
+      sourceUrl: "https://coj.net.example/news/state-of-the-city-2026",
       date: "Jan 2026",
     },
     "Transit": {
@@ -2524,20 +2524,20 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Labor": {
       stance: "Agree",
-      excerpt: "Every city contract meets our wage floor now. A federal increase would just catch the rest of the country up to where Austin already is.",
+      excerpt: "Every city contract meets our wage floor now. A federal increase would just catch the rest of the country up to where Jacksonville already is.",
       sourceTitle: "Office of the Mayor — Labor",
       sourceType: "Official government site",
-      sourceUrl: "https://austintexas.gov.example/mayor/labor",
+      sourceUrl: "https://coj.net.example/mayor/labor",
       date: "Feb 2026",
     },
   },
   kohl: {
     "Housing": {
       stance: "Agree",
-      excerpt: "Austin needs a housing bond, not more incentive programs — and yes, that means fewer zoning restrictions standing in the way too.",
-      sourceTitle: "Priya Kohl for Austin — Housing",
+      excerpt: "Jacksonville needs a housing bond, not more incentive programs — and yes, that means fewer zoning restrictions standing in the way too.",
+      sourceTitle: "Priya Kohl for Jacksonville — Housing",
       sourceType: "Campaign site",
-      sourceUrl: "https://kohlforaustin.example/housing",
+      sourceUrl: "https://kohlforjacksonville.example/housing",
       date: "Jun 2026",
     },
     "Transit": {
@@ -2545,16 +2545,16 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       excerpt: "I'd freeze the rail budget and put the difference into bus rapid transit we can build in two years, not ten — but transit still gets the next dollar before another highway lane does.",
       sourceTitle: "Kohl campaign platform",
       sourceType: "Official platform document",
-      sourceUrl: "https://kohlforaustin.example/files/platform.pdf",
+      sourceUrl: "https://kohlforjacksonville.example/files/platform.pdf",
       date: "May 2026",
     },
     "Education": {
       stance: "Agree",
       excerpt:
         "I fought for more charter seats as a council member, and I'd extend that same choice to private options for low-income families particularly.",
-      sourceTitle: "Priya Kohl for Austin — Education",
+      sourceTitle: "Priya Kohl for Jacksonville — Education",
       sourceType: "Campaign site",
-      sourceUrl: "https://kohlforaustin.example/education",
+      sourceUrl: "https://kohlforjacksonville.example/education",
       date: "Jul 2026",
     },
   },
@@ -2581,9 +2581,9 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     "Climate": {
       stance: "Agree",
       excerpt: "The coastal resilience fund I sponsored is state law now. A 2035 deadline is the next honest step.",
-      sourceTitle: "Texas Senate Bill 812 — sponsor statement",
+      sourceTitle: "Florida Senate Bill 812 — sponsor statement",
       sourceType: "Official government site",
-      sourceUrl: "https://senate.texas.gov.example/members/dist14/sb812",
+      sourceUrl: "https://flsenate.gov.example/members/dist4/sb812",
       date: "May 2025",
     },
     "Labor": {
@@ -2605,14 +2605,14 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     "Criminal justice": {
       stance: "Agree",
       excerpt: "I sponsored the diversion pilot my colleague on the county bench built on. Ending cash bail for nonviolent, low-risk charges is the obvious next step.",
-      sourceTitle: "Texas Senate Bill 940 — sponsor statement",
+      sourceTitle: "Florida Senate Bill 940 — sponsor statement",
       sourceType: "Official government site",
-      sourceUrl: "https://senate.texas.gov.example/members/dist14/sb940",
+      sourceUrl: "https://flsenate.gov.example/members/dist4/sb940",
       date: "Apr 2026",
     },
     "Reproductive rights": {
       stance: "Agree",
-      excerpt: "I've voted for exceptions past that point for the health of the mother, and I think a viability standard with real exceptions is where most Texans actually land.",
+      excerpt: "I've voted for exceptions past that point for the health of the mother, and I think a viability standard with real exceptions is where most Floridians actually land.",
       sourceTitle: "Where I Stand: Reproductive Health",
       sourceType: "Official platform document",
       sourceUrl: "https://vanceforsenate.example/where-i-stand/reproductive-health",
@@ -2620,7 +2620,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Veterans": {
       stance: "Agree",
-      excerpt: "The VA does excellent work, but nobody should wait weeks in rural Texas when private care is available and the VA can't meet the standard.",
+      excerpt: "The VA does excellent work, but nobody should wait weeks in rural Florida when private care is available and the VA can't meet the standard.",
       sourceTitle: "Where I Stand: Veterans",
       sourceType: "Official platform document",
       sourceUrl: "https://vanceforsenate.example/where-i-stand/veterans",
@@ -2662,7 +2662,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Climate": {
       stance: "Agree",
-      excerpt: "I wouldn't take that deadline in Texas, but California has the right to run its own energy policy without Washington getting in the way. That cuts both directions.",
+      excerpt: "I wouldn't take that deadline in Florida, but California has the right to run its own energy policy without Washington getting in the way. That cuts both directions.",
       sourceTitle: "Torrance for Senate — Federalism",
       sourceType: "Campaign site",
       sourceUrl: "https://torranceforsenate.example/federalism",
@@ -2755,7 +2755,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       excerpt: "We already issue free county ID cards at every library branch. Pairing that with a photo ID requirement closes a real gap without closing anyone out.",
       sourceTitle: "County Judge — Voter Access & Integrity",
       sourceType: "Official government site",
-      sourceUrl: "https://traviscountytx.gov.example/judge/voter-access-integrity",
+      sourceUrl: "https://duvalcountyfl.gov.example/judge/voter-access-integrity",
       date: "Feb 2026",
     },
     "Criminal justice": {
@@ -2763,15 +2763,15 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       excerpt: "The diversion pilot keeps people housed instead of jailed over unpaid fines. Ending cash bail for nonviolent, low-risk charges is the next logical step.",
       sourceTitle: "County Judge — Housing & Justice",
       sourceType: "Official government site",
-      sourceUrl: "https://traviscountytx.gov.example/judge/housing-justice",
+      sourceUrl: "https://duvalcountyfl.gov.example/judge/housing-justice",
       date: "Mar 2026",
     },
     "Labor": {
       stance: "Agree",
       excerpt: "Every county contractor already meets our wage floor. No exceptions, no waivers — a federal increase would just make that the national norm.",
-      sourceTitle: "Commissioners Court press release",
+      sourceTitle: "County Judge's Office press release",
       sourceType: "Official press release",
-      sourceUrl: "https://traviscountytx.gov.example/news/contractor-wage-floor",
+      sourceUrl: "https://duvalcountyfl.gov.example/news/contractor-wage-floor",
       date: "Nov 2025",
     },
     "Water": {
@@ -2779,7 +2779,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       excerpt: "We're already mapping every lead line in the county. A firm deadline is achievable if federal funding shows up with it.",
       sourceTitle: "County Judge — Infrastructure",
       sourceType: "Official government site",
-      sourceUrl: "https://traviscountytx.gov.example/judge/infrastructure",
+      sourceUrl: "https://duvalcountyfl.gov.example/judge/infrastructure",
       date: "Aug 2026",
     },
   },
@@ -2866,7 +2866,7 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
     },
     "Labor": {
       stance: "Disagree",
-      excerpt: "A federal mandate looks the same whether you're in Manhattan or rural Texas. That's the problem.",
+      excerpt: "A federal mandate looks the same whether you're in Manhattan or rural Florida. That's the problem.",
       sourceTitle: "Senator Pike on Labor Policy",
       sourceType: "Official government site",
       sourceUrl: "https://pike.senate.gov.example/issues/labor-policy",
@@ -3078,9 +3078,9 @@ export const BILLS: Bill[] = [
   },
   {
     id: "hb455",
-    number: "Texas HB 455",
+    number: "Florida HB 455",
     title: "Renters' Notice and Cure Act",
-    chamber: "Texas House of Representatives",
+    chamber: "Florida House of Representatives",
     level: "State",
     description:
       "Would require landlords to give tenants a written notice and a set period to fix a lease violation before starting an eviction over that violation.",
@@ -3089,39 +3089,39 @@ export const BILLS: Bill[] = [
     explanation:
       "This is a committee vote on whether to send the bill to the full House floor, not a final passage vote. The bill as written would require landlords to give tenants a written notice describing the alleged lease violation and a minimum 10-day period to fix it before filing an eviction based on that violation. It applies to violations like late fees or unauthorized pets — it does not apply to nonpayment of rent, which the bill leaves under existing eviction timelines.",
     yesMeans: [
-      "The bill advances out of committee to the full Texas House, where it can be scheduled for a floor vote.",
+      "The bill advances out of committee to the full Florida House, where it can be scheduled for a floor vote.",
       "The 10-day notice-and-cure requirement is not yet law — it still needs to pass the House, the Senate, and be signed.",
     ],
     noMeans: [
       "The bill dies in committee for this session unless a member forces a discharge vote to bring it to the floor anyway.",
-      "Current Texas eviction notice rules stay unchanged.",
+      "Current Florida eviction notice rules stay unchanged.",
     ],
-    sourceName: "Texas Legislature Online",
-    sourceUrl: "https://capitol.texas.gov.example/billlookup/history.aspx?legsess=90r&bill=hb455",
+    sourceName: "Florida Legislature Online",
+    sourceUrl: "https://myfloridahouse.gov.example/Sections/Bills/billsdetail.aspx?BillId=hb455",
     dateAccessed: "Aug 19, 2026",
     dateUpdated: "Aug 11, 2026",
   },
   {
     id: "sb1",
-    number: "Texas SB 1",
+    number: "Florida SB 1",
     title: "General Appropriations Act — Article II Floor Amendments",
-    chamber: "Texas State Senate",
+    chamber: "Florida Senate",
     level: "State",
     description:
       "The state's two-year budget bill, as amended by more than 40 floor amendments to its Article II (health and human services) spending.",
     voteDate: "Sep 24, 2026",
     voteStage: "Final passage vote",
     explainerTooComplex: true,
-    sourceName: "Texas Legislature Online",
-    sourceUrl: "https://capitol.texas.gov.example/billlookup/history.aspx?legsess=90r&bill=sb1",
+    sourceName: "Florida Legislature Online",
+    sourceUrl: "https://flsenate.gov.example/Session/Bill/2026/1",
     dateAccessed: "Aug 19, 2026",
     dateUpdated: "Aug 17, 2026",
   },
   {
     id: "prop-a-ordinance",
-    number: "Austin Ordinance 20260812-014",
+    number: "Jacksonville Ordinance 20260812-014",
     title: "Ordinance Ordering a Transit Bond Election (Proposition A)",
-    chamber: "Austin City Council",
+    chamber: "Jacksonville City Council",
     level: "Local",
     description:
       "The council action that placed the transit general-obligation-bond measure on the November 3 ballot as Proposition A.",
@@ -3136,8 +3136,8 @@ export const BILLS: Bill[] = [
       "The transit bond measure would not appear on the Nov 3 ballot this cycle.",
       "The council could revise and re-adopt a new ordinance for a future election instead.",
     ],
-    sourceName: "City of Austin — Official Records",
-    sourceUrl: "https://austintexas.gov.example/records/ordinances/20260812-014",
+    sourceName: "City of Jacksonville — Official Records",
+    sourceUrl: "https://coj.net.example/records/ordinances/20260812-014",
     dateAccessed: "Aug 21, 2026",
     dateUpdated: "Aug 12, 2026",
   },
@@ -3145,28 +3145,28 @@ export const BILLS: Bill[] = [
 
 export const BALLOT: BallotItem[] = [
   {
-    "race": "U.S. House · TX-35",
+    "race": "U.S. House · FL-04",
     "candidates": "Marchetti (D) · Wexler (R)",
     "level": "Federal",
     "state": "Reviewed",
     "politicianId": "marchetti"
   },
   {
-    "race": "U.S. Senate · TX",
+    "race": "U.S. Senate · FL",
     "candidates": "Prause (R) · Olamide (D)",
     "level": "Federal",
     "state": "Needs review",
     "politicianId": "pike"
   },
   {
-    "race": "State Senate · D-14",
+    "race": "State Senate · District 4",
     "candidates": "Vance (D) · Torrance (R)",
     "level": "State",
     "state": "Reviewed",
     "politicianId": "vance"
   },
   {
-    "race": "Mayor of Austin",
+    "race": "Mayor of Jacksonville",
     "candidates": "Ainsley (I) · Kohl (D) · Rausch (R)",
     "level": "Local",
     "state": "Needs review",
@@ -3199,17 +3199,17 @@ export const KEY_DATES = [
 
 /** Default district context shown in the sidebar until a real lookup runs. */
 export const DEFAULT_DISTRICT = {
-  zip: "78701",
-  district: "TX-35",
-  county: "Travis County",
+  zip: "32202",
+  district: "FL-04",
+  county: "Duval County",
   raceCount: 6,
-  city: "Austin, TX",
+  city: "Jacksonville, FL",
 };
 
 /**
  * Small hand-seeded ZIP -> district lookup, standing in for a real
  * ZIP-to-district geocoding dataset. Covers a handful of sample ZIPs (all
- * within the Austin/Travis County area the rest of the seed data is set in)
+ * within the Jacksonville/Duval County area the rest of the seed data is set in)
  * so the sidebar district card can react to a real entered ZIP instead of
  * always showing DEFAULT_DISTRICT. Anything outside this set has no entry —
  * see `lookupDistrict`, which returns undefined rather than a stale guess.
@@ -3218,13 +3218,13 @@ export const ZIP_DISTRICTS: Record<
   string,
   { district: string; county: string; raceCount: number; city: string }
 > = {
-  "78701": { district: "TX-35", county: "Travis County", raceCount: 6, city: "Austin, TX" },
-  "78702": { district: "TX-35", county: "Travis County", raceCount: 5, city: "Austin, TX" },
-  "78703": { district: "TX-25", county: "Travis County", raceCount: 6, city: "Austin, TX" },
-  "78704": { district: "TX-25", county: "Travis County", raceCount: 7, city: "Austin, TX" },
-  "78745": { district: "TX-25", county: "Travis County", raceCount: 6, city: "Austin, TX" },
-  "78751": { district: "TX-35", county: "Travis County", raceCount: 5, city: "Austin, TX" },
-  "78758": { district: "TX-35", county: "Travis County", raceCount: 4, city: "Austin, TX" },
+  "32202": { district: "FL-04", county: "Duval County", raceCount: 6, city: "Jacksonville, FL" },
+  "32204": { district: "FL-04", county: "Duval County", raceCount: 5, city: "Jacksonville, FL" },
+  "32205": { district: "FL-04", county: "Duval County", raceCount: 6, city: "Jacksonville, FL" },
+  "32207": { district: "FL-04", county: "Duval County", raceCount: 7, city: "Jacksonville, FL" },
+  "32208": { district: "FL-04", county: "Duval County", raceCount: 6, city: "Jacksonville, FL" },
+  "32210": { district: "FL-04", county: "Duval County", raceCount: 5, city: "Jacksonville, FL" },
+  "32217": { district: "FL-04", county: "Duval County", raceCount: 4, city: "Jacksonville, FL" },
 };
 
 /** Looks up district context for a ZIP. Returns undefined for any ZIP not seeded above. */
@@ -3233,6 +3233,6 @@ export function lookupDistrict(zip: string) {
 }
 
 export const DEFAULT_POLLING_PLACE = {
-  name: "Carver Branch Library",
-  detail: "1161 Angelina St - 0.6 mi - Open 7am-7pm on election day",
+  name: "Main Library",
+  detail: "303 N Laura St - 0.6 mi - Open 7am-7pm on election day",
 };
