@@ -1,7 +1,8 @@
 "use client";
 
-import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
+import { useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
+import { shortPhrase } from "@/lib/guide";
 
 /** Small-caps condensed eyebrow used above nearly every heading in the design. */
 export function Kicker({ children, color = C.rust, size = 11, style }: {
@@ -341,5 +342,54 @@ export function SearchField({ value, onChange, placeholder, style, className }: 
         }}
       />
     </div>
+  );
+}
+
+/**
+ * A verbatim sourced quote, truncated by default with a "Show more" toggle --
+ * the public site's commitment is that a candidate's position is always the
+ * actual quote (never a paraphrase), but a Compare cell or Guide race card
+ * doesn't have room for the full 50-190 characters a real excerpt runs.
+ * Truncating and expanding in place keeps the full quote one click away
+ * without redesigning either surface's layout around worst-case quote
+ * length. Quoting style (curly quotes, italic) matches the politician page's
+ * own "Positions" section, so the same excerpt reads the same everywhere.
+ */
+export function ExpandableQuote({ text, maxLen = 92, style }: {
+  text: string;
+  maxLen?: number;
+  style?: CSSProperties;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const truncated = text.length > maxLen;
+  const shown = expanded || !truncated ? text : shortPhrase(text, maxLen);
+  return (
+    <span style={{ fontStyle: "italic", ...style }}>
+      &ldquo;{shown}&rdquo;
+      {truncated ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded((v) => !v);
+          }}
+          style={{
+            marginLeft: 6,
+            border: 0,
+            background: "transparent",
+            padding: 0,
+            font: "inherit",
+            fontStyle: "normal",
+            fontSize: 11,
+            color: C.navy,
+            cursor: "pointer",
+            textDecoration: "underline",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {expanded ? "Show less" : "Show more"}
+        </button>
+      ) : null}
+    </span>
   );
 }
