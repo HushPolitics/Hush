@@ -300,7 +300,7 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
                 <input
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  placeholder="Austin"
+                  placeholder="Jacksonville"
                   aria-label="City"
                   style={fieldStyle}
                 />
@@ -311,7 +311,7 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
                   value={state}
                   onChange={(e) => setState(e.target.value.toUpperCase().slice(0, 2))}
                   maxLength={2}
-                  placeholder="TX"
+                  placeholder="FL"
                   aria-label="State"
                   style={{ ...fieldStyle, textTransform: "uppercase" }}
                 />
@@ -323,7 +323,7 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
                   onChange={(e) => setZip(e.target.value.replace(/[^0-9]/g, "").slice(0, 5))}
                   maxLength={5}
                   inputMode="numeric"
-                  placeholder="78701"
+                  placeholder="32202"
                   aria-label="ZIP code"
                   style={fieldStyle}
                 />
