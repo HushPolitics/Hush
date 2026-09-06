@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
       // Profile-only blocks (Your HUSH Guide, Related Fact Checks) were
       // dropped as duplicates of sections that already exist elsewhere.
       { source: "/profile", destination: "/feed", permanent: true },
+      // The standalone promise-ledger page is retired (app IA restructure
+      // phase 2) — the politician page is now the canonical destination and
+      // renders the full ledger inline as one of its sections.
+      { source: "/politician/:id/trust", destination: "/politician/:id", permanent: true },
       // Voter's Guide moved from /ballot to /voters-guide.
       { source: "/ballot", destination: "/voters-guide", permanent: true },
       // Voter's Guide was renamed to Your Ballot, moving from /voters-guide to /your-ballot.
