@@ -1,14 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
 import { C, VERDICT_STYLE, cond } from "@/lib/theme";
-import { VERDICT_COUNTS } from "@/lib/seed-data";
-import type { FactCheck, Politician, TrendingClaim, Verdict } from "@/lib/types";
-import { Chip, Display, EmptyState, Kicker, SearchField } from "@/components/ui";
+import type { FactCheck } from "@/lib/types";
+import { Kicker } from "@/components/ui";
 
-const FILTERS: (Verdict | "All")[] = ["All", "True", "Misleading", "False"];
-
+/**
+ * The fact-check card — claim, verdict, correction, sources. The standalone
+ * `/fact-check` page this used to anchor is retired (app IA restructure
+ * phase 3): its verdict-count filter chips were reading from a hardcoded
+ * `VERDICT_COUNTS` constant that never matched the actual data, and its
+ * "Most-checked claims" rail was a leaderboard of who got caught lying most,
+ * which the brief calls engagement framing rather than something that
+ * belongs in a nonpartisan tool. Neither is missed; this card is the part
+ * that was "well built," so it's the part that stayed. It now renders in
+ * three places instead of on its own page:
+ *   1. The politician page, filtered to that person (its main home) — see
+ *      PoliticianView's "Claims checked" section.
+ *   2. Stance Check's reveal, attached to a candidate's quote when that
+ *      exact quote has a published verdict — see StanceCheckView's
+ *      CandidateCard.
+ *   3. The Feed, as one of its event types (phase 4).
+ */
 export function FactCheckCard({
   check,
   who,
@@ -78,128 +91,5 @@ export function FactCheckCard({
         </div>
       ) : null}
     </article>
-  );
-}
-
-export default function FactCheckView({
-  checks,
-  politicians,
-  trending,
-}: {
-  checks: FactCheck[];
-  politicians: Politician[];
-  trending: TrendingClaim[];
-}) {
-  const [verdict, setVerdict] = useState<Verdict | "All">("All");
-  const [q, setQ] = useState("");
-
-  const nameById = useMemo(
-    () => new Map(politicians.map((p) => [p.id, p.name])),
-    [politicians],
-  );
-
-  const visible = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return checks
-      .filter((c) => verdict === "All" || c.verdict === verdict)
-      .filter(
-        (c) =>
-          !needle ||
-          `${nameById.get(c.politicianId) ?? ""} ${c.topic} ${c.claim}`
-            .toLowerCase()
-            .includes(needle),
-      );
-  }, [checks, verdict, q, nameById]);
-
-  return (
-    <div className="split" style={{ display: "flex", minHeight: "100%" }}>
-      <div
-        style={{
-          flex: 1,
-          padding: "24px 28px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 14,
-          minWidth: 0,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          {FILTERS.map((f) => (
-            <Chip
-              key={f}
-              on={verdict === f}
-              onClick={() => setVerdict(f)}
-              dot={f === "All" ? C.ink : VERDICT_STYLE[f].dot}
-            >
-              {(f === "All" ? "All verdicts" : f) + " · " + VERDICT_COUNTS[f]}
-            </Chip>
-          ))}
-          <SearchField
-            value={q}
-            onChange={setQ}
-            placeholder="Filter by politician or topic"
-            className="fact-check-search"
-            style={{ marginLeft: "auto", width: 270 }}
-          />
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-          {visible.map((c) => (
-            <FactCheckCard
-              key={c.id}
-              check={c}
-              who={nameById.get(c.politicianId)}
-              href={`/politician/${c.politicianId}`}
-            />
-          ))}
-          {visible.length === 0 ? <EmptyState>No claims match this filter.</EmptyState> : null}
-        </div>
-      </div>
-
-      <aside
-        style={{
-          width: 300,
-          flex: "0 0 300px",
-          borderLeft: `1px solid ${C.line}`,
-          background: C.sandDeep,
-          padding: 24,
-          display: "flex",
-          flexDirection: "column",
-          gap: 14,
-        }}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <Kicker>This week</Kicker>
-          <Display size={21}>Most-checked claims</Display>
-        </div>
-        {trending.map((t) => (
-          <div
-            key={t.text}
-            style={{
-              display: "flex",
-              gap: 10,
-              alignItems: "flex-start",
-              paddingBottom: 12,
-              borderBottom: "1px solid rgba(21,21,21,0.09)",
-            }}
-          >
-            <span
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: "50%",
-                background: t.dot,
-                marginTop: 6,
-                flex: "0 0 7px",
-              }}
-            />
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ fontSize: 13, lineHeight: 1.4 }}>{t.text}</span>
-              <span style={{ fontSize: 11, color: C.muted }}>{t.meta}</span>
-            </div>
-          </div>
-        ))}
-      </aside>
-    </div>
   );
 }

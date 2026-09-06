@@ -6,8 +6,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
-import type { Party, Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
+import type { FactCheck, Party, Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
 import { Card, Display, Kicker, Pill, RustButton } from "@/components/ui";
+import { FactCheckCard } from "./FactCheckView";
 import { IssuesStep } from "./GuideView";
 
 type Bucket = StanceCheckAnswer | "No record";
@@ -165,12 +166,16 @@ export default function StanceCheckView({
   topicPool,
   statements,
   positions,
+  checks,
 }: {
   politicians: Politician[];
   races: Race[];
   topicPool: string[];
   statements: Record<string, string>;
   positions: Record<string, Record<string, StanceCheckPosition>>;
+  /** Published fact-checks, so a candidate's quote in the reveal can carry
+   * its verdict when one exists for that exact quote — see CandidateCard. */
+  checks: FactCheck[];
 }) {
   const { topics } = usePrefs();
   // Mirrors GuideView's own `manualStep` pattern: once the picker is shown
@@ -300,6 +305,7 @@ export default function StanceCheckView({
           positions={positions}
           knownIds={knownIds}
           userAnswer={answer}
+          checks={checks}
         />
       ) : null}
 
@@ -354,12 +360,14 @@ function StatementBreakdown({
   positions,
   knownIds,
   userAnswer,
+  checks,
 }: {
   issue: string;
   candidacies: Candidacy[];
   positions: Record<string, Record<string, StanceCheckPosition>>;
   knownIds: Set<string>;
   userAnswer: StanceCheckAnswer;
+  checks: FactCheck[];
 }) {
   const grouped = new Map<Bucket, { candidacy: Candidacy; position?: StanceCheckPosition }[]>(
     BUCKETS.map((b) => [b, []]),
@@ -404,6 +412,7 @@ function StatementBreakdown({
                       candidacy={candidacy}
                       position={position}
                       known={knownIds.has(candidacy.politicianId)}
+                      checks={checks}
                     />
                   ))}
                 </div>
@@ -510,12 +519,22 @@ function CandidateCard({
   candidacy,
   position,
   known,
+  checks,
 }: {
   candidacy: Candidacy;
   position?: StanceCheckPosition;
   known: boolean;
+  checks: FactCheck[];
 }) {
   const [revealed, setRevealed] = useState(false);
+  // Attached only when a published verdict checks this exact quote, not just
+  // this candidate on this topic — see phase 3.2: "do not surface unrelated
+  // verdicts for that person here." A candidate can have an unrelated
+  // fact-check on the same issue with nothing to do with this specific
+  // statement, so the match has to be on the quote itself.
+  const check = position ? checks.find(
+    (c) => c.politicianId === candidacy.politicianId && c.claim === position.excerpt,
+  ) : undefined;
   useEffect(() => {
     const timer = setTimeout(() => setRevealed(true), 1200);
     return () => clearTimeout(timer);
@@ -583,6 +602,11 @@ function CandidateCard({
           >
             View Original Source →
           </a>
+          {check ? (
+            <div style={{ paddingTop: 4 }}>
+              <FactCheckCard check={check} showSources={false} />
+            </div>
+          ) : null}
         </>
       ) : (
         <span style={{ fontSize: 12, color: C.muted, fontStyle: "italic" }}>No official position found</span>
