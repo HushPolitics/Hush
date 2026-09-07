@@ -1,5 +1,8 @@
 import { ELECTION_ISO } from "./seed-data";
 import type {
+  ArticleRecord,
+  Bill,
+  ElectionUpdate,
   FactCheck,
   IssuePosition,
   Politician,
@@ -7,7 +10,9 @@ import type {
   Race,
   StanceCheckAnswer,
   StanceCheckPosition,
+  VoteRecord,
 } from "./types";
+import type { FeedScope } from "./feedScope";
 
 const MONTHS: Record<string, number> = {
   Jan: 0,
@@ -32,10 +37,13 @@ const MONTHS: Record<string, number> = {
  *
  * Handles "Mon YYYY" (PromiseRecord/IssuePosition/StanceCheckPosition/
  * ScoreChangeEvent dates), "QN YYYY" (one outlier promise date -- resolves
- * to that quarter's first month), and "Mon D" with no year (FactCheck
- * dates -- the implicit year is the election's own year, from `ELECTION_ISO`,
- * not the real device clock, so the Feed still sorts correctly when viewed
- * after the 2026 election).
+ * to that quarter's first month), "Mon D" with no year (FactCheck dates --
+ * the implicit year is the election's own year, from `ELECTION_ISO`, not
+ * the real device clock, so the Feed still sorts correctly when viewed
+ * after the 2026 election), and "Mon D, YYYY" (Bill/VoteRecord/
+ * ElectionUpdate/ArticleRecord dates -- these carry an explicit year since
+ * some, like a bill's `voteDate`, are scheduled in the future rather than
+ * dated against the election year).
  */
 export function parseFeedDate(date: string): number | null {
   if (date === "Ongoing") return null;
@@ -43,6 +51,11 @@ export function parseFeedDate(date: string): number | null {
   const quarter = date.match(/^Q([1-4]) (\d{4})$/);
   if (quarter) {
     return new Date(Number(quarter[2]), (Number(quarter[1]) - 1) * 3, 1).getTime();
+  }
+
+  const monthDayYear = date.match(/^([A-Za-z]{3}) (\d{1,2}), (\d{4})$/);
+  if (monthDayYear && MONTHS[monthDayYear[1]] !== undefined) {
+    return new Date(Number(monthDayYear[3]), MONTHS[monthDayYear[1]], Number(monthDayYear[2])).getTime();
   }
 
   const monthYear = date.match(/^([A-Za-z]{3}) (\d{4})$/);
@@ -95,12 +108,57 @@ export interface PositionFeedEvent extends FeedEventBase {
   stance?: StanceCheckAnswer;
 }
 
+export interface VoteFeedEvent extends FeedEventBase {
+  type: "vote";
+  vote: VoteRecord;
+}
+
+/**
+ * A bill or piece of legislation up for a vote -- the only Feed event type
+ * with no `politician` attached. A bill isn't any one candidate's record;
+ * it's chamber-wide, so unlike every other event here it has nothing to
+ * scope to Following, and it's always considered "on the ballot" for the
+ * app IA restructure brief's single-district seed set.
+ */
+export interface BillFeedEvent {
+  type: "bill";
+  id: string;
+  ts: number;
+  date: string;
+  bill: Bill;
+}
+
+/**
+ * A jurisdiction-wide election administration update -- see
+ * `ElectionUpdate`'s doc comment in lib/types.ts. Also has no `politician`.
+ */
+export interface ElectionUpdateFeedEvent {
+  type: "electionUpdate";
+  id: string;
+  ts: number;
+  date: string;
+  update: ElectionUpdate;
+}
+
+export interface ArticleFeedEvent extends FeedEventBase {
+  type: "article";
+  article: ArticleRecord;
+}
+
 /**
  * One dated thing that happened, for the rebuilt Feed. A discriminated union
  * on `type` so JSX rendering narrows cleanly, same convention as
  * `StanceCell`/`BallotItem.state` elsewhere in this codebase.
  */
-export type FeedEvent = ScoreFeedEvent | PromiseFeedEvent | FactCheckFeedEvent | PositionFeedEvent;
+export type FeedEvent =
+  | ScoreFeedEvent
+  | PromiseFeedEvent
+  | FactCheckFeedEvent
+  | PositionFeedEvent
+  | VoteFeedEvent
+  | BillFeedEvent
+  | ElectionUpdateFeedEvent
+  | ArticleFeedEvent;
 
 /**
  * Merges every dated event type the app IA restructure brief's amendment and
@@ -120,6 +178,10 @@ export function buildFeedEvents(
   factChecks: FactCheck[],
   guide: Record<string, Record<string, IssuePosition>>,
   stance: Record<string, Record<string, StanceCheckPosition>>,
+  votes: Record<string, VoteRecord[]>,
+  bills: Bill[],
+  electionUpdates: ElectionUpdate[],
+  articles: ArticleRecord[],
 ): FeedEvent[] {
   const byId = new Map(politicians.map((p) => [p.id, p]));
   const events: FeedEvent[] = [];
@@ -199,7 +261,46 @@ export function buildFeedEvents(
     for (const [issue, pos] of Object.entries(issues)) addPosition(politicianId, issue, pos, "stance");
   }
 
+  for (const [politicianId, vs] of Object.entries(votes)) {
+    const p = byId.get(politicianId);
+    if (!p) continue;
+    for (const v of vs) {
+      const ts = parseFeedDate(v.date);
+      if (ts === null) continue;
+      events.push({ type: "vote", id: `vote-${v.id}`, ts, date: v.date, politician: p, vote: v });
+    }
+  }
+
+  for (const b of bills) {
+    // A bill's most useful date for the Feed is when it's next up for a
+    // vote; falling back to when the source was last updated (or first
+    // pulled) keeps a not-yet-scheduled bill from being excluded entirely.
+    const dateStr = b.voteDate ?? b.dateUpdated ?? b.dateAccessed;
+    const ts = parseFeedDate(dateStr);
+    if (ts === null) continue;
+    events.push({ type: "bill", id: `bill-${b.id}`, ts, date: dateStr, bill: b });
+  }
+
+  for (const u of electionUpdates) {
+    const ts = parseFeedDate(u.date);
+    if (ts === null) continue;
+    events.push({ type: "electionUpdate", id: `election-${u.id}`, ts, date: u.date, update: u });
+  }
+
+  for (const a of articles) {
+    const p = byId.get(a.politicianId);
+    if (!p) continue;
+    const ts = parseFeedDate(a.date);
+    if (ts === null) continue;
+    events.push({ type: "article", id: `article-${a.id}`, ts, date: a.date, politician: p, article: a });
+  }
+
   return events.sort((a, b) => b.ts - a.ts);
+}
+
+/** The politician a Feed event is about, or `null` for the two jurisdiction-wide types (bill, electionUpdate). */
+export function eventPolitician(e: FeedEvent): Politician | null {
+  return e.type === "bill" || e.type === "electionUpdate" ? null : e.politician;
 }
 
 /**
@@ -235,6 +336,34 @@ export function matchesIssues(e: FeedEvent, topics: string[]): boolean {
       return topics.includes(e.check.topic);
     case "score":
     case "promise":
+    case "vote":
+    case "article":
       return e.politician.tags.some((t) => topics.includes(t));
+    case "bill":
+      return (e.bill.issues ?? []).some((t) => topics.includes(t));
+    case "electionUpdate":
+      // Procedural, not about any one issue -- never matches an issue scope.
+      return false;
   }
+}
+
+/**
+ * Whether a Feed event belongs under the reader's current scope chip --
+ * centralizes the three scopes' rules in one place rather than leaving the
+ * view to reimplement them, since two event types (bill, electionUpdate)
+ * have no `politician` to check against `ballotIds`/`saved` the way every
+ * other type does. Both are jurisdiction-wide, so they're always considered
+ * "on the ballot" and never "Following" (there's no politician to follow).
+ */
+export function eventInScope(
+  e: FeedEvent,
+  scope: FeedScope,
+  ballotIds: Set<string>,
+  saved: string[],
+  topics: string[],
+): boolean {
+  if (scope === "issues") return matchesIssues(e, topics);
+  const politician = eventPolitician(e);
+  if (!politician) return scope === "ballot";
+  return scope === "ballot" ? ballotIds.has(politician.id) : saved.includes(politician.id);
 }
