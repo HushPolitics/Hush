@@ -6,7 +6,7 @@ import { useState, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
-import { ELECTION_ISO, lookupDistrict } from "@/lib/seed-data";
+import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
 import { createClient } from "@/lib/supabase/client";
 import { RustButton, SearchField } from "./ui";
 import PersonalizeBanner from "./PersonalizeBanner";
@@ -41,6 +41,46 @@ function daysToElection() {
   return Math.max(0, Math.floor(ms / 86400000));
 }
 
+const MONTHS: Record<string, number> = {
+  Jan: 0,
+  Feb: 1,
+  Mar: 2,
+  Apr: 3,
+  May: 4,
+  Jun: 5,
+  Jul: 6,
+  Aug: 7,
+  Sep: 8,
+  Oct: 9,
+  Nov: 10,
+  Dec: 11,
+};
+
+/**
+ * Which `KEY_DATES` entry is coming up next, for the sidebar countdown card
+ * below -- unlike `ElectionCountdownBanner`'s full row of all three, there's
+ * only room for one here. A range ("Oct 19 - 30") sorts on its start date.
+ * Same implicit-election-year, "Mon D" parsing convention as Feed's
+ * `parseFeedDate`. Whichever entry hasn't passed yet and comes soonest wins,
+ * so this rotates from "Register by" to "Early voting" to "Mail ballot
+ * request" as the election approaches -- same three key dates the banner
+ * shows, just one at a time.
+ */
+function nearestKeyDate(dates: typeof KEY_DATES, year: number, now: number) {
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+
+  let best: { date: (typeof KEY_DATES)[number]; ts: number } | null = null;
+  for (const d of dates) {
+    const m = d.value.match(/^([A-Za-z]{3})\s+(\d{1,2})/);
+    if (!m || MONTHS[m[1]] === undefined) continue;
+    const ts = new Date(year, MONTHS[m[1]], Number(m[2])).getTime();
+    if (ts < todayStart.getTime()) continue;
+    if (!best || ts < best.ts) best = { date: d, ts };
+  }
+  return best?.date ?? null;
+}
+
 export default function AppShell({
   kicker,
   title,
@@ -60,8 +100,9 @@ export default function AppShell({
   const [stateDraft, setStateDraft] = useState(state);
   const [zipDraft, setZipDraft] = useState(zip);
   // Rendered client-side only so the server and client markup agree.
-  const days = useMounted() ? daysToElection() : null;
-  const district = lookupDistrict(zip);
+  const mounted = useMounted();
+  const days = mounted ? daysToElection() : null;
+  const nextKeyDate = mounted ? nearestKeyDate(KEY_DATES, new Date(ELECTION_ISO).getFullYear(), Date.now()) : null;
 
   function openLocationForm() {
     setCityDraft(city);
@@ -161,42 +202,45 @@ export default function AppShell({
         </nav>
 
         {/*
-          `lookupDistrict` only covers a handful of seeded ZIPs -- for any
-          other ZIP this used to render "District info not available for
-          this ZIP yet" in the primary sidebar, on every screen in the app.
-          Rather than announce the gap, the card renders nothing when there's
-          no district to show rather than a permanent apology.
+          Compact vertical countdown for the sidebar column -- the district
+          box that used to live here (see git history) is gone; this and
+          `ElectionCountdownBanner`'s wide horizontal version on HUSH Guide
+          share the same `ELECTION_ISO`/`KEY_DATES` source data rather than
+          each hardcoding their own copy. Only room for one key date here,
+          so it's whichever is coming up next (see `nearestKeyDate` above),
+          not the banner's full row of all three, and there's no register
+          button -- this card is a glance, not a destination.
         */}
-        {district ? (
+        <div
+          className="election-countdown-card"
+          style={{
+            marginTop: "auto",
+            padding: "17px 15px",
+            border: "1px solid rgba(21,21,21,0.14)",
+            borderRadius: 10,
+            background: "rgba(255,255,255,0.55)",
+          }}
+        >
           <div
-            className="district-card"
             style={{
-              marginTop: "auto",
-              padding: "17px 15px",
-              border: "1px solid rgba(21,21,21,0.14)",
-              borderRadius: 10,
-              background: "rgba(255,255,255,0.55)",
+              fontFamily: cond,
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: C.rust,
             }}
           >
-            <div
-              style={{
-                fontFamily: cond,
-                fontSize: 10,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: C.rust,
-              }}
-            >
-              Your district
-            </div>
-            <div style={{ fontFamily: cond, fontSize: 19, marginTop: 2 }}>
-              {district.district} · {zip}
-            </div>
-            <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.4, marginTop: 6 }}>
-              {district.county} · {district.raceCount} races on your ballot
-            </div>
+            Election day
           </div>
-        ) : null}
+          <div style={{ fontFamily: cond, fontSize: 19, marginTop: 2 }}>
+            {days === null ? "—" : `${days} ${days === 1 ? "day" : "days"}`}
+          </div>
+          {nextKeyDate ? (
+            <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.4, marginTop: 6 }}>
+              {nextKeyDate.label} · {nextKeyDate.value}
+            </div>
+          ) : null}
+        </div>
       </aside>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
