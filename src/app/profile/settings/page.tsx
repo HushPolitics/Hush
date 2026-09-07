@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Profile Settings" };
  */
 export default function ProfileSettingsPage() {
   return (
-    <AppShell kicker="Profile" title="Manage your account">
+    <AppShell>
       <ProfileSettingsView topicPool={topicPool()} />
     </AppShell>
   );
