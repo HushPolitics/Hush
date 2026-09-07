@@ -19,6 +19,16 @@ export const C = {
 
   rust: "#9C3F32",
   rustHover: "#B44A3B",
+  // Secondary accent (app-layout-v2 amendment) -- rust stays primary. Full
+  // strength for labels, glyphs, rules, underlines and selected-state bars;
+  // `slateFill` (roughly 12% opacity over cream) for card header fills and
+  // background tints. Never on anything that signals true/false, good/bad,
+  // or right/wrong -- verdicts, promise status, stance labels, HUSH Score
+  // values and Compare's alignment tags all stay neutral ink/shell, same as
+  // before this token existed. This is the one addition to the palette; no
+  // further blues, and no green/red/amber/purple anywhere.
+  slate: "#5B7A8C",
+  slateFill: "rgba(91,122,140,0.12)",
   navy: "#253746",
   // Muted blue for actions on the near-black hero panel. Navy itself is far
   // too dark there (#253746 on #1C1C1C is 1.39:1, effectively invisible), so
