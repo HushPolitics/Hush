@@ -8,7 +8,7 @@ import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO } from "@/lib/seed-data";
 import { createClient } from "@/lib/supabase/client";
-import { jumpToSection, useScrollSpy, useSectionNavItems, type SectionNavItem } from "@/lib/sectionNav";
+import { jumpToSection, useRailFooter, useScrollSpy, useSectionNavItems, type SectionNavItem } from "@/lib/sectionNav";
 import { RustButton, SearchField } from "./ui";
 import PersonalizeBanner from "./PersonalizeBanner";
 import { HushScoreInfoProvider } from "./HushScoreInfo";
@@ -94,6 +94,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   // `.scroll` pane below is the real scrolling element, not the window.
   const mainRef = useRef<HTMLElement | null>(null);
   const sectionItems = useSectionNavItems();
+  const railFooter = useRailFooter();
   const activeSectionId = useScrollSpy(mainRef, sectionItems.map((i) => i.id));
   // Collapses gracefully (renders nothing, not an empty rail) on a rail
   // route that hasn't registered anything yet -- HUSH Guide's address/issues
@@ -501,9 +502,25 @@ export default function AppShell({ children }: { children: ReactNode }) {
               flex: `0 0 ${RAIL_WIDTH}px`,
               borderRight: `1px solid ${C.line}`,
               padding: "18px 8px",
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0,
+              overflowY: "auto",
             }}
           >
             <SectionJumpList items={sectionItems} activeId={activeSectionId} />
+            {/*
+              Rail footer -- content a view registered via useRegisterRailFooter
+              (lib/sectionNav.tsx), e.g. HUSH Guide's saved address. Pushed to
+              the bottom of the rail with marginTop: auto rather than living in
+              the jump list itself, and separated by a rule only when there's
+              something there to separate from.
+            */}
+            {railFooter ? (
+              <div style={{ marginTop: "auto", paddingTop: 14, borderTop: `1px solid ${C.line}` }}>
+                {railFooter}
+              </div>
+            ) : null}
           </aside>
         ) : null}
 
