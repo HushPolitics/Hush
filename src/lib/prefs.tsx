@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import { DEFAULT_DISTRICT, DEFAULT_POLLING_PLACE } from "./seed-data";
-import type { TopIssuesQuizAnswer } from "./types";
+import type { IssueFinderAnswer } from "./types";
 
 /**
  * Per-user state: ranked issues, saved politicians, ZIP, compare picks.
@@ -36,7 +36,7 @@ export interface Prefs {
    * Ranked issues, most important first. The single shared issue list: it
    * drives Value Match, the "Your Top Issues" panel, the ranked-issue sync to
    * `user_issue_weights`, and also which issues HUSH Guide researches
-   * positions on and which statements Stance Check quizzes on. Capped at 10
+   * positions on and which statements Stance Check tests. Capped at 10
    * by `toggleTopic` below. HUSH Guide and Stance Check toggle entries here
    * same as everywhere else; they just don't expose the ranking UI, so an
    * issue picked from either one appends to the end of the order rather than
@@ -94,20 +94,21 @@ export interface Prefs {
   picks: string[];
   polling: { name: string; detail: string };
   /**
-   * Every answer ever given on the "My Top Issues" quiz, keyed by a stable
-   * question id (`lib/quiz.ts`'s `questionId(issue, index)` — an index into
-   * that issue's entry in `TOP_ISSUES_QUIZ`, so it stays stable across
+   * Every answer ever given on Issue Finder, keyed by a stable question id
+   * (`lib/issue-finder.ts`'s `questionId(issue, index)` — an index into
+   * that issue's entry in `ISSUE_FINDER_BANK`, so it stays stable across
    * retakes and question-pool reshuffles). Answers accumulate across every
-   * sitting rather than being replaced by the latest one: `lib/quiz.ts`'s
-   * `selectQuizQuestions()` reads this to skip already-answered questions
-   * first on a retake, and `scoreQuiz()` reads it to rank issues from every
-   * answer on file, not just the most recent sitting — more retakes means
-   * more signal, never less. This is raw quiz input, not `topics` itself:
-   * answering questions here never touches `topics` on its own — only an
-   * explicit save from the quiz's results step (the same `TopIssuesCard`
-   * editor, in its draft mode) does that. Never trimmed or capped.
+   * sitting rather than being replaced by the latest one:
+   * `lib/issue-finder.ts`'s `selectFinderQuestions()` reads this to skip
+   * already-answered questions first on a retake, and `scoreFinder()` reads
+   * it to rank issues from every answer on file, not just the most recent
+   * sitting — more retakes means more signal, never less. This is raw
+   * Issue Finder input, not `topics` itself: answering questions here never
+   * touches `topics` on its own — only an explicit save from Issue Finder's
+   * results step (the same `TopIssuesCard` editor, in its draft mode) does
+   * that. Never trimmed or capped.
    */
-  quizAnswers: Record<string, { value: TopIssuesQuizAnswer; answeredAt: number }>;
+  finderAnswers: Record<string, { value: IssueFinderAnswer; answeredAt: number }>;
 }
 
 // DEFAULT_DISTRICT.city is a combined "City, ST" string; split it once here
@@ -140,7 +141,7 @@ const DEFAULTS: Prefs = {
   },
   picks: ["marchetti", "vance", "pike"],
   polling: DEFAULT_POLLING_PLACE,
-  quizAnswers: {},
+  finderAnswers: {},
 };
 
 const STORAGE_KEY = "hush.prefs.v1";
@@ -218,7 +219,7 @@ interface PrefsContextValue extends Prefs {
    * Replaces `topics` wholesale, capped at 10. Everywhere else edits the
    * live list one change at a time (toggleTopic/moveTopic/reorderTopic) —
    * this is for the one place that needs to commit a whole draft array in a
-   * single atomic write: the "My Top Issues" quiz's results step, which
+   * single atomic write: Issue Finder's results step, which
    * builds its suggested order locally and only writes it here on an
    * explicit Save, never as the user answers questions.
    */
@@ -237,12 +238,12 @@ interface PrefsContextValue extends Prefs {
   setPicks: (picks: string[]) => void;
   setPolling: (p: { name: string; detail: string }) => void;
   /**
-   * Records one "My Top Issues" quiz answer, stamped with the time it was
+   * Records one Issue Finder answer, stamped with the time it was
    * answered. Overwrites any prior answer to the same question id (e.g. from
    * an earlier sitting) rather than keeping a history of changes-of-mind —
    * only the latest answer to a given question counts toward its score.
    */
-  recordQuizAnswer: (questionId: string, value: TopIssuesQuizAnswer) => void;
+  recordFinderAnswer: (questionId: string, value: IssueFinderAnswer) => void;
 }
 
 const Ctx = createContext<PrefsContextValue | null>(null);
@@ -297,10 +298,10 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
       setEmailPref: (key, value) => patch({ emailPrefs: { ...snapshot.emailPrefs, [key]: value } }),
       setPicks: (picks) => patch({ picks }),
       setPolling: (polling) => patch({ polling }),
-      recordQuizAnswer: (questionId, value) =>
+      recordFinderAnswer: (questionId, value) =>
         patch({
-          quizAnswers: {
-            ...snapshot.quizAnswers,
+          finderAnswers: {
+            ...snapshot.finderAnswers,
             [questionId]: { value, answeredAt: Date.now() },
           },
         }),

@@ -16,7 +16,7 @@ import {
   BALLOT,
   STANCES,
   TOPIC_POOL,
-  TOP_ISSUES_QUIZ,
+  ISSUE_FINDER_BANK,
   GUIDE_POSITIONS,
   BILLS,
   STANCE_STATEMENTS,
@@ -85,9 +85,9 @@ export function topicPool(): string[] {
   return TOPIC_POOL;
 }
 
-/** "My Top Issues" quiz's question bank: issue -> its 8 specific sub-questions. */
-export function topIssuesQuiz(): Record<string, string[]> {
-  return TOP_ISSUES_QUIZ;
+/** Issue Finder's question bank: issue -> its 8 specific sub-questions. */
+export function issueFinderBank(): Record<string, string[]> {
+  return ISSUE_FINDER_BANK;
 }
 
 /** HUSH Guide's "Bills Being Considered" seed data — no real bill lookup yet. */
