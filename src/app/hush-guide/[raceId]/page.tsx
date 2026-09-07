@@ -29,7 +29,7 @@ export default async function HushGuideRacePage({
   if (!race) notFound();
 
   return (
-    <AppShell kicker="HUSH Guide" title={race.title}>
+    <AppShell>
       <GuideRaceView race={race} politicians={listPoliticians()} positions={guidePositions()} />
     </AppShell>
   );
