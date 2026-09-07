@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
 import { createClient } from "@/lib/supabase/client";
+import { jumpToSection, useScrollSpy, useSectionNavItems, type SectionNavItem } from "@/lib/sectionNav";
+import { FEED_SCOPES, useFeedScope } from "@/lib/feedScope";
 import { RustButton, SearchField } from "./ui";
 import PersonalizeBanner from "./PersonalizeBanner";
 import { HushScoreInfoProvider } from "./HushScoreInfo";
@@ -103,6 +105,17 @@ export default function AppShell({
   const mounted = useMounted();
   const days = mounted ? daysToElection() : null;
   const nextKeyDate = mounted ? nearestKeyDate(KEY_DATES, new Date(ELECTION_ISO).getFullYear(), Date.now()) : null;
+
+  // Section-nav zone: registered by whichever view is mounted below (see
+  // lib/sectionNav.tsx). `mainRef` is the scroll-spy's observer root -- the
+  // `.scroll` pane below is the real scrolling element, not the window.
+  const mainRef = useRef<HTMLElement | null>(null);
+  const sectionItems = useSectionNavItems();
+  const activeSectionId = useScrollSpy(mainRef, sectionItems.map((i) => i.id));
+  // Feed's scope filter takes over this zone instead of jump links while on
+  // /feed -- see FeedScopeList below and the doc comment on GUIDE_SECTIONS'
+  // sibling in FeedView.tsx.
+  const onFeed = pathname === "/feed";
 
   function openLocationForm() {
     setCityDraft(city);
@@ -202,6 +215,28 @@ export default function AppShell({
         </nav>
 
         {/*
+          Section navigation: a second, lighter-weight nav zone below primary
+          nav, showing where you are within the current page rather than
+          another top-level destination -- see lib/sectionNav.tsx. Renders
+          nothing (not an empty box) on a route with nothing to show, so the
+          sidebar collapses gracefully instead of leaving a gap. On /feed
+          this zone is taken over by the scope filter list instead of jump
+          links -- different job (changes what the page shows, not where you
+          scroll to), so it's styled to look different too (solid ink fill,
+          matching primary nav's own active treatment, rather than the jump
+          links' plain tint). Hidden below the tablet breakpoint -- see the
+          `.sidebar-section-nav` rule in globals.css and this PR's notes on
+          why (no bottom-tab-bar destination for it exists yet).
+        */}
+        <div className="sidebar-section-nav">
+          {onFeed ? (
+            <FeedScopeList />
+          ) : sectionItems.length > 0 ? (
+            <SectionJumpList items={sectionItems} activeId={activeSectionId} />
+          ) : null}
+        </div>
+
+        {/*
           Compact vertical countdown for the sidebar column -- the district
           box that used to live here (see git history) is gone; this and
           `ElectionCountdownBanner`'s wide horizontal version on HUSH Guide
@@ -210,37 +245,44 @@ export default function AppShell({
           so it's whichever is coming up next (see `nearestKeyDate` above),
           not the banner's full row of all three, and there's no register
           button -- this card is a glance, not a destination.
+
+          Rendered only once `mounted` -- `days`/`nextKeyDate` are both
+          `null` before hydration (see above), and a "—" placeholder there
+          would be a visible empty field for no reason; better to show
+          nothing for one frame than a value that isn't one.
         */}
-        <div
-          className="election-countdown-card"
-          style={{
-            marginTop: "auto",
-            padding: "17px 15px",
-            border: "1px solid rgba(21,21,21,0.14)",
-            borderRadius: 10,
-            background: "rgba(255,255,255,0.55)",
-          }}
-        >
+        {mounted ? (
           <div
+            className="election-countdown-card"
             style={{
-              fontFamily: cond,
-              fontSize: 10,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: C.rust,
+              marginTop: "auto",
+              padding: "17px 15px",
+              border: "1px solid rgba(21,21,21,0.14)",
+              borderRadius: 10,
+              background: "rgba(255,255,255,0.55)",
             }}
           >
-            Election day
-          </div>
-          <div style={{ fontFamily: cond, fontSize: 19, marginTop: 2 }}>
-            {days === null ? "—" : `${days} ${days === 1 ? "day" : "days"}`}
-          </div>
-          {nextKeyDate ? (
-            <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.4, marginTop: 6 }}>
-              {nextKeyDate.label} · {nextKeyDate.value}
+            <div
+              style={{
+                fontFamily: cond,
+                fontSize: 10,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: C.rust,
+              }}
+            >
+              Election day
             </div>
-          ) : null}
-        </div>
+            <div style={{ fontFamily: cond, fontSize: 19, marginTop: 2 }}>
+              {days} {days === 1 ? "day" : "days"}
+            </div>
+            {nextKeyDate ? (
+              <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.4, marginTop: 6 }}>
+                {nextKeyDate.label} · {nextKeyDate.value}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </aside>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
@@ -514,7 +556,7 @@ export default function AppShell({
 
         <PersonalizeBanner />
 
-        <main className="scroll" style={{ flex: 1, minHeight: 0 }}>
+        <main ref={mainRef} className="scroll" style={{ flex: 1, minHeight: 0 }}>
           {children}
         </main>
 
@@ -538,5 +580,101 @@ export default function AppShell({
       </div>
     </div>
     </HushScoreInfoProvider>
+  );
+}
+
+/**
+ * Section-nav jump links — deliberately lighter than primary nav's solid
+ * ink-filled active state (no fill at all when idle, a plain tint when
+ * active, no party/rust dot) so the hierarchy between "a top-level
+ * destination" and "a spot on this page" stays unmistakable at a glance.
+ * Clicking scrolls to the section instead of navigating -- see
+ * `jumpToSection` -- and the active item follows scroll position via
+ * `activeId` (AppShell's scroll-spy), not the click itself.
+ */
+function SectionJumpList({ items, activeId }: { items: SectionNavItem[]; activeId: string | null }) {
+  return (
+    <nav aria-label="Section navigation" style={{ display: "flex", flexDirection: "column", gap: 1, padding: "10px 0" }}>
+      {items.map((item) => {
+        const on = activeId === item.id;
+        return (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => jumpToSection(item.id)}
+            aria-current={on ? "true" : undefined}
+            style={{
+              display: "block",
+              width: "100%",
+              textAlign: "left",
+              padding: "7px 10px 7px 22px",
+              borderRadius: 7,
+              border: 0,
+              background: on ? C.hover : "transparent",
+              color: on ? C.ink : C.muted,
+              fontSize: 13,
+              cursor: "pointer",
+            }}
+          >
+            {item.label}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+/**
+ * The Feed's scope filter (My ballot / My issues / Following), moved here
+ * from horizontal chips inside FeedView -- see lib/feedScope.ts. Styled to
+ * read as a set of *filters* rather than jump links: a solid ink fill on
+ * the active one, the same visual weight primary nav's active item uses,
+ * because picking one changes what the page shows rather than just
+ * scrolling to a spot on it. Only rendered while on /feed (see `onFeed`
+ * above).
+ */
+function FeedScopeList() {
+  const [scope, setScope] = useFeedScope();
+  return (
+    <nav aria-label="Feed filters" style={{ display: "flex", flexDirection: "column", gap: 3, padding: "10px 0" }}>
+      <span
+        style={{
+          fontFamily: cond,
+          fontSize: 10,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: C.muted,
+          padding: "0 10px 3px",
+        }}
+      >
+        Filter
+      </span>
+      {FEED_SCOPES.map((s) => {
+        const on = scope === s.value;
+        return (
+          <button
+            key={s.value}
+            type="button"
+            onClick={() => setScope(s.value)}
+            aria-pressed={on}
+            style={{
+              display: "block",
+              width: "100%",
+              textAlign: "left",
+              padding: "8px 10px",
+              borderRadius: 7,
+              border: 0,
+              background: on ? C.ink : "transparent",
+              color: on ? C.sand : C.body,
+              fontSize: 13,
+              fontWeight: on ? 600 : 500,
+              cursor: "pointer",
+            }}
+          >
+            {s.label}
+          </button>
+        );
+      })}
+    </nav>
   );
 }
