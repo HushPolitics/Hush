@@ -6,6 +6,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
+import { useRegisterSectionNav, type SectionNavItem } from "@/lib/sectionNav";
 import type { FactCheck, FivePointAnswer, Party, Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
 import { Card, Display, Kicker, Pill, RustButton } from "@/components/ui";
 import { FactCheckCard } from "./FactCheckView";
@@ -162,9 +163,11 @@ interface Candidacy {
 }
 
 /**
- * Stance Check — a short quiz built from the same shared `topics` list HUSH
- * Guide's own setup step fills in (and "My Top Issues" in the account menu ranks).
- * Each issue becomes one specific
+ * Stance Check — a short series of statements built from the same shared
+ * `topics` list HUSH Guide's own setup step fills in (and "My Top Issues" in
+ * the account menu ranks) -- not to be confused with Issue Finder, the
+ * separate instrument that produces `topics` in the first place. Each issue
+ * becomes one specific
  * statement; the user answers on a five-point scale (Strongly disagree
  * through Strongly agree), which collapses to Agree / Neutral / Disagree
  * (see `directionOf`) for immediately seeing which politicians actually
@@ -248,7 +251,7 @@ export default function StanceCheckView({
 
   const total = topics.length;
   // Clamped rather than stored: if the user edits the issue list down to
-  // fewer entries mid-quiz, this keeps the view in bounds without a
+  // fewer entries mid-run, this keeps the view in bounds without a
   // separate effect just to re-sync `index`.
   const at = Math.min(index, total);
   const done = at >= total;
@@ -715,8 +718,19 @@ function StanceSummary({
 
   const noMatchIssues = answeredTopics.filter((issue) => !matches.some((m) => m.issue === issue));
 
+  // Only the sections actually present for this run -- "surprise" and
+  // "no-match" are both conditional on the data. Registered here (not by
+  // the parent) so it only exists while this summary screen is mounted;
+  // unmounting (going back to a question) clears it via the hook's own
+  // cleanup, same as the mid-run state rendering nothing.
+  const summaryItems: SectionNavItem[] = [{ id: "overview", label: "Overview" }];
+  if (surprise) summaryItems.push({ id: "surprise", label: "Strongest surprise" });
+  if (noMatchIssues.length > 0) summaryItems.push({ id: "no-match", label: "No match" });
+  useRegisterSectionNav(summaryItems);
+
   return (
     <Card style={{ maxWidth: 640, padding: 24, display: "flex", flexDirection: "column", gap: 18 }}>
+      <div id="overview" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <Kicker color={C.muted}>Your Stance Check, so far</Kicker>
 
       {crossesParty ? (
@@ -732,9 +746,10 @@ function StanceSummary({
           You didn&apos;t match with anyone on your ballot on the issues you answered.
         </Display>
       )}
+      </div>
 
       {surprise ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
+        <div id="surprise" style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
           <Kicker size={11}>Your strongest surprise</Kicker>
           <span style={{ fontSize: 13, color: C.ink, lineHeight: 1.5 }}>
             On <strong>{surprise.issue}</strong>, you matched {PARTY_LABEL[surprise.candidacy.party]}{" "}
@@ -750,7 +765,7 @@ function StanceSummary({
       ) : null}
 
       {noMatchIssues.length > 0 ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
+        <div id="no-match" style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
           <Kicker size={11}>Where nobody on your ballot matched you</Kicker>
           <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{noMatchIssues.join(", ")}</span>
         </div>

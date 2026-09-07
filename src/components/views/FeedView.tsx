@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { C, STATUS_STYLE, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
+import { useFeedScope } from "@/lib/feedScope";
 import { initials } from "@/lib/scoring";
 import {
   ballotPoliticianIds,
   buildFeedEvents,
+  matchesIssues,
   type FactCheckFeedEvent,
   type FeedEvent,
   type PositionFeedEvent,
@@ -16,10 +18,8 @@ import {
   type ScoreFeedEvent,
 } from "@/lib/feed";
 import type { FactCheck, IssuePosition, Politician, Race, StanceCheckPosition } from "@/lib/types";
-import { Avatar, Card, Chip, Display, EmptyState, ExpandableQuote, Kicker, Pill } from "@/components/ui";
+import { Avatar, Card, Display, EmptyState, ExpandableQuote, Kicker, Pill } from "@/components/ui";
 import { FactCheckCard } from "./FactCheckView";
-
-type Scope = "ballot" | "following";
 
 function eventText(e: FeedEvent): string {
   switch (e.type) {
@@ -43,6 +43,11 @@ function eventText(e: FeedEvent): string {
  * ever appears here as one politician's own change event, with its reason
  * attached; it is never shown next to anyone else's, matching the amendment's
  * standing rule enforced in CompareView/GuideView.
+ *
+ * The scope filter (My ballot / My issues / Following) used to render here
+ * as horizontal chips; per the sidebar contextual-nav brief it now lives in
+ * AppShell's sidebar as a vertical filter list instead (see `useFeedScope`)
+ * -- this view just reads whatever scope the sidebar has set.
  */
 export default function FeedView({
   politicians,
@@ -59,11 +64,10 @@ export default function FeedView({
 }) {
   const params = useSearchParams();
   const q = params.get("q") ?? "";
-  const { saved } = usePrefs();
-  const [scope, setScope] = useState<Scope>("ballot");
+  const { saved, topics } = usePrefs();
+  const [scope] = useFeedScope();
 
   const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
-  const scopedIds = scope === "ballot" ? ballotIds : new Set(saved);
 
   const allEvents = useMemo(
     () => buildFeedEvents(politicians, factChecks, guide, stance),
@@ -73,30 +77,29 @@ export default function FeedView({
   const events = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return allEvents.filter((e) => {
-      if (!scopedIds.has(e.politician.id)) return false;
+      const inScope =
+        scope === "ballot"
+          ? ballotIds.has(e.politician.id)
+          : scope === "following"
+            ? saved.includes(e.politician.id)
+            : matchesIssues(e, topics);
+      if (!inScope) return false;
       if (!needle) return true;
       const haystack = [e.politician.name, e.politician.office, ...e.politician.tags, eventText(e)]
         .join(" ")
         .toLowerCase();
       return haystack.includes(needle);
     });
-  }, [allEvents, scopedIds, q]);
+  }, [allEvents, scope, ballotIds, saved, topics, q]);
 
   const followingEmpty = scope === "following" && saved.length === 0;
+  const issuesEmpty = scope === "issues" && topics.length === 0;
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <Kicker>Feed</Kicker>
         <Display size={25}>What&apos;s happened · {events.length}</Display>
-        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <Chip on={scope === "ballot"} onClick={() => setScope("ballot")}>
-            Your ballot
-          </Chip>
-          <Chip on={scope === "following"} onClick={() => setScope("following")}>
-            Following
-          </Chip>
-        </div>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
@@ -107,9 +110,11 @@ export default function FeedView({
           <EmptyState>
             {followingEmpty
               ? "Nothing followed yet — open a profile and hit “Save to my list”."
-              : q.trim()
-                ? `Nothing matches "${q.trim()}".`
-                : "Nothing to show yet."}
+              : issuesEmpty
+                ? "You haven't ranked any issues yet — pick some from “My issues” in the account menu."
+                : q.trim()
+                  ? `Nothing matches "${q.trim()}".`
+                  : "Nothing to show yet."}
           </EmptyState>
         ) : null}
       </div>
