@@ -21,6 +21,9 @@ import {
   BILLS,
   STANCE_STATEMENTS,
   STANCE_POSITIONS,
+  VOTES,
+  ELECTION_UPDATES,
+  ARTICLES,
 } from "./seed-data";
 import type {
   Politician,
@@ -30,6 +33,9 @@ import type {
   IssuePosition,
   StanceCheckPosition,
   Bill,
+  VoteRecord,
+  ElectionUpdate,
+  ArticleRecord,
 } from "./types";
 
 export const hasSupabase = Boolean(
@@ -103,4 +109,19 @@ export function stanceStatements(): Record<string, string> {
 /** Stance Check's sourced per-candidate stances: politicianId -> issue -> StanceCheckPosition. */
 export function stancePositions(): Record<string, Record<string, StanceCheckPosition>> {
   return STANCE_POSITIONS;
+}
+
+/** The Feed's Votes category: politicianId -> the bills they've voted on. */
+export function listVotes(): Record<string, VoteRecord[]> {
+  return VOTES;
+}
+
+/** The Feed's Election Updates category -- jurisdiction-wide, not tied to a candidate. */
+export function listElectionUpdates(): ElectionUpdate[] {
+  return ELECTION_UPDATES;
+}
+
+/** The Feed's Articles category: news coverage referencing a politician. */
+export function listArticles(): ArticleRecord[] {
+  return ARTICLES;
 }

@@ -15,8 +15,8 @@ import { useSyncExternalStore } from "react";
 export type FeedScope = "ballot" | "issues" | "following";
 
 export const FEED_SCOPES: { value: FeedScope; label: string }[] = [
-  { value: "ballot", label: "My ballot" },
-  { value: "issues", label: "My issues" },
+  { value: "ballot", label: "My Ballot" },
+  { value: "issues", label: "My Issues" },
   { value: "following", label: "Following" },
 ];
 

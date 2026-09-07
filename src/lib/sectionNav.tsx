@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
 
 export interface SectionNavItem {
   id: string;
@@ -119,4 +119,51 @@ export function jumpToSection(id: string) {
 /** Convenience re-export so call sites don't need a second import for the ref type. */
 export function useMainRef() {
   return useRef<HTMLElement | null>(null);
+}
+
+/**
+ * Rail footer: a second, small module store mirroring `items`/`emit`/
+ * `subscribe` above, but for a single arbitrary node instead of a list --
+ * lets a page register content (HUSH Guide's saved-address block) to render
+ * pinned at the bottom of AppShell's contextual left rail, below the jump
+ * list, without threading it through props or context. Same child-to-
+ * ancestor rationale as `useRegisterSectionNav`.
+ */
+let railFooter: ReactNode = null;
+const railFooterListeners = new Set<() => void>();
+
+function emitRailFooter() {
+  railFooterListeners.forEach((l) => l());
+}
+
+function subscribeRailFooter(listener: () => void) {
+  railFooterListeners.add(listener);
+  return () => railFooterListeners.delete(listener);
+}
+
+const getRailFooterSnapshot = () => railFooter;
+const getRailFooterServerSnapshot = (): ReactNode => null;
+
+/**
+ * Registers this route's rail-footer content -- called by whichever view
+ * owns the current page (currently only GuideView, for the saved address).
+ * Pass `null` for a route with nothing to pin there; clears on unmount so
+ * navigating away doesn't leave a stale footer showing under some other
+ * page's jump list.
+ */
+export function useRegisterRailFooter(node: ReactNode | null) {
+  useEffect(() => {
+    railFooter = node ?? null;
+    emitRailFooter();
+    return () => {
+      railFooter = null;
+      emitRailFooter();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [node]);
+}
+
+/** The active route's registered rail-footer content -- read by AppShell's sidebar. */
+export function useRailFooter(): ReactNode {
+  return useSyncExternalStore(subscribeRailFooter, getRailFooterSnapshot, getRailFooterServerSnapshot);
 }

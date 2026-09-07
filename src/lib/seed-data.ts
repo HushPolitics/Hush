@@ -15,6 +15,9 @@ import type {
   IssuePosition,
   StanceCheckPosition,
   Bill,
+  VoteRecord,
+  ElectionUpdate,
+  ArticleRecord,
 } from "./types";
 
 export const IS_SEED_DATA = true;
@@ -4127,6 +4130,7 @@ export const BILLS: Bill[] = [
     sourceUrl: "https://congress.gov.example/bill/119th-congress/house-bill/2145",
     dateAccessed: "Aug 20, 2026",
     dateUpdated: "Aug 18, 2026",
+    issues: ["Healthcare"],
   },
   {
     id: "sb890",
@@ -4152,6 +4156,7 @@ export const BILLS: Bill[] = [
     sourceUrl: "https://congress.gov.example/bill/119th-congress/senate-bill/890",
     dateAccessed: "Aug 20, 2026",
     dateUpdated: "Aug 14, 2026",
+    issues: ["Voting rights"],
   },
   {
     id: "hb455",
@@ -4177,6 +4182,7 @@ export const BILLS: Bill[] = [
     sourceUrl: "https://myfloridahouse.gov.example/Sections/Bills/billsdetail.aspx?BillId=hb455",
     dateAccessed: "Aug 19, 2026",
     dateUpdated: "Aug 11, 2026",
+    issues: ["Housing"],
   },
   {
     id: "sb1",
@@ -4193,6 +4199,7 @@ export const BILLS: Bill[] = [
     sourceUrl: "https://flsenate.gov.example/Session/Bill/2026/1",
     dateAccessed: "Aug 19, 2026",
     dateUpdated: "Aug 17, 2026",
+    issues: ["Budget", "Taxes"],
   },
   {
     id: "prop-a-ordinance",
@@ -4217,6 +4224,151 @@ export const BILLS: Bill[] = [
     sourceUrl: "https://coj.net.example/records/ordinances/20260812-014",
     dateAccessed: "Aug 21, 2026",
     dateUpdated: "Aug 12, 2026",
+    issues: ["Transit"],
+  },
+];
+
+/**
+ * Politician votes on the bills above, keyed by politician id -- the Feed's
+ * Votes category. Not every BILLS entry has a matching vote here: only
+ * politicians who sit in the chamber that actually voted get one, same
+ * "no invented record" convention as the rest of this file (e.g. Ainsley,
+ * as mayor, doesn't sit on the council that adopted Proposition A's
+ * ordinance, so he has no vote on it even though the measure appears in his
+ * "Bills Being Considered" list).
+ */
+export const VOTES: Record<string, VoteRecord[]> = {
+  marchetti: [
+    {
+      id: "marchetti-hr2145",
+      date: "Sep 16, 2026",
+      billNumber: "H.R. 2145",
+      billTitle: "Insulin Cost Reduction Act",
+      chamber: "U.S. House of Representatives",
+      vote: "Yes",
+      note: "Voted for the $35/month insulin cap.",
+      sourceName: "Congress.gov",
+      sourceUrl: "https://congress.gov.example/bill/119th-congress/house-bill/2145",
+    },
+  ],
+  pike: [
+    {
+      id: "pike-sb890",
+      date: "Sep 9, 2026",
+      billNumber: "S. 890",
+      billTitle: "Voting Access Modernization Act",
+      chamber: "U.S. Senate",
+      vote: "No",
+      note: "Voted against ending debate on the bill; cloture fell short of the 60 votes needed.",
+      sourceName: "Congress.gov",
+      sourceUrl: "https://congress.gov.example/bill/119th-congress/senate-bill/890",
+    },
+  ],
+  vance: [
+    {
+      id: "vance-sb1",
+      date: "Sep 24, 2026",
+      billNumber: "Florida SB 1",
+      billTitle: "General Appropriations Act — Article II Floor Amendments",
+      chamber: "Florida Senate",
+      vote: "Yes",
+      note: "Voted for the amended budget, including the Article II health and human services floor amendments.",
+      sourceName: "Florida Legislature Online",
+      sourceUrl: "https://flsenate.gov.example/Session/Bill/2026/1",
+    },
+  ],
+  torrance: [
+    {
+      id: "torrance-hb455",
+      date: "Sep 22, 2026",
+      billNumber: "Florida HB 455",
+      billTitle: "Renters' Notice and Cure Act",
+      chamber: "Florida House of Representatives",
+      vote: "No",
+      note: "Voted against advancing the bill out of the Business & Industry Committee.",
+      sourceName: "Florida Legislature Online",
+      sourceUrl: "https://myfloridahouse.gov.example/Sections/Bills/billsdetail.aspx?BillId=hb455",
+    },
+  ],
+};
+
+/**
+ * Jurisdiction-wide election administration updates -- not tied to any one
+ * candidate, so these show up in the Feed regardless of which politician
+ * the reader is scoped to. Same Duval County geography as the rest of the
+ * seed data.
+ */
+export const ELECTION_UPDATES: ElectionUpdate[] = [
+  {
+    id: "voter-registration-deadline",
+    date: "Aug 22, 2026",
+    headline: "Voter registration deadline set for Oct 5",
+    detail:
+      "The Duval County Supervisor of Elections confirmed Oct 5 as the last day to register to vote or update an address before the Nov 3 general election.",
+    sourceName: "Duval County Supervisor of Elections",
+    sourceUrl: "https://duvalelections.gov.example/register",
+  },
+  {
+    id: "early-voting-sites-announced",
+    date: "Aug 28, 2026",
+    headline: "Early voting sites and hours announced",
+    detail:
+      "Fourteen early voting sites across Duval County will be open Oct 19-30, including the Main Library and three branch locations added since the last election.",
+    sourceName: "Duval County Supervisor of Elections",
+    sourceUrl: "https://duvalelections.gov.example/early-voting",
+  },
+  {
+    id: "mail-ballot-requests-open",
+    date: "Sep 2, 2026",
+    headline: "Mail ballot requests now open",
+    detail:
+      "Registered voters can request a vote-by-mail ballot online through Oct 23. Ballots begin mailing the week of Sep 21.",
+    sourceName: "Duval County Supervisor of Elections",
+    sourceUrl: "https://duvalelections.gov.example/vote-by-mail",
+  },
+];
+
+/**
+ * News coverage referencing a politician -- the Feed's Articles category.
+ * Illustrative only, same convention as the rest of this file: fictional
+ * outlets and politicians, `.example` source URLs.
+ */
+export const ARTICLES: ArticleRecord[] = [
+  {
+    id: "marchetti-town-hall-recap",
+    politicianId: "marchetti",
+    date: "Aug 30, 2026",
+    headline: "Marchetti fields questions on housing at East Jacksonville town hall",
+    dek: "The fourth-term representative faced pointed questions on permitting delays and the stalled renter's tax credit.",
+    sourceName: "Florida Times-Union",
+    sourceUrl: "https://jacksonville.com.example/news/marchetti-town-hall-aug-2026",
+  },
+  {
+    id: "wexler-fl04-profile",
+    politicianId: "wexler",
+    date: "Sep 1, 2026",
+    headline: "Who is Grant Wexler? A look at Marchetti's FL-04 challenger",
+    dek: "The two-term county commissioner is betting his permitting record can flip the district.",
+    sourceName: "Florida Politics",
+    sourceUrl: "https://floridapolitics.com.example/wexler-fl04-profile",
+  },
+  {
+    id: "kohl-mayor-race-fundraising",
+    politicianId: "kohl",
+    date: "Sep 3, 2026",
+    headline: "Kohl outraises Ainsley in latest mayoral fundraising report",
+    dek: "The city council member's campaign says the gap reflects support for finishing the light-rail buildout.",
+    sourceName: "WJCT News",
+    sourceUrl: "https://news.wjct.example/kohl-fundraising-sep-2026",
+  },
+  {
+    id: "olamide-senate-launch",
+    politicianId: "olamide",
+    date: "Aug 25, 2026",
+    headline: "State Sen. Olamide formally launches U.S. Senate bid",
+    dek: "Olamide is centering the campaign on Medicaid expansion and a higher state minimum wage.",
+    sourceName: "Miami Herald",
+    sourceUrl: "https://miamiherald.com.example/olamide-senate-launch",
   },
 ];
 

@@ -251,4 +251,58 @@ export interface Bill {
   dateAccessed: string;
   /** Date the source was last updated, if the source carries one. */
   dateUpdated?: string;
+  /**
+   * Which of `TOPIC_POOL`'s issues this bill is about, for the Feed's "My
+   * issues" scope -- same convention `Politician.tags` uses. Optional
+   * because a bill the Feed hasn't categorized yet simply matches no issue
+   * scope rather than guessing one.
+   */
+  issues?: string[];
+}
+
+/**
+ * A politician's recorded vote on a specific bill -- the Feed's Votes
+ * category. Kept as an external per-politician map (see seed-data.ts's
+ * `VOTES`) rather than nested on `Politician`, the same convention
+ * `GUIDE_POSITIONS`/`STANCE_POSITIONS` already use for sourced records that
+ * don't belong on the core profile shape.
+ */
+export interface VoteRecord {
+  id: string;
+  date: string;
+  billNumber: string;
+  billTitle: string;
+  chamber: string;
+  vote: "Yes" | "No" | "Present" | "Did not vote";
+  /** HUSH's own plain-English note on what the vote did -- not the bill's official language. */
+  note: string;
+  sourceName: string;
+  sourceUrl: string;
+}
+
+/**
+ * A jurisdiction-wide election administration update -- a registration
+ * deadline, a new early-voting site, a mail-ballot milestone. Unlike every
+ * other Feed event type this isn't about any one candidate, so it carries
+ * no `politicianId` -- the Feed shows it regardless of which politician the
+ * reader is scoped to.
+ */
+export interface ElectionUpdate {
+  id: string;
+  date: string;
+  headline: string;
+  detail: string;
+  sourceName: string;
+  sourceUrl: string;
+}
+
+/** A news article referencing one politician -- the Feed's Articles category. */
+export interface ArticleRecord {
+  id: string;
+  politicianId: string;
+  date: string;
+  headline: string;
+  dek: string;
+  sourceName: string;
+  sourceUrl: string;
 }
