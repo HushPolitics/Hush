@@ -15,7 +15,7 @@ import { Card, Display, EmptyState, Kicker } from "@/components/ui";
  */
 export function BillsSection({ bills }: { bills: Bill[] }) {
   return (
-    <section style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 10 }}>
+    <section id="bills" style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 10 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <Kicker>Legislation</Kicker>
         <Display size={25}>Bills Being Considered</Display>

@@ -6,11 +6,24 @@ import { useState, type CSSProperties, type FormEvent, type ReactNode } from "re
 import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { issueCoverage, parseRaceTitle, stripPartySuffix, topRankedIssueForRace } from "@/lib/guide";
+import { useRegisterSectionNav } from "@/lib/sectionNav";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, ExpandableQuote, GhostButton, Kicker, RustButton } from "@/components/ui";
 import ElectionCountdownBanner from "@/components/ElectionCountdownBanner";
 import PollingPlaceCard from "@/components/PollingPlaceCard";
 import { BillsSection } from "./GuideBills";
+
+/**
+ * HUSH Guide's section-nav list, in the sidebar contextual-nav brief's
+ * specified order — always this order regardless of whether `GUIDE_LEAD`
+ * puts Bills before or after the races grid in the DOM below.
+ */
+const GUIDE_SECTIONS = [
+  { id: "address", label: "Your address" },
+  { id: "issues", label: "Your issues" },
+  { id: "bills", label: "Bills being considered" },
+  { id: "races", label: "Your races" },
+];
 
 const fieldStyle = {
   padding: "11px 14px",
@@ -43,7 +56,7 @@ type Step = "address" | "issues" | "grid";
  *
  * First-time setup (empty `topics`) no longer uses this file's own inline
  * `IssuesStep` for ranking — AddressStep's onContinue instead routes out to
- * the shared "My Top Issues" quiz/editor (same drag-to-rank component
+ * the shared "My Top Issues" editor (same drag-to-rank component
  * everywhere else), which sends the visitor back here via `?next=` once
  * they've ranked something. `IssuesStep` stays in place for the grid's
  * "Edit issues" action (topics already non-empty) and for Stance Check's own
@@ -82,12 +95,12 @@ export default function GuideView({
             // Already have topics ranked (this is a manual "Edit address"
             // visit, not first-time setup): stay in-page and go straight to
             // the grid, same as before. A visitor with no ranked issues at
-            // all is routed out to the shared ranking flow instead of an
-            // inline, unranked issue-toggle step — same drag-to-rank editor
-            // "My issues" uses everywhere else, just reached from here too
-            // now, and it lands back on the Guide via `next` once done.
+            // all is routed out to the two-path chooser (rank yourself vs.
+            // Issue Finder) instead of an inline, unranked issue-toggle step
+            // — same shared `topics` list either path lands on, and it
+            // sends the visitor back to the Guide via `next` once done.
             if (hasGuide) setManualStep("grid");
-            else router.push("/profile/top-issues/quiz?next=/hush-guide");
+            else router.push("/profile/top-issues/start?next=/hush-guide");
           }}
         />
       ) : step === "issues" ? (
@@ -335,6 +348,14 @@ export function IssuesStep({
       {topics.length === 0 ? (
         <span style={{ fontSize: 12, color: C.muted }}>Select at least one issue to continue.</span>
       ) : null}
+      {hasGuide ? (
+        <Link
+          href="/profile/top-issues/start"
+          style={{ fontSize: 12, color: C.muted, textDecoration: "underline" }}
+        >
+          Prefer to answer a few questions instead? Try Issue Finder →
+        </Link>
+      ) : null}
     </Card>
   );
 }
@@ -372,6 +393,11 @@ function TileGrid({
   const { streetAddress, city, state, zip, topics } = usePrefs();
   const knownIds = new Set(politicians.map((p) => p.id));
 
+  // Only registered while the grid is actually showing -- address/issues
+  // onboarding steps render a different `Step` entirely (see GuideView's
+  // top-level switch), so there's nothing to jump to from the sidebar then.
+  useRegisterSectionNav(GUIDE_SECTIONS);
+
   return (
     <>
       <ElectionCountdownBanner />
@@ -386,6 +412,7 @@ function TileGrid({
         style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}
       >
         <Card
+          id="address"
           style={{
             flex: 1,
             minWidth: 260,
@@ -426,6 +453,7 @@ function TileGrid({
         </Card>
 
         <Card
+          id="issues"
           style={{
             flex: 1,
             minWidth: 260,
@@ -495,6 +523,7 @@ function TileGrid({
         repeating here too. See seed-data.ts.
       */}
 
+      <div id="races" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {races.length === 0 ? (
         <EmptyState>No races found in the seed dataset.</EmptyState>
       ) : (
@@ -616,6 +645,7 @@ function TileGrid({
           })}
         </div>
       )}
+      </div>
 
       {GUIDE_LEAD === "races" ? <BillsSection bills={bills} /> : null}
     </>

@@ -2,101 +2,131 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { QUIZ_DEPTHS, quizStats, scoreQuiz, selectQuizQuestions, sittingTotal, type QuizQuestion } from "@/lib/quiz";
-import type { QuizDepth, TopIssuesQuizAnswer } from "@/lib/types";
+import {
+  FINDER_DEPTHS,
+  finderStats,
+  scoreFinder,
+  selectFinderQuestions,
+  type FinderQuestion,
+} from "@/lib/issue-finder";
+import type { IssueFinderAnswer, IssueFinderDepth } from "@/lib/types";
 import { Card, Display, Kicker } from "@/components/ui";
 import { TopIssuesCard } from "./TopIssuesCard";
+import { IssueFinderDepthCards } from "./IssueFinderDepthCards";
 
-const ANSWERS: TopIssuesQuizAnswer[] = ["Not important", "Somewhat important", "Very important"];
-const DEPTH_ORDER: QuizDepth[] = ["quick", "standard", "thorough"];
+const ANSWERS: IssueFinderAnswer[] = ["Not important", "Somewhat important", "Very important"];
 
-type Step = "depth" | "quiz" | "results";
+type Step = "depth" | "sitting" | "results";
 
 /**
- * The quiz entry point into "My Top Issues" (see TopIssuesCard) — not a new
- * top-level nav tab, just a route Profile's "My Top Issues" button links
- * into. Depth pick -> one specific policy-detail question at a time -> a
+ * Issue Finder — formerly "the quiz." Renamed everywhere per the sidebar
+ * brief's Part 2: this determines *what a reader cares about* (a ranked
+ * issue list feeding Guide/Compare/Feed), which is a different instrument
+ * from Stance Check (*what they think* about specific statements, matched
+ * against candidates). "Quiz" was the same generic word for two different
+ * things; Stance Check keeps its own name unchanged.
+ *
+ * Depth pick -> one specific policy-detail question at a time -> a
  * suggested ranked order, landed on the same TopIssuesCard editor in its
  * draft mode so the suggestion can be reordered, added to, or trimmed before
  * an explicit Save writes it to `topics` — nothing here auto-saves as the
  * user answers, mirroring HUSH Guide's issue picker requiring Continue
  * rather than committing each toggle live.
  *
- * The depth-pick step also offers a "Skip the quiz" link straight to
- * /profile/top-issues (TopIssuesCard's own full-page route, live-editing
- * mode) for anyone who'd rather rank issues by hand — that's the same
- * destination Profile's "My Top Issues" button used to point to directly,
- * before this quiz became the button's target.
+ * `?depth=` (quick|standard|thorough) skips straight past the depth-pick
+ * screen into that sitting — how the two-path onboarding chooser
+ * (`/profile/top-issues/start`) launches a depth card directly, since that
+ * screen already did the depth picking itself. A plain visit (avatar menu's
+ * "My issues" -> "Try Issue Finder", Guide's "Your issues" section) has no
+ * `?depth=` and still opens on the depth-pick screen, unchanged.
  *
- * Per-question answers are a different matter: those record immediately via
- * `recordQuizAnswer` as the user goes, because they're this feature's raw
- * input, not `topics` itself — persisting them is what lets a retake pull
- * fresh questions (`selectQuizQuestions`) and lets `scoreQuiz` rank issues
- * from every answer on file rather than just the current sitting. Retaking
- * sharpens the suggested order; it never resets it.
+ * Re-running Issue Finder when a ranking already exists replaces it, so
+ * saving asks for a confirming second click first (see `confirmReplace`)
+ * rather than overwriting silently — first-time onboarding always starts
+ * from an empty ranking, so this never gates that path.
  */
-export default function TopIssuesQuizView({
+export default function IssueFinderView({
   topicPool,
-  quizBank,
+  finderBank,
 }: {
   topicPool: string[];
-  quizBank: Record<string, string[]>;
+  finderBank: Record<string, string[]>;
 }) {
   const router = useRouter();
   const params = useSearchParams();
-  // Present when this quiz was reached via HUSH Guide's own onboarding gate
-  // (an empty `topics` list routes here with `?next=/hush-guide`) rather than
-  // a voluntary visit from the avatar menu's "My issues" — lets both "leave
-  // without finishing" and "save and continue" land back where the visit
-  // started instead of always assuming a standalone visit.
+  // Present when this was reached via HUSH Guide's own onboarding gate (an
+  // empty `topics` list routes here with `?next=/hush-guide`) rather than a
+  // voluntary visit from the avatar menu or Guide's "Your issues" section —
+  // lets both "leave without finishing" and "save and continue" land back
+  // where the visit started instead of always assuming a standalone visit.
   const next = params.get("next");
+  const depthParam = params.get("depth") as IssueFinderDepth | null;
   const exitHref = next ?? "/feed";
   const skipHref = next ? `/profile/top-issues?next=${encodeURIComponent(next)}` : "/profile/top-issues";
-  const { quizAnswers, recordQuizAnswer, setTopics } = usePrefs();
+  const { topics: liveTopics, finderAnswers, recordFinderAnswer, setTopics } = usePrefs();
   const [step, setStep] = useState<Step>("depth");
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [questions, setQuestions] = useState<FinderQuestion[]>([]);
   const [at, setAt] = useState(0);
   const [draftTopics, setDraftTopics] = useState<string[]>([]);
+  const [confirmReplace, setConfirmReplace] = useState(false);
 
-  const stats = useMemo(() => quizStats(topicPool, quizAnswers), [topicPool, quizAnswers]);
+  const stats = useMemo(() => finderStats(topicPool, finderAnswers), [topicPool, finderAnswers]);
 
-  function startQuiz(depth: QuizDepth) {
-    setQuestions(selectQuizQuestions(topicPool, quizBank, depth, quizAnswers));
+  function startSitting(depth: IssueFinderDepth) {
+    setQuestions(selectFinderQuestions(topicPool, finderBank, depth, finderAnswers));
     setAt(0);
-    setStep("quiz");
+    setStep("sitting");
   }
 
-  function answer(value: TopIssuesQuizAnswer) {
+  // `?depth=` from the two-path chooser: jump straight into that sitting
+  // instead of showing the depth-pick screen a second time.
+  useEffect(() => {
+    if (depthParam && FINDER_DEPTHS[depthParam]) startSitting(depthParam);
+    // Only ever fires once, on mount -- re-running startSitting on every
+    // finderAnswers change would restart the sitting mid-question.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function answer(value: IssueFinderAnswer) {
     const q = questions[at];
-    recordQuizAnswer(q.id, value);
+    recordFinderAnswer(q.id, value);
 
     if (at + 1 < questions.length) {
       setAt(at + 1);
       return;
     }
 
-    // Last question of the sitting: score from `quizAnswers` plus this one
+    // Last question of the sitting: score from `finderAnswers` plus this one
     // answer merged in locally. usePrefs() hasn't re-rendered this component
     // with the just-recorded answer yet within this same click handler, so
-    // reading `quizAnswers` alone here would miss it.
+    // reading `finderAnswers` alone here would miss it.
     const finalAnswers = {
-      ...quizAnswers,
+      ...finderAnswers,
       [q.id]: { value, answeredAt: Date.now() },
     };
-    const suggested = scoreQuiz(topicPool, finalAnswers);
+    const suggested = scoreFinder(topicPool, finalAnswers);
     setDraftTopics(suggested);
     setStep("results");
+  }
+
+  function saveResults() {
+    if (liveTopics.length > 0 && !confirmReplace) {
+      setConfirmReplace(true);
+      return;
+    }
+    setTopics(draftTopics);
+    router.push(next ?? "/profile/top-issues");
   }
 
   if (step === "depth") {
     return (
       <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-          <Kicker>My Top Issues</Kicker>
-          <Display size={25}>Find your top issues with a quiz</Display>
+          <Kicker>Issue Finder</Kicker>
+          <Display size={25}>Find your top issues with a few questions</Display>
           <span style={{ fontSize: 13, color: C.body, maxWidth: 580, lineHeight: 1.5 }}>
             Every question is one specific policy detail, not a broad topic label — how you answer
             says how much that detail matters to you, not which side you&apos;re on. Take it as many
@@ -112,44 +142,13 @@ export default function TopIssuesQuizView({
           ) : null}
         </div>
 
-        <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-          {DEPTH_ORDER.map((depth) => {
-            const cfg = QUIZ_DEPTHS[depth];
-            return (
-              <Card
-                key={depth}
-                onClick={() => startQuiz(depth)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") startQuiz(depth);
-                }}
-                aria-label={`Start the ${cfg.label} quiz — ${sittingTotal(depth, topicPool)} questions`}
-                style={{
-                  flex: "1 1 220px",
-                  minWidth: 200,
-                  padding: 20,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                  cursor: "pointer",
-                }}
-              >
-                <span style={{ fontFamily: cond, fontSize: 21 }}>{cfg.label}</span>
-                <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{cfg.blurb}</span>
-                <span style={{ fontSize: 12, color: C.muted, marginTop: "auto" }}>
-                  {sittingTotal(depth, topicPool)} questions
-                </span>
-              </Card>
-            );
-          })}
-        </div>
+        <IssueFinderDepthCards topicPool={topicPool} onPick={startSitting} />
 
         <Link
           href={skipHref}
           style={{ fontSize: 13, color: C.muted, textDecoration: "underline" }}
         >
-          Skip the quiz — rank your own issues
+          Rank them yourself instead
         </Link>
 
         <Link href={exitHref} style={{ fontSize: 13, color: C.navy, textDecoration: "underline" }}>
@@ -159,7 +158,7 @@ export default function TopIssuesQuizView({
     );
   }
 
-  if (step === "quiz") {
+  if (step === "sitting") {
     const q = questions[at];
     return (
       <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -183,7 +182,7 @@ export default function TopIssuesQuizView({
               padding: 6,
             }}
           >
-            Exit quiz
+            Exit Issue Finder
           </button>
         </div>
 
@@ -211,9 +210,14 @@ export default function TopIssuesQuizView({
         <Kicker>Suggested order</Kicker>
         <Display size={25}>Here&apos;s what your answers suggest</Display>
         <span style={{ fontSize: 13, color: C.body, maxWidth: 580, lineHeight: 1.5 }}>
-          Ranked from your quiz answers, most important first. Drag to reorder, add or remove
-          issues below, then save — nothing changes your actual Top Issues until you do.
+          Ranked from your answers, most important first. Drag to reorder, add or remove issues
+          below, then save — nothing changes your actual Top Issues until you do.
         </span>
+        {confirmReplace ? (
+          <span style={{ fontSize: 12.5, color: C.rust, fontWeight: 500 }}>
+            This replaces your current top issues ranking. Save again to confirm.
+          </span>
+        ) : null}
       </div>
 
       <TopIssuesCard
@@ -221,13 +225,13 @@ export default function TopIssuesQuizView({
         showEditLink={false}
         draft={{
           topics: draftTopics,
-          onChange: setDraftTopics,
-          onSave: () => {
-            setTopics(draftTopics);
-            router.push(next ?? "/profile/top-issues");
+          onChange: (next) => {
+            setConfirmReplace(false);
+            setDraftTopics(next);
           },
+          onSave: saveResults,
           onDiscard: () => router.push(exitHref),
-          saveLabel: "Save my top issues",
+          saveLabel: confirmReplace ? "Yes, replace my ranking" : "Save my top issues",
         }}
       />
     </div>

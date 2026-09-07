@@ -6,6 +6,7 @@ import { useState } from "react";
 import { C, PARTY_LABEL, STATUS_STYLE, cond, progressColor, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { TRUST_WEIGHTS, promiseSplit } from "@/lib/scoring";
+import { useRegisterSectionNav } from "@/lib/sectionNav";
 import type { FactCheck, IssuePosition, Politician, PromiseStatus } from "@/lib/types";
 import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
@@ -48,6 +49,16 @@ export default function PoliticianView({
   const router = useRouter();
   const { saved, toggleSaved, picks, setPicks, topics } = usePrefs();
   const [ledgerStatus, setLedgerStatus] = useState<PromiseStatus | "All">("All");
+
+  // Fixed list, matching the brief's section order -- the two supplementary
+  // sections below (Score history, Career) aren't part of it, same as they
+  // aren't one of the 5 named sections in the original app IA restructure.
+  useRegisterSectionNav([
+    { id: "score", label: "The record" },
+    { id: "ledger", label: "Promises" },
+    { id: "positions", label: "Positions" },
+    { id: "claims-checked", label: "Claims checked" },
+  ]);
 
   const band = trustBand(p.trust);
   const split = promiseSplit(p);

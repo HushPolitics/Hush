@@ -13,10 +13,10 @@ const MAX_TOP_ISSUES = 10;
  * "Your Top Issues" — a standalone ranked-list editor (drag to reorder,
  * remove, add up to the cap). Reached from the avatar menu's "My issues"
  * item as the full-page view at /profile/top-issues, and used in `draft`
- * mode by the "My Top Issues" quiz's results step (see below).
+ * mode by Issue Finder's results step (see below).
  *
  * Also the same component HUSH Guide's own onboarding gate routes a
- * visitor with no ranked issues to (via the quiz) — see GuideView's
+ * visitor with no ranked issues to (via Issue Finder) — see GuideView's
  * AddressStep onContinue — so "same drag-to-rank component, same data" for
  * that gate is this file, not a separate picker.
  *
@@ -39,7 +39,7 @@ export function TopIssuesCard({
    * `draft.topics` through `draft.onChange` instead of writing straight to
    * the live `topics` in usePrefs(), and nothing reaches `prefs.topics`
    * until `draft.onSave` runs (plus an optional `draft.onDiscard` to back
-   * out without saving). This is what the "My Top Issues" quiz's results
+   * out without saving). This is what Issue Finder's results
    * step uses to let its suggested order be edited locally before an
    * explicit Save commits it — same "review, then confirm" pattern as HUSH
    * Guide's issue picker requiring Continue rather than auto-saving each

@@ -215,14 +215,15 @@ export interface StanceCheckPosition {
   date?: string;
 }
 
-/** One answer choice on the "My Top Issues" quiz — see TOP_ISSUES_QUIZ. */
-export type TopIssuesQuizAnswer = "Not important" | "Somewhat important" | "Very important";
+/** One answer choice on the Issue Finder — see ISSUE_FINDER_BANK. */
+export type IssueFinderAnswer = "Not important" | "Somewhat important" | "Very important";
 
 /**
- * How many of each issue's 8 quiz sub-questions a sitting asks — see
- * lib/quiz.ts's QUIZ_DEPTHS for the label/count/total each maps to.
+ * How many of each issue's 8 Issue Finder sub-questions a sitting asks —
+ * see lib/issue-finder.ts's FINDER_DEPTHS for the label/count/total each
+ * maps to.
  */
-export type QuizDepth = "quick" | "standard" | "thorough";
+export type IssueFinderDepth = "quick" | "standard" | "thorough";
 
 /**
  * A piece of legislation shown in HUSH Guide's "Bills Being Considered"

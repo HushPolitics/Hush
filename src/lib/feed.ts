@@ -214,3 +214,27 @@ export function ballotPoliticianIds(races: Race[]): Set<string> {
   for (const r of races) for (const c of r.candidates) ids.add(c.politicianId);
   return ids;
 }
+
+/**
+ * Whether one Feed event is about at least one of the reader's ranked
+ * issues -- the Feed sidebar's "My issues" scope. Position and fact-check
+ * events carry a direct issue/topic field and match on that. Score and
+ * promise events carry no per-event issue -- they're about a politician's
+ * overall record, not one issue -- so they fall back to matching the
+ * politician's own `tags`: an imperfect but existing topic-adjacent field,
+ * rather than leaving those two event types unmatchable under this scope
+ * entirely. An empty `topics` list matches nothing, same "nothing ranked
+ * yet" convention every other `topics` consumer in this codebase uses.
+ */
+export function matchesIssues(e: FeedEvent, topics: string[]): boolean {
+  if (topics.length === 0) return false;
+  switch (e.type) {
+    case "position":
+      return topics.includes(e.issue);
+    case "factcheck":
+      return topics.includes(e.check.topic);
+    case "score":
+    case "promise":
+      return e.politician.tags.some((t) => topics.includes(t));
+  }
+}

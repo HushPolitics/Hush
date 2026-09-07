@@ -2221,11 +2221,11 @@ export const TOPIC_POOL: string[] = [
 ];
 
 /**
- * The "My Top Issues" quiz's question bank: 8 specific, in-the-weeds policy
+ * Issue Finder's question bank: 8 specific, in-the-weeds policy
  * details per `TOPIC_POOL` issue (112 total), ordered core-first within each
  * issue's array. Deliberately not generic topic ratings ("how important is
  * gun rights to you") — each one names a specific provision within that
- * umbrella issue, so the quiz tests whether someone holds a view on the
+ * umbrella issue, so Issue Finder tests whether someone holds a view on the
  * actual specifics rather than just recognizing a hot-button label.
  *
  * Every question is phrased as a neutral statement of what a policy would
@@ -2241,13 +2241,13 @@ export const TOPIC_POOL: string[] = [
  *
  * The UI supplies the fixed "How important is it to you that ___?" framing
  * and the fixed three answers (Not important / Somewhat important / Very
- * important) — see TopIssuesQuizView — these strings are just the ___.
+ * important) — see IssueFinderView — these strings are just the ___.
  *
- * `lib/quiz.ts` picks 2/3/4 of each issue's 8 (Quick/Standard/Thorough) per
- * sitting, unanswered-first, so a retake naturally surfaces fresh ones
+ * `lib/issue-finder.ts` picks 2/3/4 of each issue's 8 (Quick/Standard/Thorough)
+ * per sitting, unanswered-first, so a retake naturally surfaces fresh ones
  * before cycling back through already-answered questions.
  */
-export const TOP_ISSUES_QUIZ: Record<string, string[]> = {
+export const ISSUE_FINDER_BANK: Record<string, string[]> = {
   "Healthcare": [
     "health insurers be required to cover pre-existing conditions without charging higher premiums for them",
     "Medicare be allowed to negotiate prescription drug prices directly with drug manufacturers",
