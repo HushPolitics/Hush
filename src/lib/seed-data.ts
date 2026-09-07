@@ -1313,6 +1313,686 @@ export const POLITICIANS: Politician[] = [
         "detail": "Term ends 2028"
       }
     ]
+  },
+  {
+    "id": "wexler",
+    "name": "Grant Wexler",
+    "office": "County Commissioner",
+    "district": "District 2",
+    "level": "Local",
+    "party": "R",
+    "since": 2018,
+    "trust": 56,
+    "kept": 10,
+    "prog": 4,
+    "broken": 4,
+    "bio": "Duval County commissioner and small-business owner challenging Marchetti in FL-04 on lower taxes and faster permitting.",
+    "tags": [
+      "Taxes",
+      "Small business",
+      "Permitting"
+    ],
+    "policies": [
+      {
+        "issue": "Healthcare",
+        "stance": "Opposes a public option."
+      },
+      {
+        "issue": "Housing",
+        "stance": "Favors permitting reform over subsidies."
+      },
+      {
+        "issue": "Climate",
+        "stance": "Supports an all-of-the-above energy mix."
+      }
+    ],
+    "promises": [
+      {
+        "id": "wexler-cut-commercial-permit-review-to-15-days",
+        "text": "Cut commercial permit review to 15 days",
+        "status": "Delivered",
+        "progress": 100,
+        "date": "Aug 2024",
+        "sources": [
+          "County records",
+          "Times-Union"
+        ]
+      },
+      {
+        "id": "wexler-cap-the-county-s-own-property-tax-millage",
+        "text": "Cap the county's own property tax millage",
+        "status": "In progress",
+        "progress": 60,
+        "date": "Ongoing",
+        "sources": [
+          "Budget office"
+        ]
+      },
+      {
+        "id": "wexler-bring-a-second-ambulance-station-to-district-2",
+        "text": "Bring a second ambulance station to District 2",
+        "status": "Delivered",
+        "progress": 100,
+        "date": "Mar 2025",
+        "sources": [
+          "County budget",
+          "WJCT"
+        ]
+      },
+      {
+        "id": "wexler-audit-the-county-s-vacant-lot-registry",
+        "text": "Audit the county's vacant-lot registry",
+        "status": "No movement",
+        "progress": 0,
+        "date": "Jan 2025",
+        "sources": [
+          "County clerk"
+        ]
+      }
+    ],
+    "terms": [
+      {
+        "label": "Commissioner 2018–22",
+        "score": 55
+      },
+      {
+        "label": "Commissioner 2022–",
+        "score": 56
+      }
+    ],
+    "timeline": [
+      {
+        "date": "Aug 2024",
+        "label": "Permit review cut to 15 days",
+        "dot": "#253746"
+      },
+      {
+        "date": "Mar 2025",
+        "label": "Second ambulance station opened",
+        "dot": "#253746"
+      },
+      {
+        "date": "Jan 2025",
+        "label": "Vacant-lot audit stalled",
+        "dot": "#9C3F32"
+      }
+    ],
+    "career": [
+      {
+        "year": "2016",
+        "what": "Owned a commercial real estate brokerage",
+        "detail": "—"
+      },
+      {
+        "year": "2018",
+        "what": "Elected county commissioner, District 2",
+        "detail": "—"
+      },
+      {
+        "year": "2026",
+        "what": "Running for U.S. House, FL-04",
+        "detail": "General election Nov 3"
+      }
+    ]
+  },
+  {
+    "id": "olamide",
+    "name": "Bisi Olamide",
+    "office": "State Senator",
+    "district": "District 9",
+    "level": "State",
+    "party": "D",
+    "since": 2016,
+    "trust": 63,
+    "kept": 15,
+    "prog": 6,
+    "broken": 4,
+    "bio": "State senator from a Miami-area district running statewide for U.S. Senate on Medicaid expansion and a higher minimum wage.",
+    "tags": [
+      "Healthcare",
+      "Labor",
+      "Voting rights"
+    ],
+    "policies": [
+      {
+        "issue": "Healthcare",
+        "stance": "Backs full Medicaid expansion."
+      },
+      {
+        "issue": "Labor",
+        "stance": "Supports raising the state minimum wage."
+      },
+      {
+        "issue": "Voting rights",
+        "stance": "Backs automatic voter registration."
+      }
+    ],
+    "promises": [
+      {
+        "id": "olamide-pass-medicaid-expansion-out-of-committee",
+        "text": "Pass Medicaid expansion out of committee",
+        "status": "In progress",
+        "progress": 55,
+        "date": "Ongoing",
+        "sources": [
+          "Senate journal",
+          "Herald"
+        ]
+      },
+      {
+        "id": "olamide-raise-the-state-minimum-wage-to-15-early",
+        "text": "Raise the state minimum wage to $15 early",
+        "status": "Delivered",
+        "progress": 100,
+        "date": "Jun 2024",
+        "sources": [
+          "Senate journal",
+          "AP"
+        ]
+      },
+      {
+        "id": "olamide-restore-felon-voting-rights-registration-funding",
+        "text": "Restore felon voting-rights registration funding",
+        "status": "Delivered",
+        "progress": 100,
+        "date": "Nov 2023",
+        "sources": [
+          "DOE",
+          "Herald"
+        ]
+      },
+      {
+        "id": "olamide-end-cash-bail-for-nonviolent-misdemeanors",
+        "text": "End cash bail for nonviolent misdemeanors",
+        "status": "No movement",
+        "progress": 0,
+        "date": "Feb 2025",
+        "sources": [
+          "Senate journal"
+        ]
+      }
+    ],
+    "terms": [
+      {
+        "label": "State Senate 2016–20",
+        "score": 60
+      },
+      {
+        "label": "State Senate 2020–",
+        "score": 63
+      }
+    ],
+    "timeline": [
+      {
+        "date": "Jun 2024",
+        "label": "Minimum wage bill signed",
+        "dot": "#253746"
+      },
+      {
+        "date": "Nov 2023",
+        "label": "Felon voting-rights funding restored",
+        "dot": "#253746"
+      },
+      {
+        "date": "Feb 2025",
+        "label": "Cash bail bill died in committee",
+        "dot": "#9C3F32"
+      }
+    ],
+    "career": [
+      {
+        "year": "2012",
+        "what": "Miami-Dade County aide",
+        "detail": "—"
+      },
+      {
+        "year": "2016",
+        "what": "Elected state senator, District 9",
+        "detail": "—"
+      },
+      {
+        "year": "2026",
+        "what": "Running for U.S. Senate",
+        "detail": "General election Nov 3"
+      }
+    ]
+  },
+  {
+    "id": "kohl",
+    "name": "Priya Kohl",
+    "office": "City Council Member",
+    "district": "District 5",
+    "level": "Local",
+    "party": "D",
+    "since": 2019,
+    "trust": 61,
+    "kept": 12,
+    "prog": 6,
+    "broken": 3,
+    "bio": "Two-term city council member running for mayor on expanding the affordable-housing trust fund and finishing the light-rail buildout.",
+    "tags": [
+      "Housing",
+      "Transit",
+      "Budget"
+    ],
+    "policies": [
+      {
+        "issue": "Housing",
+        "stance": "Backs tripling the affordable-housing trust fund."
+      },
+      {
+        "issue": "Climate",
+        "stance": "Supports the city's 2030 emissions target."
+      }
+    ],
+    "promises": [
+      {
+        "id": "kohl-triple-the-affordable-housing-trust-fund",
+        "text": "Triple the affordable-housing trust fund",
+        "status": "In progress",
+        "progress": 40,
+        "date": "Ongoing",
+        "sources": [
+          "City council",
+          "Times-Union"
+        ]
+      },
+      {
+        "id": "kohl-finish-light-rail-phase-one",
+        "text": "Finish light-rail phase one on the council's watch",
+        "status": "Delivered",
+        "progress": 100,
+        "date": "Sep 2024",
+        "sources": [
+          "Council minutes",
+          "WJCT"
+        ]
+      },
+      {
+        "id": "kohl-pass-a-tenant-notice-ordinance",
+        "text": "Pass a tenant-notice ordinance for rent increases",
+        "status": "Delivered",
+        "progress": 100,
+        "date": "Apr 2025",
+        "sources": [
+          "Council minutes"
+        ]
+      },
+      {
+        "id": "kohl-cut-the-mayor-s-discretionary-fund",
+        "text": "Cut the mayor's discretionary fund by half",
+        "status": "No movement",
+        "progress": 0,
+        "date": "Dec 2025",
+        "sources": [
+          "Budget office"
+        ]
+      }
+    ],
+    "terms": [
+      {
+        "label": "Council 2019–23",
+        "score": 58
+      },
+      {
+        "label": "Council 2023–",
+        "score": 61
+      }
+    ],
+    "timeline": [
+      {
+        "date": "Sep 2024",
+        "label": "Light-rail phase one opened",
+        "dot": "#253746"
+      },
+      {
+        "date": "Apr 2025",
+        "label": "Tenant-notice ordinance passed",
+        "dot": "#253746"
+      },
+      {
+        "date": "Dec 2025",
+        "label": "Discretionary-fund cut stalled",
+        "dot": "#9C3F32"
+      }
+    ],
+    "career": [
+      {
+        "year": "2015",
+        "what": "Nonprofit housing director",
+        "detail": "—"
+      },
+      {
+        "year": "2019",
+        "what": "Elected city council, District 5",
+        "detail": "—"
+      },
+      {
+        "year": "2026",
+        "what": "Running for mayor",
+        "detail": "General election Nov 3"
+      }
+    ]
+  },
+  {
+    "id": "rausch",
+    "name": "Ed Rausch",
+    "office": "Property Appraiser",
+    "district": "Duval County",
+    "level": "Local",
+    "party": "R",
+    "since": 2020,
+    "trust": 46,
+    "kept": 8,
+    "prog": 3,
+    "broken": 7,
+    "bio": "County property appraiser running for mayor on freezing the millage rate and shrinking city government.",
+    "tags": [
+      "Taxes",
+      "Budget"
+    ],
+    "policies": [
+      {
+        "issue": "Housing",
+        "stance": "Opposes new tenant-protection ordinances."
+      },
+      {
+        "issue": "Climate",
+        "stance": "Opposes the city's 2030 emissions target."
+      }
+    ],
+    "promises": [
+      {
+        "id": "rausch-freeze-the-countywide-millage-rate",
+        "text": "Freeze the countywide millage rate",
+        "status": "Delivered",
+        "progress": 100,
+        "date": "Jan 2024",
+        "sources": [
+          "Appraiser's office",
+          "Times-Union"
+        ]
+      },
+      {
+        "id": "rausch-publish-appraisal-appeals-data-online",
+        "text": "Publish appraisal appeals data online",
+        "status": "In progress",
+        "progress": 30,
+        "date": "Ongoing",
+        "sources": [
+          "Appraiser's office"
+        ]
+      },
+      {
+        "id": "rausch-cut-the-appraiser-s-office-budget-10",
+        "text": "Cut the appraiser's office budget 10%",
+        "status": "No movement",
+        "progress": 0,
+        "date": "Aug 2025",
+        "sources": [
+          "Budget office"
+        ]
+      },
+      {
+        "id": "rausch-end-the-homestead-exemption-backlog",
+        "text": "End the homestead-exemption backlog",
+        "status": "No movement",
+        "progress": 0,
+        "date": "Mar 2025",
+        "sources": [
+          "Appraiser's office",
+          "WJCT"
+        ]
+      }
+    ],
+    "terms": [
+      {
+        "label": "Appraiser 2020–",
+        "score": 46
+      }
+    ],
+    "timeline": [
+      {
+        "date": "Jan 2024",
+        "label": "Millage rate frozen",
+        "dot": "#253746"
+      },
+      {
+        "date": "Aug 2025",
+        "label": "Budget cut proposal rejected",
+        "dot": "#9C3F32"
+      },
+      {
+        "date": "Mar 2025",
+        "label": "Exemption backlog still open",
+        "dot": "#9C3F32"
+      }
+    ],
+    "career": [
+      {
+        "year": "2010",
+        "what": "Commercial appraiser in private practice",
+        "detail": "—"
+      },
+      {
+        "year": "2020",
+        "what": "Elected property appraiser",
+        "detail": "—"
+      },
+      {
+        "year": "2026",
+        "what": "Running for mayor",
+        "detail": "General election Nov 3"
+      }
+    ]
+  },
+  {
+    "id": "trask",
+    "name": "Bill Trask",
+    "office": "Municipal Court Judge",
+    "district": "City of Jacksonville",
+    "level": "Local",
+    "party": "R",
+    "since": 2017,
+    "trust": 53,
+    "kept": 9,
+    "prog": 3,
+    "broken": 5,
+    "bio": "Sitting municipal court judge running for county judge on clearing the misdemeanor backlog and expanding diversion court hours.",
+    "tags": [
+      "Criminal justice",
+      "Courts"
+    ],
+    "policies": [
+      {
+        "issue": "Voting rights",
+        "stance": "No published position."
+      },
+      {
+        "issue": "Labor",
+        "stance": "No published position."
+      }
+    ],
+    "promises": [
+      {
+        "id": "trask-clear-the-municipal-misdemeanor-backlog",
+        "text": "Clear the municipal misdemeanor backlog",
+        "status": "Delivered",
+        "progress": 100,
+        "date": "Oct 2024",
+        "sources": [
+          "Court clerk",
+          "Times-Union"
+        ]
+      },
+      {
+        "id": "trask-expand-diversion-court-to-two-more-nights",
+        "text": "Expand diversion court to two more nights",
+        "status": "In progress",
+        "progress": 50,
+        "date": "Ongoing",
+        "sources": [
+          "Court administration"
+        ]
+      },
+      {
+        "id": "trask-publish-sentencing-data-by-docket",
+        "text": "Publish sentencing data by docket",
+        "status": "No movement",
+        "progress": 0,
+        "date": "May 2025",
+        "sources": [
+          "Court clerk"
+        ]
+      }
+    ],
+    "terms": [
+      {
+        "label": "Municipal judge 2017–",
+        "score": 53
+      }
+    ],
+    "timeline": [
+      {
+        "date": "Oct 2024",
+        "label": "Misdemeanor backlog cleared",
+        "dot": "#253746"
+      },
+      {
+        "date": "May 2025",
+        "label": "Sentencing-data request denied",
+        "dot": "#9C3F32"
+      }
+    ],
+    "career": [
+      {
+        "year": "2008",
+        "what": "Assistant state attorney",
+        "detail": "—"
+      },
+      {
+        "year": "2017",
+        "what": "Elected municipal court judge",
+        "detail": "—"
+      },
+      {
+        "year": "2026",
+        "what": "Running for county judge",
+        "detail": "General election Nov 3"
+      }
+    ]
+  },
+  {
+    "id": "mora",
+    "name": "Sal Mora",
+    "office": "College Board Trustee",
+    "district": "Florida State College at Jacksonville",
+    "level": "Local",
+    "party": "I",
+    "since": 2021,
+    "trust": 67,
+    "kept": 9,
+    "prog": 2,
+    "broken": 3,
+    "bio": "State college trustee and former teacher running for school board on smaller class sizes and restoring the arts budget.",
+    "tags": [
+      "Education",
+      "Budget"
+    ],
+    "policies": [
+      {
+        "issue": "Education",
+        "stance": "Backs restoring the arts and music budget."
+      },
+      {
+        "issue": "Labor",
+        "stance": "Supports the paraprofessional wage floor."
+      }
+    ],
+    "promises": [
+      {
+        "id": "mora-restore-the-arts-and-music-budget-line",
+        "text": "Restore the arts and music budget line",
+        "status": "Delivered",
+        "progress": 100,
+        "date": "Feb 2025",
+        "sources": [
+          "College board minutes",
+          "WJCT"
+        ]
+      },
+      {
+        "id": "mora-cap-community-college-class-sizes-at-28",
+        "text": "Cap community-college class sizes at 28",
+        "status": "In progress",
+        "progress": 45,
+        "date": "Ongoing",
+        "sources": [
+          "College board minutes"
+        ]
+      },
+      {
+        "id": "mora-publish-trustee-travel-expenses-quarterly",
+        "text": "Publish trustee travel expenses quarterly",
+        "status": "Delivered",
+        "progress": 100,
+        "date": "Nov 2024",
+        "sources": [
+          "College board minutes"
+        ]
+      },
+      {
+        "id": "mora-end-the-adjunct-pay-freeze",
+        "text": "End the adjunct-pay freeze",
+        "status": "No movement",
+        "progress": 0,
+        "date": "Jul 2025",
+        "sources": [
+          "College board minutes",
+          "Times-Union"
+        ]
+      }
+    ],
+    "terms": [
+      {
+        "label": "College trustee 2021–",
+        "score": 67
+      }
+    ],
+    "timeline": [
+      {
+        "date": "Feb 2025",
+        "label": "Arts budget restored",
+        "dot": "#253746"
+      },
+      {
+        "date": "Nov 2024",
+        "label": "Travel expenses published",
+        "dot": "#253746"
+      },
+      {
+        "date": "Jul 2025",
+        "label": "Adjunct-pay freeze unresolved",
+        "dot": "#9C3F32"
+      }
+    ],
+    "career": [
+      {
+        "year": "2010",
+        "what": "Public school teacher",
+        "detail": "—"
+      },
+      {
+        "year": "2021",
+        "what": "Appointed college board trustee",
+        "detail": "—"
+      },
+      {
+        "year": "2026",
+        "what": "Running for school board, District 4",
+        "detail": "General election Nov 3"
+      }
+    ]
   }
 ];
 
@@ -1441,6 +2121,84 @@ export const FACT_CHECKS: FactCheck[] = [
       "Sheriff",
       "County data",
       "Times-Union"
+    ]
+  },
+  {
+    "id": "fc-010",
+    "verdict": "Misleading",
+    "politicianId": "wexler",
+    "topic": "Permitting",
+    "date": "Aug 5",
+    "claim": "I cut commercial permit review to 15 days without adding a single new hire.",
+    "finding": "The county added three contract reviewers under a temporary staffing line to hit the target, per the same budget records the commissioner cites.",
+    "sources": [
+      "County budget",
+      "Times-Union"
+    ]
+  },
+  {
+    "id": "fc-011",
+    "verdict": "Misleading",
+    "politicianId": "olamide",
+    "topic": "Labor",
+    "date": "Jul 28",
+    "claim": "I got the $15 minimum wage passed two years ahead of schedule, on my own.",
+    "finding": "The accelerated schedule was set by a 2020 ballot initiative before she took office; her bill implemented an already-approved step, not a new acceleration.",
+    "sources": [
+      "Senate journal",
+      "Herald"
+    ]
+  },
+  {
+    "id": "fc-012",
+    "verdict": "Misleading",
+    "politicianId": "kohl",
+    "topic": "Transit",
+    "date": "Jul 22",
+    "claim": "Light-rail phase one opened on time and under budget.",
+    "finding": "It opened on its published date but finished 8% over its revised budget, per the same council minutes she cites for the timeline.",
+    "sources": [
+      "Council minutes",
+      "WJCT"
+    ]
+  },
+  {
+    "id": "fc-013",
+    "verdict": "False",
+    "politicianId": "rausch",
+    "topic": "Taxes",
+    "date": "Jul 15",
+    "claim": "I've never voted to raise a tax rate in this county.",
+    "finding": "As a school-board-appointed liaison in 2022 he voted to approve a countywide school-district millage increase, per board minutes from that year.",
+    "sources": [
+      "School board minutes",
+      "Times-Union"
+    ]
+  },
+  {
+    "id": "fc-014",
+    "verdict": "False",
+    "politicianId": "trask",
+    "topic": "Criminal justice",
+    "date": "Jul 10",
+    "claim": "I cleared the entire municipal misdemeanor backlog in my first year on the bench.",
+    "finding": "Court clerk records show the backlog was cleared over two years, finishing in October 2024 — his eighth year on the bench, not his first.",
+    "sources": [
+      "Court clerk",
+      "Times-Union"
+    ]
+  },
+  {
+    "id": "fc-015",
+    "verdict": "Misleading",
+    "politicianId": "mora",
+    "topic": "Education",
+    "date": "Jul 3",
+    "claim": "I restored full funding to the arts and music program.",
+    "finding": "College board minutes show funding restored to about 70% of its pre-cut level, not the full amount.",
+    "sources": [
+      "College board minutes",
+      "WJCT"
     ]
   }
 ];
@@ -1665,6 +2423,30 @@ export const STANCES: Record<string, Record<string, StanceCell>> = {
     "hollis": [
       "Opposed",
       "Scores expansion as unaffordable"
+    ],
+    "wexler": [
+      "Opposed",
+      "Opposes a public option"
+    ],
+    "olamide": [
+      "Aligned",
+      "Backs full Medicaid expansion"
+    ],
+    "kohl": [
+      "Partial",
+      "Funds a city clinic pilot"
+    ],
+    "rausch": [
+      "Opposed",
+      "Opposes the city clinic pilot"
+    ],
+    "trask": [
+      "No record",
+      "No published position"
+    ],
+    "mora": [
+      "No record",
+      "No published position"
     ]
   },
   "Housing": {
@@ -1699,6 +2481,30 @@ export const STANCES: Record<string, Record<string, StanceCell>> = {
     "hollis": [
       "No record",
       "No published position"
+    ],
+    "wexler": [
+      "Partial",
+      "Permitting reform, no subsidies"
+    ],
+    "olamide": [
+      "Aligned",
+      "Statewide renters' bill of rights"
+    ],
+    "kohl": [
+      "Aligned",
+      "Triples the housing trust fund"
+    ],
+    "rausch": [
+      "Opposed",
+      "Opposes new tenant protections"
+    ],
+    "trask": [
+      "No record",
+      "No published position"
+    ],
+    "mora": [
+      "Opposed",
+      "Sell district land, not build housing"
     ]
   },
   "Climate": {
@@ -1733,6 +2539,30 @@ export const STANCES: Record<string, Record<string, StanceCell>> = {
     "hollis": [
       "Opposed",
       "Opposes divestment screens"
+    ],
+    "wexler": [
+      "Opposed",
+      "Wants an all-of-the-above mix"
+    ],
+    "olamide": [
+      "Partial",
+      "Batteries first, no phase-out stance"
+    ],
+    "kohl": [
+      "Aligned",
+      "Backs the city's 2030 target"
+    ],
+    "rausch": [
+      "Opposed",
+      "Opposes the city's 2030 target"
+    ],
+    "trask": [
+      "No record",
+      "No published position"
+    ],
+    "mora": [
+      "Partial",
+      "Backs solar on new campuses"
     ]
   },
   "Voting rights": {
@@ -1765,6 +2595,30 @@ export const STANCES: Record<string, Record<string, StanceCell>> = {
       "Sponsored stricter ID"
     ],
     "hollis": [
+      "No record",
+      "No published position"
+    ],
+    "wexler": [
+      "Opposed",
+      "Backs voter ID expansion"
+    ],
+    "olamide": [
+      "Aligned",
+      "Restored felon voting-rights funding"
+    ],
+    "kohl": [
+      "Aligned",
+      "Backs weekend early voting"
+    ],
+    "rausch": [
+      "No record",
+      "No published position"
+    ],
+    "trask": [
+      "Partial",
+      "Backs ID rules, opposes purges"
+    ],
+    "mora": [
       "No record",
       "No published position"
     ]
@@ -1801,6 +2655,30 @@ export const STANCES: Record<string, Record<string, StanceCell>> = {
     "hollis": [
       "Opposed",
       "Opposes prevailing wage"
+    ],
+    "wexler": [
+      "Opposed",
+      "Opposes sectoral bargaining rules"
+    ],
+    "olamide": [
+      "Aligned",
+      "Raised the state minimum wage"
+    ],
+    "kohl": [
+      "Aligned",
+      "Local-hire on city contracts"
+    ],
+    "rausch": [
+      "Opposed",
+      "Opposes a city wage floor"
+    ],
+    "trask": [
+      "No record",
+      "No published position"
+    ],
+    "mora": [
+      "Aligned",
+      "Backs the aide wage floor"
     ]
   },
   "Education": {
@@ -1835,6 +2713,30 @@ export const STANCES: Record<string, Record<string, StanceCell>> = {
     "hollis": [
       "Opposed",
       "Scores formula as unsustainable"
+    ],
+    "wexler": [
+      "Aligned",
+      "Backs school-choice vouchers"
+    ],
+    "olamide": [
+      "No record",
+      "No published position"
+    ],
+    "kohl": [
+      "Aligned",
+      "Backed more charter seats"
+    ],
+    "rausch": [
+      "No record",
+      "No published position"
+    ],
+    "trask": [
+      "No record",
+      "No published position"
+    ],
+    "mora": [
+      "Aligned",
+      "Restored the arts and music budget"
     ]
   }
 };
@@ -1952,12 +2854,12 @@ export const RACES: Race[] = [
 /**
  * Sourced per-candidate, per-issue positions for HUSH Guide's election
  * comparison page — keyed by politicianId, then by issue name (matching
- * `TOPIC_POOL`). Every RACES candidate is represented as a key even when
- * empty, so a candidate with no researched positions yet (e.g. `rausch`,
- * `trask`) is an explicit empty object rather than a missing key that could
- * be mistaken for "not looked up yet" — GuideView treats both the same way
- * (falls through to "No official position found"), but the empty object
- * documents that the gap is real, not an oversight. The same convention
+ * `TOPIC_POOL`). Every RACES candidate is represented as a key, and a
+ * candidate with a thin public record (e.g. `trask`, a sitting judge who
+ * mostly stays off legislation) gets a correspondingly thin object rather
+ * than an invented full slate — GuideView falls through to "No official
+ * position found" for whatever issue keys are missing, and that empty
+ * space documents a real gap, not an oversight. The same convention
  * applies at the single-issue level: `ainsley` has no "Healthcare" key and
  * `pike` has no "Housing" key, each with an inline comment marking the
  * omission as deliberate rather than an unresearched gap.
@@ -2028,6 +2930,21 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       sourceUrl: "https://wexlerforcongress.example/platform/energy",
       date: "May 2026",
     },
+    "Housing": {
+      excerpt:
+        "Cut the permitting timeline and builders show up on their own — I did it at the county level and I'd push the same thing federally.",
+      sourceTitle: "Where Grant Stands — Housing",
+      sourceType: "Campaign site",
+      sourceUrl: "https://wexlerforcongress.example/platform/housing",
+      date: "Jun 2026",
+    },
+    "Voting rights": {
+      excerpt: "Every voter should show ID. That's not suppression, that's basic security.",
+      sourceTitle: "Where Grant Stands — Election Integrity",
+      sourceType: "Campaign site",
+      sourceUrl: "https://wexlerforcongress.example/platform/election-integrity",
+      date: "Jun 2026",
+    },
   },
   ainsley: {
     // No official position found on Healthcare — the city funds clinics but
@@ -2095,10 +3012,45 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       sourceUrl: "https://kohlforjacksonville.example/files/platform.pdf",
       date: "May 2026",
     },
+    "Healthcare": {
+      excerpt: "The clinic pilot proved the need. I'd fund a second one before I fund another parking garage downtown.",
+      sourceTitle: "Priya Kohl for Jacksonville — Healthcare",
+      sourceType: "Campaign site",
+      sourceUrl: "https://kohlforjacksonville.example/healthcare",
+      date: "Jul 2026",
+    },
+    "Voting rights": {
+      excerpt: "Weekend early voting at every library branch — no one should have to choose between a paycheck and a ballot.",
+      sourceTitle: "Kohl campaign platform",
+      sourceType: "Official platform document",
+      sourceUrl: "https://kohlforjacksonville.example/files/platform.pdf",
+      date: "Jun 2026",
+    },
   },
-  // No researched positions yet — every issue on the comparison page falls
-  // back to "No official position found" for this candidate, honestly.
-  rausch: {},
+  rausch: {
+    "Housing": {
+      excerpt:
+        "Another tenant-protection ordinance just tells landlords to leave. Fix the permitting backlog and supply follows.",
+      sourceTitle: "Ed Rausch for Mayor — Housing",
+      sourceType: "Campaign site",
+      sourceUrl: "https://rauschformayor.example/housing",
+      date: "Jun 2026",
+    },
+    "Climate": {
+      excerpt: "The 2030 target was set without a cost estimate. I won't sign the city up for a number nobody can pay for.",
+      sourceTitle: "Ed Rausch for Mayor — Budget & Climate",
+      sourceType: "Campaign site",
+      sourceUrl: "https://rauschformayor.example/budget",
+      date: "Jun 2026",
+    },
+    "Labor": {
+      excerpt: "A city wage floor sounds generous until it shows up in every contractor's bid. Taxpayers eat that difference.",
+      sourceTitle: "Ed Rausch for Mayor — Budget & Climate",
+      sourceType: "Campaign site",
+      sourceUrl: "https://rauschformayor.example/budget",
+      date: "Jul 2026",
+    },
+  },
   vance: {
     "Healthcare": {
       excerpt:
@@ -2203,8 +3155,19 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       date: "Sep 2025",
     },
   },
-  // No researched positions yet — same as `rausch` above.
-  trask: {},
+  // Judicial candidates run on their record, not a platform -- Trask has
+  // stayed off policy statements on every issue except one, where a
+  // courthouse-access comment gives an actual sourced quote to link to.
+  trask: {
+    "Voting rights": {
+      excerpt:
+        "I don't take positions on legislation from the bench, but I will say every polling place ought to check ID the same way courthouse security does.",
+      sourceTitle: "Trask for County Judge — Q&A",
+      sourceType: "Campaign site",
+      sourceUrl: "https://traskforjudge.example/qa",
+      date: "Jun 2026",
+    },
+  },
   bellweather: {
     "Healthcare": {
       excerpt:
@@ -2255,6 +3218,14 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       sourceUrl: "https://moraford4.example/housing",
       date: "Jun 2026",
     },
+    "Labor": {
+      excerpt:
+        "Aides do the same job as teachers half the day for a fraction of the pay — that wage floor was overdue.",
+      sourceTitle: "Sal Mora for District 4 — Labor",
+      sourceType: "Campaign site",
+      sourceUrl: "https://moraford4.example/labor",
+      date: "May 2026",
+    },
     "Education": {
       excerpt:
         "I'd pause the clinic expansion and put that money into classroom aide pay instead — teachers are leaving over it.",
@@ -2292,6 +3263,13 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
     },
   },
   olamide: {
+    "Healthcare": {
+      excerpt: "Medicaid expansion has been sitting in committee for a decade — I'm done waiting on it to move on its own.",
+      sourceTitle: "Olamide for Senate — Healthcare",
+      sourceType: "Campaign site",
+      sourceUrl: "https://olamideforsenate.example/healthcare",
+      date: "Apr 2026",
+    },
     "Housing": {
       excerpt: "We need a statewide renters' bill of rights — Floridians shouldn't lose their home over one missed paycheck.",
       sourceTitle: "Olamide for Senate — Housing",
@@ -2306,6 +3284,13 @@ export const GUIDE_POSITIONS: Record<string, Record<string, IssuePosition>> = {
       sourceType: "Campaign site",
       sourceUrl: "https://olamideforsenate.example/climate",
       date: "Feb 2026",
+    },
+    "Voting rights": {
+      excerpt: "Restoring that registration funding was step one — the state should never have let it lapse in the first place.",
+      sourceTitle: "Olamide for Senate — Voting Rights",
+      sourceType: "Campaign site",
+      sourceUrl: "https://olamideforsenate.example/voting-rights",
+      date: "Jan 2026",
     },
   },
 };
@@ -2606,9 +3591,41 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       date: "Jul 2026",
     },
   },
-  // No researched positions yet — every statement falls back to "No
-  // record" for this candidate, honestly, same as `GUIDE_POSITIONS`.
-  rausch: {},
+  rausch: {
+    "Healthcare": {
+      stance: "Disagree",
+      excerpt:
+        "Price controls are how you get shortages. I opposed the city clinic pilot for the same reason — government-run care always ends up rationing something.",
+      sourceTitle: "Rausch for Mayor — Healthcare",
+      sourceType: "Campaign site",
+      sourceUrl: "https://rauschformayor.example/healthcare",
+      date: "May 2026",
+    },
+    "Housing": {
+      stance: "Disagree",
+      excerpt: "Zoning is a local property-rights decision, not something a mandate from the top should override.",
+      sourceTitle: "Rausch for Mayor — Housing",
+      sourceType: "Campaign site",
+      sourceUrl: "https://rauschformayor.example/housing",
+      date: "Apr 2026",
+    },
+    "Climate": {
+      stance: "Disagree",
+      excerpt: "You don't hit a target by banning a product. I opposed the city's 2030 mandate and I'd oppose a statewide one too.",
+      sourceTitle: "Rausch for Mayor — Climate",
+      sourceType: "Campaign site",
+      sourceUrl: "https://rauschformayor.example/climate",
+      date: "Jun 2026",
+    },
+    "Labor": {
+      stance: "Disagree",
+      excerpt: "Every wage floor the city sets prices somebody out of their first job. I opposed ours and I'd oppose a federal one.",
+      sourceTitle: "Rausch for Mayor — Labor",
+      sourceType: "Campaign site",
+      sourceUrl: "https://rauschformayor.example/labor",
+      date: "Mar 2026",
+    },
+  },
   vance: {
     "Healthcare": {
       stance: "Agree",
@@ -2831,8 +3848,20 @@ export const STANCE_POSITIONS: Record<string, Record<string, StanceCheckPosition
       date: "Aug 2026",
     },
   },
-  // No researched positions yet — same as `rausch` above.
-  trask: {},
+  // Same one sourced comment as `GUIDE_POSITIONS.trask` -- a sitting judge
+  // who stays off legislation generally has exactly one on-record answer,
+  // not a full slate of them.
+  trask: {
+    "Voting rights": {
+      stance: "Agree",
+      excerpt:
+        "I don't take positions on legislation from the bench, but I will say every polling place ought to check ID the same way courthouse security does.",
+      sourceTitle: "Trask for County Judge — Q&A",
+      sourceType: "Campaign site",
+      sourceUrl: "https://traskforjudge.example/qa",
+      date: "Jun 2026",
+    },
+  },
   bellweather: {
     "Healthcare": {
       stance: "Agree",
