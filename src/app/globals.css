@@ -179,12 +179,20 @@ input::placeholder {
 /*
    Search collapses to an icon before anything else in the top bar's right
    group gives up space -- see AppShell's SEARCH_COLLAPSE_WIDTH constant for
-   the reasoning behind this exact number. `.topbar-search-toggle` is only
-   ever rendered by React while collapsed-and-closed, so it needs no rule
-   here; `.topbar-search-field` is the piece CSS has to hide by default in
-   this band and reveal again once AppShell adds `.is-open` to it.
+   the reasoning behind this exact number (keep the two in sync). React
+   mounts `.topbar-search-toggle` whenever the field isn't open, on every
+   width -- it relies entirely on this base rule to stay invisible above
+   the threshold, so the full field and the icon are never both on screen
+   at once. `.topbar-search-field` is the piece that's hidden by default
+   below the threshold and revealed again once AppShell adds `.is-open`.
 */
-@media (max-width: 1280px) {
+.topbar-search-toggle {
+  display: none;
+}
+@media (max-width: 1720px) {
+  .topbar-search-toggle {
+    display: flex;
+  }
   .topbar-search-field {
     display: none;
   }
