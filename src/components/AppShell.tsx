@@ -4,12 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useRef, useState, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
-import { usePrefs } from "@/lib/prefs";
-import { useMounted } from "@/lib/hooks";
-import { ELECTION_ISO } from "@/lib/seed-data";
 import { createClient } from "@/lib/supabase/client";
 import { jumpToSection, useRailFooter, useScrollSpy, useSectionNavItems, type SectionNavItem } from "@/lib/sectionNav";
-import { RustButton, SearchField } from "./ui";
+import { SearchField } from "./ui";
 import PersonalizeBanner from "./PersonalizeBanner";
 import { HushScoreInfoProvider } from "./HushScoreInfo";
 
@@ -33,11 +30,6 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-function daysToElection() {
-  const ms = new Date(ELECTION_ISO).getTime() - Date.now();
-  return Math.max(0, Math.floor(ms / 86400000));
-}
-
 /**
  * Routes that get the contextual left rail. `useRegisterSectionNav` (see
  * lib/sectionNav.tsx) is called by three views -- GuideView's tile grid,
@@ -58,36 +50,23 @@ function showsRail(pathname: string) {
 // truth so the rail's width is a one-line revert.
 const RAIL_WIDTH = 200;
 
-// Above this width the top bar's right-hand group (location, search,
-// election day, avatar) has room for a full search field alongside
-// everything else. Below it, search collapses to an icon that expands on
-// click rather than any element being dropped -- see the brief.
-//
-// Measured against the live preview, not reasoned: the center nav column
-// and the right group both sit in a "1fr auto 1fr" grid, so the right
-// group's available track is (viewport - padding - gaps - navWidth) / 2.
-// With the full search field the right group needs ~623px; that track
-// only clears 623px once the viewport is ~1663px wide (navWidth measured
-// at ~321px). Below that, the full-search layout visibly overlaps the
-// center nav. 1720 keeps a ~28px safety margin above the measured
-// breakeven for font-metric variance across browsers/OSes. Keep this in
-// sync with the `max-width` in globals.css's matching media query.
-const SEARCH_COLLAPSE_WIDTH = 1720;
+// The top bar's responsive collapse order (app-layout-v2 amendment) is pure
+// CSS, keyed off the class names below -- same architecture as the rail's
+// own 1100px cutoff. Widest to narrowest: the tagline (`.topbar-tagline` +
+// its divider) drops first, since it's the lowest-priority element; then
+// the search field collapses to an icon that expands on click
+// (`.topbar-search-toggle`/`.topbar-search-field`, reusing the shell's own
+// 1100px design floor); then the nav collapses to a menu
+// (`.topbar-nav`/`.topbar-nav-toggle`). The wordmark and avatar are never
+// hidden. See globals.css for the exact breakpoints.
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { zip, city, state, setZip, setCity, setState } = usePrefs();
   const [q, setQ] = useState("");
-  const [locationOpen, setLocationOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [cityDraft, setCityDraft] = useState(city);
-  const [stateDraft, setStateDraft] = useState(state);
-  const [zipDraft, setZipDraft] = useState(zip);
-  // Rendered client-side only so the server and client markup agree.
-  const mounted = useMounted();
-  const days = mounted ? daysToElection() : null;
+  const [navMenuOpen, setNavMenuOpen] = useState(false);
 
   // Section-nav zone: registered by whichever view is mounted below (see
   // lib/sectionNav.tsx). `mainRef` is the scroll-spy's observer root -- the
@@ -101,20 +80,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
   // onboarding steps render before the tile grid does -- same as the old
   // sidebar's section-nav zone did.
   const showRail = showsRail(pathname) && sectionItems.length > 0;
-
-  function openLocationForm() {
-    setCityDraft(city);
-    setStateDraft(state);
-    setZipDraft(zip);
-    setLocationOpen(true);
-  }
-
-  function submitLocation() {
-    if (cityDraft.trim()) setCity(cityDraft.trim());
-    if (stateDraft.trim()) setState(stateDraft.trim());
-    if (zipDraft.length === 5) setZip(zipDraft);
-    setLocationOpen(false);
-  }
 
   function submitSearch(v: string) {
     setQ(v);
@@ -146,23 +111,23 @@ export default function AppShell({ children }: { children: ReactNode }) {
       }}
     >
       {/*
-        The top bar. A three-column grid (not flex) so the center nav group
-        is genuinely centered regardless of how wide the left (logo) and
-        right (location/search/election day/avatar) groups end up -- flex's
-        `justify-content: space-between` can't do that once the two flanks
-        are different widths. Outside `.scroll` below, so it never scrolls
-        away -- same structural trick the old header/sidebar used, just
-        without needing `position: sticky` to say so.
+        The top bar -- app-layout-v2 amendment. A straight left-to-right flex
+        row now rather than a three-column grid: wordmark, nav, a search
+        field that fills whatever space is left, the avatar, and a tagline
+        pinned at the far end. No more centered nav column -- there's nothing
+        else on the left to center against once the location chip and
+        election-day indicator are gone (their content lives elsewhere now,
+        see the two doc comments below). Outside `.scroll` below, so it never
+        scrolls away.
       */}
       <header
         className="app-topbar"
         style={{
           flex: "0 0 66px",
           height: 66,
-          display: "grid",
-          gridTemplateColumns: "1fr auto 1fr",
+          display: "flex",
           alignItems: "center",
-          columnGap: 20,
+          gap: 20,
           borderBottom: `1px solid ${C.line}`,
           padding: "0 28px",
           background: C.cream,
@@ -171,18 +136,21 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <Link
           href="/feed"
           className="topbar-logo"
-          style={{ display: "flex", alignItems: "baseline", justifySelf: "start", color: C.ink }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 3, flex: "0 0 auto", color: C.ink }}
         >
-          <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 22, letterSpacing: "0.2em" }}>
-            HUSH
+          <span style={{ display: "flex", alignItems: "baseline" }}>
+            <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 22, letterSpacing: "0.2em" }}>
+              HUSH
+            </span>
+            <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 22, color: C.rust }}>.</span>
           </span>
-          <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 22, color: C.rust }}>.</span>
+          <span aria-hidden style={{ width: 22, height: 2, background: C.rust }} />
         </Link>
 
         <nav
           className="topbar-nav"
           aria-label="Primary"
-          style={{ display: "flex", gap: 4, justifySelf: "center" }}
+          style={{ display: "flex", alignItems: "flex-start", gap: 20, flex: "0 0 auto" }}
         >
           {NAV.map((item) => {
             const on = isActive(pathname, item.href);
@@ -194,293 +162,257 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 aria-current={on ? "page" : undefined}
                 style={{
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
-                  gap: 8,
-                  padding: "9px 14px",
-                  borderRadius: 8,
+                  gap: 4,
                   fontSize: 14,
                   whiteSpace: "nowrap",
-                  background: on ? C.ink : "transparent",
-                  color: on ? C.sand : C.body,
+                  color: on ? C.ink : C.body,
                   fontWeight: on ? 600 : 500,
                 }}
               >
-                <span
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    background: on ? C.rust : "rgba(21,21,21,0.22)",
-                  }}
-                />
-                {item.label}
+                <span style={{ paddingBottom: 4, borderBottom: `2px solid ${on ? C.rust : "transparent"}` }}>
+                  {item.label}
+                </span>
+                <span style={{ width: 4, height: 4, borderRadius: "50%", background: on ? C.rust : "transparent" }} />
               </Link>
             );
           })}
         </nav>
 
-        <div
-          className="header-right"
-          style={{ display: "flex", alignItems: "center", gap: 12, justifySelf: "end", minWidth: 0 }}
-        >
-          <div className="header-pill" style={{ position: "relative", flex: "0 0 auto" }}>
-            <button
-              type="button"
-              onClick={() => (locationOpen ? setLocationOpen(false) : openLocationForm())}
-              aria-haspopup="true"
-              aria-expanded={locationOpen}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 7,
-                padding: "7px 12px",
-                border: "1px solid rgba(21,21,21,0.16)",
-                borderRadius: 7,
-                background: locationOpen ? C.hover : "transparent",
-                fontSize: 13,
-                whiteSpace: "nowrap",
-                cursor: "pointer",
-                color: C.ink,
-              }}
-            >
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: C.navy }} />
-              {city} · {state} · {zip}
-            </button>
-
-            {locationOpen ? (
-              <>
-                <div
-                  style={{ position: "fixed", inset: 0, zIndex: 9 }}
-                  onClick={() => setLocationOpen(false)}
-                />
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    submitLocation();
-                  }}
-                  style={{
-                    position: "absolute",
-                    top: "calc(100% + 6px)",
-                    right: 0,
-                    zIndex: 10,
-                    width: 240,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 10,
-                    padding: 14,
-                    border: `1px solid ${C.line}`,
-                    borderRadius: 10,
-                    background: C.white,
-                    boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
-                  }}
-                >
-                  <label style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 12, color: C.muted }}>
-                    City
-                    <input
-                      value={cityDraft}
-                      onChange={(e) => setCityDraft(e.target.value)}
-                      aria-label="City"
-                      style={{
-                        padding: "8px 10px",
-                        border: "1px solid rgba(21,21,21,0.2)",
-                        borderRadius: 6,
-                        fontSize: 14,
-                        color: C.ink,
-                        outline: "none",
-                      }}
-                    />
-                  </label>
-                  <label style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 12, color: C.muted }}>
-                    State
-                    <input
-                      value={stateDraft}
-                      onChange={(e) => setStateDraft(e.target.value.toUpperCase().slice(0, 2))}
-                      maxLength={2}
-                      aria-label="State"
-                      style={{
-                        padding: "8px 10px",
-                        border: "1px solid rgba(21,21,21,0.2)",
-                        borderRadius: 6,
-                        fontSize: 14,
-                        color: C.ink,
-                        outline: "none",
-                        textTransform: "uppercase",
-                      }}
-                    />
-                  </label>
-                  <label style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 12, color: C.muted }}>
-                    ZIP
-                    <input
-                      value={zipDraft}
-                      onChange={(e) => setZipDraft(e.target.value.replace(/[^0-9]/g, "").slice(0, 5))}
-                      maxLength={5}
-                      inputMode="numeric"
-                      aria-label="ZIP code"
-                      style={{
-                        padding: "8px 10px",
-                        border: "1px solid rgba(21,21,21,0.2)",
-                        borderRadius: 6,
-                        fontSize: 14,
-                        color: C.ink,
-                        outline: "none",
-                      }}
-                    />
-                  </label>
-                  <RustButton type="submit" style={{ padding: "8px 14px", fontSize: 12 }}>
-                    Save
-                  </RustButton>
-                </form>
-              </>
-            ) : null}
-          </div>
-
-          {/*
-            Search collapses to an icon below SEARCH_COLLAPSE_WIDTH (see
-            that constant) rather than anything being dropped. The toggle
-            button is only ever rendered while collapsed-and-closed, so
-            there's no inline-vs-stylesheet specificity fight over
-            `display` -- CSS alone hides `.topbar-search-field` by default
-            in that width band and `.is-open` (added once `searchOpen` is
-            true) overrides it; above the band neither rule applies and the
-            field just shows, same as before this brief.
-          */}
-          {!searchOpen ? (
-            <button
-              type="button"
-              className="topbar-search-toggle"
-              onClick={() => setSearchOpen(true)}
-              aria-label="Open search"
-              style={{
-                border: "1px solid rgba(21,21,21,0.16)",
-                borderRadius: 7,
-                background: "transparent",
-                width: 34,
-                height: 34,
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 14,
-                color: C.faint,
-                cursor: "pointer",
-                flex: "0 0 auto",
-              }}
-            >
-              <span aria-hidden>⌕</span>
-            </button>
-          ) : null}
-          <div className={`topbar-search-field${searchOpen ? " is-open" : ""}`} style={{ minWidth: 0 }}>
-            <SearchField
-              value={q}
-              onChange={submitSearch}
-              placeholder="Search politicians, promises, or issues"
-              className="header-search"
-              style={{ width: 260 }}
-            />
-          </div>
-
-          <span
-            className="header-days"
+        {/*
+          Below the nav-collapse breakpoint, `.topbar-nav` (above) hides and
+          this menu button takes its place -- same toggle-visibility
+          mechanism as the search field below: both pieces always mount,
+          globals.css decides which one is visible at a given width.
+        */}
+        <div className="topbar-nav-menu" style={{ position: "relative", flex: "0 0 auto" }}>
+          <button
+            type="button"
+            className="topbar-nav-toggle"
+            onClick={() => setNavMenuOpen((o) => !o)}
+            aria-haspopup="true"
+            aria-expanded={navMenuOpen}
+            aria-label="Open navigation menu"
             style={{
-              fontFamily: cond,
-              fontSize: 12,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              color: C.muted,
-              whiteSpace: "nowrap",
+              border: "1px solid rgba(21,21,21,0.16)",
+              borderRadius: 7,
+              background: "transparent",
+              width: 34,
+              height: 34,
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 16,
+              color: C.body,
+              cursor: "pointer",
             }}
           >
-            Nov 3 {days === null ? "" : `· ${days} days`}
-          </span>
+            <span aria-hidden>≡</span>
+          </button>
 
-          <div style={{ position: "relative" }}>
-            <button
-              type="button"
-              onClick={() => setAvatarOpen((o) => !o)}
-              aria-haspopup="true"
-              aria-expanded={avatarOpen}
-              aria-label="Account menu"
-              className="header-avatar"
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                border: 0,
-                background: C.navy,
-                color: C.sand,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontFamily: cond,
-                fontSize: 13,
-                cursor: "pointer",
-                flex: "0 0 auto",
-              }}
-            >
-              JR
-            </button>
-
-            {avatarOpen ? (
-              <>
-                <div
-                  style={{ position: "fixed", inset: 0, zIndex: 9 }}
-                  onClick={() => setAvatarOpen(false)}
-                />
-                <div
-                  role="menu"
-                  aria-label="Account menu"
-                  style={{
-                    position: "absolute",
-                    top: "calc(100% + 6px)",
-                    right: 0,
-                    zIndex: 10,
-                    minWidth: 190,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
-                    padding: 6,
-                    border: `1px solid ${C.line}`,
-                    borderRadius: 10,
-                    background: C.white,
-                    boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
-                  }}
-                >
-                  {AVATAR_MENU.map((item) => (
+          {navMenuOpen ? (
+            <>
+              <div style={{ position: "fixed", inset: 0, zIndex: 9 }} onClick={() => setNavMenuOpen(false)} />
+              <div
+                role="menu"
+                aria-label="Primary"
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 6px)",
+                  left: 0,
+                  zIndex: 10,
+                  minWidth: 180,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  padding: 6,
+                  border: `1px solid ${C.line}`,
+                  borderRadius: 10,
+                  background: C.white,
+                  boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
+                }}
+              >
+                {NAV.map((item) => {
+                  const on = isActive(pathname, item.href);
+                  return (
                     <Link
                       key={item.href}
                       href={item.href}
                       role="menuitem"
-                      onClick={() => setAvatarOpen(false)}
+                      onClick={() => setNavMenuOpen(false)}
                       style={{
                         padding: "9px 10px",
                         borderRadius: 6,
                         fontSize: 13,
-                        color: C.ink,
+                        color: on ? C.ink : C.body,
+                        fontWeight: on ? 600 : 500,
+                        borderLeft: `3px solid ${on ? C.rust : "transparent"}`,
                       }}
                     >
                       {item.label}
                     </Link>
-                  ))}
-                  <span style={{ height: 1, background: C.line, margin: "4px 2px" }} />
-                  <button
-                    type="button"
+                  );
+                })}
+              </div>
+            </>
+          ) : null}
+        </div>
+
+        {/*
+          Search fills whatever horizontal space the rest of the bar leaves
+          -- `flex: 1` rather than a fixed width, per the brief. Below the
+          collapse breakpoint it becomes an icon that expands on click; the
+          toggle button is only ever rendered while collapsed-and-closed, so
+          there's no inline-vs-stylesheet fight over `display` -- CSS alone
+          hides `.topbar-search-field` by default in that width band and
+          `.is-open` (added once `searchOpen` is true) overrides it.
+        */}
+        {!searchOpen ? (
+          <button
+            type="button"
+            className="topbar-search-toggle"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Open search"
+            style={{
+              border: "1px solid rgba(21,21,21,0.16)",
+              borderRadius: 7,
+              background: "transparent",
+              width: 34,
+              height: 34,
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 14,
+              color: C.faint,
+              cursor: "pointer",
+              flex: "0 0 auto",
+            }}
+          >
+            <span aria-hidden>⌕</span>
+          </button>
+        ) : null}
+        <div className={`topbar-search-field${searchOpen ? " is-open" : ""}`} style={{ flex: 1, minWidth: 0 }}>
+          <SearchField
+            value={q}
+            onChange={submitSearch}
+            placeholder="Search politicians, issues, bills, claims"
+            className="header-search"
+            style={{ width: "100%" }}
+          />
+        </div>
+
+        <div style={{ position: "relative", flex: "0 0 auto" }}>
+          <button
+            type="button"
+            onClick={() => setAvatarOpen((o) => !o)}
+            aria-haspopup="true"
+            aria-expanded={avatarOpen}
+            aria-label="Account menu"
+            className="header-avatar"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              border: 0,
+              background: C.tan,
+              color: C.navy,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontFamily: cond,
+              fontSize: 13,
+              cursor: "pointer",
+            }}
+          >
+            JR
+          </button>
+
+          {avatarOpen ? (
+            <>
+              <div
+                style={{ position: "fixed", inset: 0, zIndex: 9 }}
+                onClick={() => setAvatarOpen(false)}
+              />
+              <div
+                role="menu"
+                aria-label="Account menu"
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 6px)",
+                  right: 0,
+                  zIndex: 10,
+                  minWidth: 190,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  padding: 6,
+                  border: `1px solid ${C.line}`,
+                  borderRadius: 10,
+                  background: C.white,
+                  boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
+                }}
+              >
+                {AVATAR_MENU.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
                     role="menuitem"
-                    onClick={logOut}
+                    onClick={() => setAvatarOpen(false)}
                     style={{
-                      border: 0,
-                      background: "transparent",
-                      borderRadius: 6,
                       padding: "9px 10px",
-                      textAlign: "left",
+                      borderRadius: 6,
                       fontSize: 13,
-                      color: C.rust,
-                      cursor: "pointer",
+                      color: C.ink,
                     }}
                   >
-                    Log out
-                  </button>
-                </div>
-              </>
-            ) : null}
-          </div>
+                    {item.label}
+                  </Link>
+                ))}
+                <span style={{ height: 1, background: C.line, margin: "4px 2px" }} />
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={logOut}
+                  style={{
+                    border: 0,
+                    background: "transparent",
+                    borderRadius: 6,
+                    padding: "9px 10px",
+                    textAlign: "left",
+                    fontSize: 13,
+                    color: C.rust,
+                    cursor: "pointer",
+                  }}
+                >
+                  Log out
+                </button>
+              </div>
+            </>
+          ) : null}
+        </div>
+
+        {/*
+          Tagline -- the lowest-priority element in the bar (see the
+          collapse-order doc comment above), so it's the first thing
+          globals.css hides as the viewport narrows. Zip and the election-day
+          countdown used to live in this same right-hand area; zip now lives
+          in HUSH Guide's rail footer (see AddressRailFooter in GuideView.tsx)
+          and the countdown lives in the Feed's own orientation strip
+          (ElectionCard in FeedView.tsx) -- both were already built for
+          app-layout-v2's earlier phases, so removing them from here duplicates
+          nothing.
+        */}
+        <span
+          className="topbar-tagline-divider"
+          aria-hidden
+          style={{ width: 1, alignSelf: "stretch", margin: "16px 0", background: C.line, flex: "0 0 auto" }}
+        />
+        <div className="topbar-tagline" style={{ display: "flex", flexDirection: "column", gap: 3, flex: "0 0 auto", minWidth: 0 }}>
+          <span style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.3 }}>
+            Politics is noisy,
+            <br />
+            your vote shouldn&apos;t be.
+          </span>
+          <span aria-hidden style={{ width: 26, height: 2, background: C.rust }} />
         </div>
       </header>
 
