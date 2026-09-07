@@ -202,6 +202,14 @@ input::placeholder {
     margin-top: 0 !important;
     margin-left: auto;
   }
+  /* Section navigation (jump links / the Feed scope filter list) has no
+     home in the collapsed top-bar layout below this breakpoint -- a
+     variable-length list doesn't fit the horizontal strip primary nav
+     reflows into here. Hidden rather than squeezed in; see this PR's notes
+     for the mobile pattern this still needs. */
+  .sidebar-section-nav {
+    display: none !important;
+  }
   .split {
     flex-direction: column;
   }
