@@ -6,7 +6,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
-import { useRegisterSectionNav, type SectionNavItem } from "@/lib/sectionNav";
+import { jumpToSection } from "@/lib/sectionNav";
 import type { FactCheck, Party, Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
 import { Card, Display, Kicker, Pill, RustButton } from "@/components/ui";
 import { FactCheckCard } from "./FactCheckView";
@@ -17,21 +17,14 @@ const BUCKETS: Bucket[] = ["Agree", "Neutral", "Disagree", "No record"];
 
 /**
  * One identical neutral treatment for every bucket -- Agree, Neutral and
- * Disagree all get the same ink/body/shell styling, whether it's the user's
- * own pick (the "Your answers" review strip) or a politician's sourced
- * stance (the per-question results grid below). Color-as-verdict used to
- * differ between the two: the strip carried its own navy/tan/rust ("that's
- * fine for the user's own answer, no comparison implied") while the results
- * grid was already neutral, on the reasoning that coloring *politicians'*
+ * Disagree all get the same ink/body/shell styling in the per-question
+ * results grid below, whichever bucket it is. Coloring *politicians'*
  * Agree/Neutral/Disagree would read as the UI signaling who's "right" --
- * exactly what the no-score requirement says this feature must not do. That
- * distinction doesn't hold up once "no navy/tan/rust as good/bad, anywhere"
- * is the actual rule: a reader's own past answer shouldn't be color-coded as
- * good or bad either. Reused for both, rather than kept as two style maps
- * with the same values. "No record" keeps its own, more muted treatment --
- * that's a presence/absence distinction (nothing sourced to link to), not a
- * verdict. Which group matters more is carried by column order (see
- * `orderedBuckets`) and label wording (see `bucketHeader`), never by color.
+ * exactly what the no-score requirement says this feature must not do.
+ * "No record" keeps its own, more muted treatment -- that's a
+ * presence/absence distinction (nothing sourced to link to), not a verdict.
+ * Which group matters more is carried by column order (see `orderedBuckets`)
+ * and label wording (see `bucketHeader`), never by color.
  */
 const RESULT_STYLE: Record<Bucket, { bg: string; fg: string; dot: string }> = {
   Agree: { bg: C.shell, fg: C.ink, dot: C.body },
@@ -41,66 +34,134 @@ const RESULT_STYLE: Record<Bucket, { bg: string; fg: string; dot: string }> = {
 };
 
 /**
- * The answer picker itself (Disagree/Neutral/Agree, in the question box)
- * gets the same no-color-coding treatment as the results grid below, and for
- * the same reason: a per-choice color there would still read as the UI
- * hinting which answer is "normal" before the user even picks. This is
- * deliberately not the shared `Chip` from ui.tsx -- Chip's selected state
- * inverts to a solid ink background, which would swallow a same-toned dot
- * into invisibility, so selection here is instead carried by the ring
- * (hollow outline -> solid navy fill) plus a bolder ink label, identical for
- * whichever of the three is picked. The "Your answers" review strip below
- * now shares this picker's no-color-coding treatment too (see `RESULT_STYLE`
- * above) -- it used to keep its own per-answer accent, but reviewing the
- * user's own past picks shouldn't be color-coded good/bad any more than the
- * live picker should.
+ * The answer picker (Disagree/Neutral/Agree, in the question box) --
+ * app-layout-v2 phase 3 redesign. All three render identically at rest,
+ * Neutral included: the earlier "tertiary" demoted treatment for Neutral
+ * (smaller, lower-contrast, visually subordinate) is gone, since a picker
+ * shouldn't visually pre-judge which of the three answers is the normal
+ * one before the reader picks. No icon on the button either -- the earlier
+ * ring/dot is gone too. Selection is carried entirely by a navy fill, a
+ * cream label, and a rust rule along the top edge, identical for whichever
+ * of the three is picked; this is still deliberately not the shared `Chip`
+ * from ui.tsx, whose selected state (solid ink fill) doesn't carry a rule
+ * accent and reads as a generic filter toggle rather than a picked answer.
  */
-/**
- * `variant="tertiary"` is Neutral's demoted treatment (see 1.4): smaller,
- * lower-contrast, visually subordinate to Agree and Disagree without being
- * removed as a choice. Neutral is a legitimate answer, it just produces a
- * dead reveal (no one to be surprised about), so the picker shouldn't
- * present it as an equal-weight option among the three.
- */
-function AnswerChip({ on, onClick, children, variant = "primary" }: {
+function AnswerChip({ on, onClick, children }: {
   on: boolean;
   onClick: () => void;
   children: ReactNode;
-  variant?: "primary" | "tertiary";
 }) {
-  const tertiary = variant === "tertiary";
   return (
     <button
       type="button"
       onClick={onClick}
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: tertiary ? 6 : 8,
-        padding: tertiary ? "5px 11px" : "8px 14px",
-        borderRadius: tertiary ? 16 : 20,
-        fontSize: tertiary ? 12 : 13,
+        flex: "1 1 0",
+        minWidth: 110,
+        padding: "12px 16px",
+        borderRadius: 8,
+        fontSize: 14,
         fontWeight: on ? 600 : 500,
-        whiteSpace: "nowrap",
+        textAlign: "center",
         cursor: "pointer",
-        background: on ? (tertiary ? C.hover : C.shell) : "transparent",
-        color: on ? (tertiary ? C.body : C.ink) : tertiary ? C.faint : C.body,
-        border: `1px solid ${on ? (tertiary ? C.line : C.ink) : "rgba(21,21,21,0.14)"}`,
-        opacity: tertiary && !on ? 0.85 : 1,
+        background: on ? C.navy : C.white,
+        color: on ? C.cream : C.ink,
+        borderLeft: `1px solid ${on ? C.navy : "rgba(21,21,21,0.16)"}`,
+        borderRight: `1px solid ${on ? C.navy : "rgba(21,21,21,0.16)"}`,
+        borderBottom: `1px solid ${on ? C.navy : "rgba(21,21,21,0.16)"}`,
+        borderTop: `3px solid ${on ? C.rust : "rgba(21,21,21,0.16)"}`,
       }}
     >
-      <span
-        style={{
-          width: tertiary ? 7 : 9,
-          height: tertiary ? 7 : 9,
-          borderRadius: "50%",
-          boxSizing: "border-box",
-          border: `1.5px solid ${on ? C.navy : C.faint}`,
-          background: on ? C.navy : "transparent",
-        }}
-      />
       {children}
     </button>
+  );
+}
+
+type RailStatus = "done" | "current" | "upcoming";
+
+/**
+ * Flat, single-stroke status glyphs for the progress rail below -- the same
+ * no-filled-shapes convention as the rest of the app's icons. "Done" and
+ * "current" both draw in navy; "upcoming" draws in the same muted tone "No
+ * record" gets elsewhere -- not-yet-reached is a state of the reader's own
+ * progress, not a judgment, so it doesn't get the navy treatment.
+ */
+function RailIcon({ status }: { status: RailStatus }) {
+  if (status === "done") {
+    return (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden style={{ flex: "0 0 14px" }}>
+        <path d="M3 7.2 L6 10.2 L11 4" stroke={C.navy} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (status === "current") {
+    return (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden style={{ flex: "0 0 14px" }}>
+        <circle cx="7" cy="7" r="5.4" stroke={C.navy} strokeWidth="1.6" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden style={{ flex: "0 0 14px" }}>
+      <circle cx="7" cy="7" r="5.4" stroke={C.faint} strokeWidth="1.4" />
+    </svg>
+  );
+}
+
+interface RailRow {
+  id: string;
+  label: string;
+  status: RailStatus;
+  onClick: () => void;
+}
+
+// Matches AppShell's own contextual-rail width (RAIL_WIDTH) -- kept as its
+// own constant here rather than imported, since this rail is page-local
+// (see StanceRail's doc comment) and not actually driven by that mechanism.
+const STANCE_RAIL_WIDTH = 200;
+
+/**
+ * Stance Check's progress rail -- app-layout-v2 phase 3, page-local rather
+ * than routed through AppShell's contextual rail, the same call FeedView's
+ * Type filter rail made in phase 1 (see TYPE_RAIL_WIDTH's doc comment
+ * there): that rail is built for scroll-spy jump links across a long page,
+ * and this is a linear stepper through a fixed set of rows -- questions
+ * while answering, findings on the completion screen -- with its own
+ * done/current/upcoming status per row that `SectionJumpList` doesn't
+ * model. One shared component so both screens present the same visual
+ * language; see the two call sites below for how each builds its rows.
+ */
+function StanceRail({ rows }: { rows: RailRow[] }) {
+  return (
+    <nav aria-label="Progress" style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      {rows.map((row) => (
+        <button
+          key={row.id}
+          type="button"
+          onClick={row.onClick}
+          aria-current={row.status === "current" ? "true" : undefined}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 9,
+            width: "100%",
+            textAlign: "left",
+            padding: "8px 10px",
+            borderRadius: 7,
+            border: 0,
+            background: row.status === "current" ? C.hover : "transparent",
+            color: row.status === "upcoming" ? C.muted : C.ink,
+            fontSize: 12.5,
+            cursor: "pointer",
+          }}
+        >
+          <RailIcon status={row.status} />
+          <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {row.label}
+          </span>
+        </button>
+      ))}
+    </nav>
   );
 }
 
@@ -154,8 +215,9 @@ interface Candidacy {
  * candidate set `Race`/`RACES` already defines for Your Ballot, HUSH Guide
  * and Compare) recorded the same stance, sourced. There is deliberately no
  * rolled-up score anywhere on this page — each question's breakdown stands
- * on its own, and the "Your answers" strip at the bottom is a review index,
- * not a result. Three points, not five: an earlier pass here briefly
+ * on its own, and the progress rail (see `StanceRail`) is a review index
+ * letting you jump back to any question, not a result in itself. Three
+ * points, not five: an earlier pass here briefly
  * offered Strongly disagree/Disagree/Unsure/Agree/Strongly agree and
  * collapsed that to Agree/Neutral/Disagree at read time, matching the
  * marketing site's spec. The app has since deliberately reverted to storing
@@ -281,82 +343,75 @@ export default function StanceCheckView({
           onReviewFromStart={() => setIndex(0)}
         />
       ) : (
-        <Card style={{ maxWidth: 640, padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
-          <Kicker color={C.muted}>{issue}</Kicker>
-          <Display size={22} style={{ lineHeight: 1.3 }}>
-            {statements[issue!]}
-          </Display>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <AnswerChip on={answer === "Disagree"} onClick={() => pickAnswer("Disagree")}>
-              Disagree
-            </AnswerChip>
-            <span aria-hidden style={{ width: 1, height: 20, background: C.line }} />
-            <AnswerChip on={answer === "Neutral"} onClick={() => pickAnswer("Neutral")} variant="tertiary">
-              Neutral
-            </AnswerChip>
-            <span aria-hidden style={{ width: 1, height: 20, background: C.line }} />
-            <AnswerChip on={answer === "Agree"} onClick={() => pickAnswer("Agree")}>
-              Agree
-            </AnswerChip>
+        // Three columns (app-layout-v2 phase 3): the progress rail (one row
+        // per issue, done/current/upcoming -- replaces the old "Your
+        // answers" strip that used to sit at the page bottom rather than
+        // duplicating it), the question itself in the center, and the
+        // candidate breakdown beside it on the right instead of stacked
+        // below -- it collapses to one column on its own inside a rail-width
+        // aside (see StatementBreakdown's `minmax(260px,1fr)` grid), so no
+        // layout change was needed there, only where it's rendered.
+        <div className="stack-row" style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+          <aside style={{ width: STANCE_RAIL_WIDTH, flex: `0 0 ${STANCE_RAIL_WIDTH}px` }}>
+            <StanceRail
+              rows={topics.map((q, i) => ({
+                id: q,
+                label: q,
+                status: answers[q] ? "done" : i === at ? "current" : "upcoming",
+                onClick: () => setIndex(i),
+              }))}
+            />
+          </aside>
+
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+            <Card style={{ padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
+              <Kicker color={C.muted}>{issue}</Kicker>
+              <Display size={22} style={{ lineHeight: 1.3 }}>
+                {statements[issue!]}
+              </Display>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <AnswerChip on={answer === "Disagree"} onClick={() => pickAnswer("Disagree")}>
+                  Disagree
+                </AnswerChip>
+                <AnswerChip on={answer === "Neutral"} onClick={() => pickAnswer("Neutral")}>
+                  Neutral
+                </AnswerChip>
+                <AnswerChip on={answer === "Agree"} onClick={() => pickAnswer("Agree")}>
+                  Agree
+                </AnswerChip>
+              </div>
+            </Card>
+
+            {answer ? (
+              <RustButton
+                onClick={() => setIndex(at + 1)}
+                style={{ alignSelf: "flex-start", padding: "11px 18px" }}
+              >
+                {at + 1 === total ? "Finish" : "Next question →"}
+              </RustButton>
+            ) : null}
           </div>
-        </Card>
-      )}
 
-      {/* Breakdown: shown once the current question is answered, or for every
-          answered question while reviewing from the completion state. */}
-      {!done && issue && answer ? (
-        <StatementBreakdown
-          issue={issue}
-          candidacies={candidacies}
-          positions={positions}
-          knownIds={knownIds}
-          userAnswer={answer}
-          checks={checks}
-        />
-      ) : null}
-
-      {!done && issue && answer ? (
-        <RustButton
-          onClick={() => setIndex(at + 1)}
-          style={{ alignSelf: "flex-start", padding: "11px 18px" }}
-        >
-          {at + 1 === total ? "Finish" : "Next question →"}
-        </RustButton>
-      ) : null}
-
-      {total > 0 ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 6 }}>
-          <Kicker color={C.muted}>Your answers</Kicker>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-            {topics.map((q, i) => {
-              const a = answers[q];
-              return (
-                <button
-                  key={q}
-                  type="button"
-                  onClick={() => setIndex(i)}
-                  title={a}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "6px 11px",
-                    borderRadius: 16,
-                    fontSize: 12,
-                    border: `1px solid ${!done && i === at ? C.ink : C.line}`,
-                    background: a ? RESULT_STYLE[a].bg : C.white,
-                    color: a ? RESULT_STYLE[a].fg : C.muted,
-                    cursor: "pointer",
-                  }}
-                >
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: a ? RESULT_STYLE[a].dot : C.muted }} />
-                  {q}
-                </button>
-              );
-            })}
-          </div>
+          <aside style={{ width: 280, flex: "0 0 280px", minWidth: 260 }}>
+            {answer ? (
+              <StatementBreakdown
+                issue={issue!}
+                candidacies={candidacies}
+                positions={positions}
+                knownIds={knownIds}
+                userAnswer={answer}
+                checks={checks}
+              />
+            ) : (
+              <Card style={{ padding: 16 }}>
+                <span style={{ fontSize: 12.5, color: C.muted, fontStyle: "italic" }}>
+                  Pick an answer to see where candidates on your ballot stand.
+                </span>
+              </Card>
+            )}
+          </aside>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
@@ -695,79 +750,94 @@ function StanceSummary({
 
   const noMatchIssues = answeredTopics.filter((issue) => !matches.some((m) => m.issue === issue));
 
-  // Only the sections actually present for this run -- "surprise" and
-  // "no-match" are both conditional on the data. Registered here (not by
-  // the parent) so it only exists while this summary screen is mounted;
-  // unmounting (going back to a question) clears it via the hook's own
-  // cleanup, same as the mid-run state rendering nothing.
-  const summaryItems: SectionNavItem[] = [{ id: "overview", label: "Overview" }];
-  if (surprise) summaryItems.push({ id: "surprise", label: "Strongest surprise" });
-  if (noMatchIssues.length > 0) summaryItems.push({ id: "no-match", label: "No match" });
-  useRegisterSectionNav(summaryItems);
+  // The completion screen's own progress rail (app-layout-v2 phase 3) --
+  // "surprise" and "no-match" are both conditional on the data, same as
+  // before. Every row shows as done: unlike the question rail, there's no
+  // remaining "current" or "upcoming" row here -- everything on this screen
+  // is already rendered and available the moment it mounts, so "done" is
+  // just an honest way to say "here, already found" rather than implying a
+  // sequence still in progress. Clicking a row scrolls to it (`jumpToSection`)
+  // rather than changing which question is showing, since these are findings
+  // within one card, not separate questions to answer.
+  const summaryRows: RailRow[] = [
+    { id: "overview", label: "Overview", status: "done", onClick: () => jumpToSection("overview") },
+  ];
+  if (surprise) {
+    summaryRows.push({ id: "surprise", label: "Strongest surprise", status: "done", onClick: () => jumpToSection("surprise") });
+  }
+  if (noMatchIssues.length > 0) {
+    summaryRows.push({ id: "no-match", label: "No match", status: "done", onClick: () => jumpToSection("no-match") });
+  }
 
   return (
-    <Card style={{ maxWidth: 640, padding: 24, display: "flex", flexDirection: "column", gap: 18 }}>
-      <div id="overview" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <Kicker color={C.muted}>Your Stance Check, so far</Kicker>
+    <div className="stack-row" style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+      <aside style={{ width: STANCE_RAIL_WIDTH, flex: `0 0 ${STANCE_RAIL_WIDTH}px` }}>
+        <StanceRail rows={summaryRows} />
+      </aside>
 
-      {crossesParty ? (
-        <Display size={22} style={{ lineHeight: 1.3 }}>
-          You agreed with {partyCountList(partyCounts)}.
-        </Display>
-      ) : partyCounts.length === 1 ? (
-        <Display size={22} style={{ lineHeight: 1.3 }}>
-          You agreed with {partyCountList(partyCounts)} — no matches outside that party yet.
-        </Display>
-      ) : (
-        <Display size={22} style={{ lineHeight: 1.3 }}>
-          You didn&apos;t match with anyone on your ballot on the issues you answered.
-        </Display>
-      )}
-      </div>
+      <Card style={{ flex: 1, minWidth: 0, maxWidth: 640, padding: 24, display: "flex", flexDirection: "column", gap: 18 }}>
+        <div id="overview" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        <Kicker color={C.muted}>Your Stance Check, so far</Kicker>
 
-      {surprise ? (
-        <div id="surprise" style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
-          <Kicker size={11}>Your strongest surprise</Kicker>
-          <span style={{ fontSize: 13, color: C.ink, lineHeight: 1.5 }}>
-            On <strong>{surprise.issue}</strong>, you matched {PARTY_LABEL[surprise.candidacy.party]}{" "}
-            <Link href={`/politician/${surprise.candidacy.politicianId}`} style={{ color: C.navy }}>
-              {stripPartySuffix(surprise.candidacy.name)}
-            </Link>{" "}
-            — the party you matched with least overall.
-          </span>
-          <p style={{ margin: 0, fontSize: 12, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
-            &ldquo;{surprise.position.excerpt}&rdquo;
-          </p>
+        {crossesParty ? (
+          <Display size={22} style={{ lineHeight: 1.3 }}>
+            You agreed with {partyCountList(partyCounts)}.
+          </Display>
+        ) : partyCounts.length === 1 ? (
+          <Display size={22} style={{ lineHeight: 1.3 }}>
+            You agreed with {partyCountList(partyCounts)} — no matches outside that party yet.
+          </Display>
+        ) : (
+          <Display size={22} style={{ lineHeight: 1.3 }}>
+            You didn&apos;t match with anyone on your ballot on the issues you answered.
+          </Display>
+        )}
         </div>
-      ) : null}
 
-      {noMatchIssues.length > 0 ? (
-        <div id="no-match" style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
-          <Kicker size={11}>Where nobody on your ballot matched you</Kicker>
-          <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{noMatchIssues.join(", ")}</span>
+        {surprise ? (
+          <div id="surprise" style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
+            <Kicker size={11}>Your strongest surprise</Kicker>
+            <span style={{ fontSize: 13, color: C.ink, lineHeight: 1.5 }}>
+              On <strong>{surprise.issue}</strong>, you matched {PARTY_LABEL[surprise.candidacy.party]}{" "}
+              <Link href={`/politician/${surprise.candidacy.politicianId}`} style={{ color: C.navy }}>
+                {stripPartySuffix(surprise.candidacy.name)}
+              </Link>{" "}
+              — the party you matched with least overall.
+            </span>
+            <p style={{ margin: 0, fontSize: 12, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
+              &ldquo;{surprise.position.excerpt}&rdquo;
+            </p>
+          </div>
+        ) : null}
+
+        {noMatchIssues.length > 0 ? (
+          <div id="no-match" style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
+            <Kicker size={11}>Where nobody on your ballot matched you</Kicker>
+            <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{noMatchIssues.join(", ")}</span>
+          </div>
+        ) : null}
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", paddingTop: 4 }}>
+          <RustButton onClick={() => router.push("/hush-guide")} style={{ padding: "11px 18px" }}>
+            Go to HUSH Guide →
+          </RustButton>
+          <button
+            type="button"
+            className="link-quiet"
+            onClick={onReviewFromStart}
+            style={{
+              border: 0,
+              background: "transparent",
+              color: C.navy,
+              fontSize: 13,
+              cursor: "pointer",
+              padding: "11px 4px",
+            }}
+          >
+            Review from the start
+          </button>
         </div>
-      ) : null}
-
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", paddingTop: 4 }}>
-        <RustButton onClick={() => router.push("/hush-guide")} style={{ padding: "11px 18px" }}>
-          Go to HUSH Guide →
-        </RustButton>
-        <button
-          type="button"
-          className="link-quiet"
-          onClick={onReviewFromStart}
-          style={{
-            border: 0,
-            background: "transparent",
-            color: C.navy,
-            fontSize: 13,
-            cursor: "pointer",
-            padding: "11px 4px",
-          }}
-        >
-          Review from the start
-        </button>
-      </div>
-    </Card>
+      </Card>
+    </div>
   );
 }
