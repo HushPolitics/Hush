@@ -61,12 +61,18 @@ const RAIL_WIDTH = 200;
 // Above this width the top bar's right-hand group (location, search,
 // election day, avatar) has room for a full search field alongside
 // everything else. Below it, search collapses to an icon that expands on
-// click rather than any element being dropped -- see the brief. Reasoned
-// from the right group's own content (location ~140px + search 260px +
-// election-day text ~110px + avatar 32px + gaps), not measured against a
-// live page the way the sidebar width was, since this is a responsive
-// threshold rather than a fixed content width.
-const SEARCH_COLLAPSE_WIDTH = 1280;
+// click rather than any element being dropped -- see the brief.
+//
+// Measured against the live preview, not reasoned: the center nav column
+// and the right group both sit in a "1fr auto 1fr" grid, so the right
+// group's available track is (viewport - padding - gaps - navWidth) / 2.
+// With the full search field the right group needs ~623px; that track
+// only clears 623px once the viewport is ~1663px wide (navWidth measured
+// at ~321px). Below that, the full-search layout visibly overlaps the
+// center nav. 1720 keeps a ~28px safety margin above the measured
+// breakeven for font-metric variance across browsers/OSes. Keep this in
+// sync with the `max-width` in globals.css's matching media query.
+const SEARCH_COLLAPSE_WIDTH = 1720;
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
