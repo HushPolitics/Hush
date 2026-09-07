@@ -848,7 +848,7 @@ function VotingInformationSection() {
       </div>
       <Card style={{ padding: 18, display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-          <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1, color: C.rust }}>
+          <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1, color: C.slate }}>
             {days === null ? "—" : days}
           </span>
           <span style={{ fontSize: 13, color: C.body }}>days until Election Day</span>
@@ -888,7 +888,7 @@ function VotingInfoSummaryCard() {
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
       <Kicker>Voting Information</Kicker>
       <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-        <span style={{ fontFamily: cond, fontSize: 26, lineHeight: 1, color: C.rust }}>
+        <span style={{ fontFamily: cond, fontSize: 26, lineHeight: 1, color: C.slate }}>
           {days === null ? "—" : days}
         </span>
         <span style={{ fontSize: 12, color: C.body }}>days left</span>

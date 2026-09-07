@@ -129,7 +129,7 @@ function eventText(e: FeedEvent): string {
 function TypeIcon({
   type,
   size = 15,
-  color = C.navy,
+  color = C.slate,
 }: {
   type: TypeFilter;
   size?: number;
@@ -389,7 +389,7 @@ function ElectionCard({ days, raceCount }: { days: number | null; raceCount: num
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
       <Kicker>Your Election</Kicker>
       <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
-        <span style={{ fontFamily: cond, fontSize: 30, lineHeight: 1, color: C.rust }}>
+        <span style={{ fontFamily: cond, fontSize: 30, lineHeight: 1, color: C.slate }}>
           {days === null ? "—" : days}
         </span>
         <span style={{ fontSize: 13, color: C.body }}>days until Election Day</span>
@@ -551,7 +551,7 @@ function EventCard({ event, children }: { event: FeedEvent; children: ReactNode 
           alignItems: "center",
           gap: 9,
           padding: "9px 16px",
-          background: C.sandDeep,
+          background: C.slateFill,
           borderBottom: `1px solid ${C.line}`,
         }}
       >
