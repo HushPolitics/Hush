@@ -51,42 +51,70 @@ export const PARTY_LABEL: Record<string, string> = {
   I: "Independent",
 };
 
-/** Trust score band -> colour + plain-language label. */
-export function trustBand(t: number): { color: string; label: string } {
-  if (t >= 70) return { color: C.navy, label: "Follows through" };
-  if (t >= 50) return { color: C.olive, label: "Mixed record" };
-  return { color: C.rust, label: "Weak record" };
+/**
+ * Trust score colour -- always one neutral ink tone, whatever the number is.
+ * Used to color the HUSH Score digit itself and each bar in "Trust by term";
+ * neither has a label next to it the way a verdict or a promise status does,
+ * so the number alone (not a red/green-style color swing) is what tells a
+ * reader whether a score is high or low. Kept as a named function (not a
+ * bare `C.ink` reference at each call site) so both call sites stay in sync
+ * if this ever needs to change again. Also finishes removing the old
+ * "Follows through" / "Mixed record" / "Weak record" band labels this
+ * function used to return -- dead output nothing ever rendered, and the app
+ * IA restructure brief's Section 0 already called for dropping that
+ * vocabulary in favor of the number plus the Delivered/In progress/No
+ * movement ledger wording.
+ */
+export function trustBand(_t: number): string {
+  return C.ink;
 }
 
+/**
+ * One neutral treatment for every promise status -- Delivered, In progress
+ * and No movement are visually identical now (background/foreground alike);
+ * the status word itself is what tells the reader what happened, not the
+ * color behind it. Matches the pattern StanceCheckView's `RESULT_STYLE`
+ * already established for Agree/Neutral/Disagree.
+ */
 export const STATUS_STYLE: Record<string, { bg: string; fg: string }> = {
-  Delivered: { bg: "rgba(37,55,70,0.10)", fg: C.navy },
-  "In progress": { bg: "rgba(181,168,138,0.35)", fg: C.oliveDeep },
-  "No movement": { bg: "rgba(156,63,50,0.10)", fg: C.rust },
+  Delivered: { bg: C.shell, fg: C.ink },
+  "In progress": { bg: C.shell, fg: C.ink },
+  "No movement": { bg: C.shell, fg: C.ink },
 };
 
-/** Bar fill for a promise's progress, matching its status colour. */
-export function progressColor(progress: number): string {
-  if (progress >= 100) return C.navy;
-  if (progress > 0) return C.tan;
-  return C.rust;
+/**
+ * Bar fill for a promise's progress -- always one neutral ink tone,
+ * regardless of percentage. The percentage number and the status word next
+ * to it (see `STATUS_STYLE`) carry the meaning; the bar is just showing how
+ * far along, not judging good/bad.
+ */
+export function progressColor(_progress: number): string {
+  return C.ink;
 }
 
-// Aligned/Partial/Opposed are all rust now that they're clickable source
-// links (see CompareView's Row) rather than status indicators — the grid
-// trades away its at-a-glance color difference between "aligned" and
-// "opposed" for a consistent link affordance. "No record" stays neutral:
-// there's nothing sourced to link to.
+// Aligned/Partial/Opposed share one neutral treatment: they're clickable
+// source links (see CompareView's Row), not status indicators, so nothing
+// here should read as "this stance is good" vs "this stance is bad." "No
+// record" stays in its own, more muted treatment -- that's a presence/
+// absence distinction (there's nothing sourced to link to), not a verdict.
 export const TAG_STYLE: Record<string, { bg: string; fg: string }> = {
-  Aligned: { bg: "rgba(156,63,50,0.10)", fg: C.rust },
-  Partial: { bg: "rgba(156,63,50,0.10)", fg: C.rust },
-  Opposed: { bg: "rgba(156,63,50,0.10)", fg: C.rust },
+  Aligned: { bg: C.shell, fg: C.ink },
+  Partial: { bg: C.shell, fg: C.ink },
+  Opposed: { bg: C.shell, fg: C.ink },
   "No record": { bg: C.shell, fg: C.muted },
 };
 
+/**
+ * One neutral treatment for every fact-check verdict -- True, Misleading and
+ * False all render identically now. The verdict word itself (plus the claim
+ * and finding text next to it) is what tells the reader what was found;
+ * navy/tan/rust behind it would tell them how to feel about it before they'd
+ * even read the label.
+ */
 export const VERDICT_STYLE: Record<string, { bg: string; fg: string; dot: string }> = {
-  True: { bg: "rgba(37,55,70,0.10)", fg: C.navy, dot: C.navy },
-  Misleading: { bg: "rgba(181,168,138,0.35)", fg: C.oliveDeep, dot: C.tan },
-  False: { bg: "rgba(156,63,50,0.10)", fg: C.rust, dot: C.rust },
+  True: { bg: C.shell, fg: C.ink, dot: C.body },
+  Misleading: { bg: C.shell, fg: C.ink, dot: C.body },
+  False: { bg: C.shell, fg: C.ink, dot: C.body },
 };
 
 export const BALLOT_STATE_STYLE: Record<string, { bg: string; fg: string }> = {

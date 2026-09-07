@@ -195,13 +195,20 @@ function EventHeader({
   );
 }
 
+/*
+  This used to swing between navy (score went up, read as "good") and rust
+  (went down, read as "bad") before either number's been read -- exactly
+  the color-as-verdict pattern the rest of this pass removes elsewhere, just
+  not one of the named style maps the brief called out by name. Fixed to
+  one neutral accent, matching every other value here (trustBand, the
+  promise ledger). The from -> to numbers themselves say which direction it
+  moved; the accent doesn't need to editorialize first.
+*/
 function ScoreEventCard({ event }: { event: ScoreFeedEvent }) {
-  const up = event.to >= event.from;
-  const accent = up ? C.navy : C.rust;
   return (
-    <EventShell accent={accent}>
+    <EventShell accent={C.ink}>
       <EventHeader politician={event.politician} anchor="score" label="HUSH. Score" date={event.date} />
-      <span style={{ fontFamily: cond, fontSize: 20, color: accent }}>
+      <span style={{ fontFamily: cond, fontSize: 20, color: C.ink }}>
         {event.from} → {event.to}
       </span>
       <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{event.reason}</span>

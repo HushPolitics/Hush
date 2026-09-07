@@ -29,29 +29,22 @@ function directionOf(a: FivePointAnswer): StanceCheckAnswer {
 }
 
 /**
- * Same navy/tan/rust vocabulary `VERDICT_STYLE` uses for True/Misleading/
- * False (see theme.ts) — reused here rather than invented fresh, so a
- * candidate's stance reads with the same visual weight as a fact-check
- * verdict elsewhere in the app. "No record" reuses the neutral shell/muted
- * treatment `GUIDE_POSITIONS`' own gaps already use.
- */
-const BUCKET_STYLE: Record<Bucket, { bg: string; fg: string; dot: string }> = {
-  Agree: { bg: "rgba(37,55,70,0.10)", fg: C.navy, dot: C.navy },
-  Neutral: { bg: "rgba(181,168,138,0.35)", fg: C.oliveDeep, dot: C.tan },
-  Disagree: { bg: "rgba(156,63,50,0.10)", fg: C.rust, dot: C.rust },
-  "No record": { bg: C.shell, fg: C.muted, dot: C.muted },
-};
-
-/**
- * The per-question results grid (StatementBreakdown) deliberately does NOT
- * use `BUCKET_STYLE`'s navy/tan/rust: that vocabulary is fine for the user's
- * own answer above (their own pick, no comparison implied), but coloring
- * *politicians'* Agree/Neutral/Disagree here would read as the UI signaling
- * who's "right" -- exactly what the no-score requirement says this feature
- * must not do. Agree/Neutral/Disagree all get one identical neutral ink/body
- * treatment; "No record" keeps the same muted/shell treatment the rest of
- * the app uses for "nothing sourced." Which group matters more is carried by
- * column order (see `orderedBuckets`), never by color.
+ * One identical neutral treatment for every bucket -- Agree, Neutral and
+ * Disagree all get the same ink/body/shell styling, whether it's the user's
+ * own pick (the "Your answers" review strip) or a politician's sourced
+ * stance (the per-question results grid below). Color-as-verdict used to
+ * differ between the two: the strip carried its own navy/tan/rust ("that's
+ * fine for the user's own answer, no comparison implied") while the results
+ * grid was already neutral, on the reasoning that coloring *politicians'*
+ * Agree/Neutral/Disagree would read as the UI signaling who's "right" --
+ * exactly what the no-score requirement says this feature must not do. That
+ * distinction doesn't hold up once "no navy/tan/rust as good/bad, anywhere"
+ * is the actual rule: a reader's own past answer shouldn't be color-coded as
+ * good or bad either. Reused for both, rather than kept as two style maps
+ * with the same values. "No record" keeps its own, more muted treatment --
+ * that's a presence/absence distinction (nothing sourced to link to), not a
+ * verdict. Which group matters more is carried by column order (see
+ * `orderedBuckets`) and label wording (see `bucketHeader`), never by color.
  */
 const RESULT_STYLE: Record<Bucket, { bg: string; fg: string; dot: string }> = {
   Agree: { bg: C.shell, fg: C.ink, dot: C.body },
@@ -70,9 +63,10 @@ const RESULT_STYLE: Record<Bucket, { bg: string; fg: string; dot: string }> = {
  * swallow a same-toned dot into invisibility, so selection here is instead
  * carried by the ring (hollow outline -> solid navy fill) plus a bolder ink
  * label, identical for whichever of the five is picked. The "Your answers"
- * review strip below keeps its existing per-answer accent color, keyed off
- * the collapsed direction -- it's reviewing the user's own past picks, not a
- * live choice between them, and the ask here is scoped to the picker.
+ * review strip below now shares this picker's no-color-coding treatment too
+ * (see `RESULT_STYLE` above) -- it used to keep its own per-answer accent,
+ * but reviewing the user's own past picks shouldn't be color-coded good/bad
+ * any more than the live picker should.
  */
 /**
  * `variant="tertiary"` is Unsure's demoted treatment (see 1.4): smaller,
@@ -367,12 +361,12 @@ export default function StanceCheckView({
                     borderRadius: 16,
                     fontSize: 12,
                     border: `1px solid ${!done && i === at ? C.ink : C.line}`,
-                    background: direction ? BUCKET_STYLE[direction].bg : C.white,
-                    color: direction ? BUCKET_STYLE[direction].fg : C.muted,
+                    background: direction ? RESULT_STYLE[direction].bg : C.white,
+                    color: direction ? RESULT_STYLE[direction].fg : C.muted,
                     cursor: "pointer",
                   }}
                 >
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: direction ? BUCKET_STYLE[direction].dot : C.muted }} />
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: direction ? RESULT_STYLE[direction].dot : C.muted }} />
                   {q}
                 </button>
               );
