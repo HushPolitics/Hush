@@ -31,7 +31,7 @@ export default async function TopIssuesPage({
     : "/profile/top-issues/issue-finder";
 
   return (
-    <AppShell kicker="My issues" title="Rank what matters most to you">
+    <AppShell>
       <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
         <TopIssuesCard topicPool={topicPool()} showEditLink={false} />
         <Link href={findHref} style={{ fontSize: 12, color: C.muted, textDecoration: "underline" }}>
