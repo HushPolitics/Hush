@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useMemo, type ReactNode } from "react";
 import { C, STATUS_STYLE, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { useFeedScope } from "@/lib/feedScope";
+import { FEED_SCOPES, useFeedScope } from "@/lib/feedScope";
 import { initials } from "@/lib/scoring";
 import {
   ballotPoliticianIds,
@@ -18,7 +18,7 @@ import {
   type ScoreFeedEvent,
 } from "@/lib/feed";
 import type { FactCheck, IssuePosition, Politician, Race, StanceCheckPosition } from "@/lib/types";
-import { Avatar, Card, Display, EmptyState, ExpandableQuote, Kicker, Pill } from "@/components/ui";
+import { Avatar, Card, Chip, Display, EmptyState, ExpandableQuote, Kicker, Pill } from "@/components/ui";
 import { FactCheckCard } from "./FactCheckView";
 
 function eventText(e: FeedEvent): string {
@@ -44,10 +44,11 @@ function eventText(e: FeedEvent): string {
  * attached; it is never shown next to anyone else's, matching the amendment's
  * standing rule enforced in CompareView/GuideView.
  *
- * The scope filter (My ballot / My issues / Following) used to render here
- * as horizontal chips; per the sidebar contextual-nav brief it now lives in
- * AppShell's sidebar as a vertical filter list instead (see `useFeedScope`)
- * -- this view just reads whatever scope the sidebar has set.
+ * The scope filter (My ballot / My issues / Following) briefly lived as a
+ * vertical list in AppShell's sidebar; per the top-bar brief the Feed
+ * doesn't get a contextual rail at all, so it's back to horizontal chips
+ * here, beneath the title -- same `useFeedScope` store either way, just a
+ * different renderer for it.
  */
 export default function FeedView({
   politicians,
@@ -65,7 +66,7 @@ export default function FeedView({
   const params = useSearchParams();
   const q = params.get("q") ?? "";
   const { saved, topics } = usePrefs();
-  const [scope] = useFeedScope();
+  const [scope, setScope] = useFeedScope();
 
   const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
 
@@ -102,19 +103,36 @@ export default function FeedView({
         <Display size={25}>What&apos;s happened · {events.length}</Display>
       </div>
 
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {FEED_SCOPES.map((s) => (
+          <Chip key={s.value} on={scope === s.value} onClick={() => setScope(s.value)}>
+            {s.label}
+          </Chip>
+        ))}
+      </div>
+
       <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
         {events.map((e) => (
           <FeedEventCard key={e.id} event={e} />
         ))}
         {events.length === 0 ? (
           <EmptyState>
-            {followingEmpty
-              ? "Nothing followed yet — open a profile and hit “Save to my list”."
-              : issuesEmpty
-                ? "You haven't ranked any issues yet — pick some from “My issues” in the account menu."
-                : q.trim()
-                  ? `Nothing matches "${q.trim()}".`
-                  : "Nothing to show yet."}
+            {followingEmpty ? (
+              "Nothing followed yet — open a profile and hit “Save to my list”."
+            ) : issuesEmpty ? (
+              <>
+                You haven&apos;t ranked any issues yet — pick some from &ldquo;My issues&rdquo; in
+                the account menu, or{" "}
+                <Link href="/profile/top-issues/issue-finder?next=/feed" style={{ color: C.rust }}>
+                  answer a few questions with Issue Finder
+                </Link>
+                .
+              </>
+            ) : q.trim() ? (
+              `Nothing matches "${q.trim()}".`
+            ) : (
+              "Nothing to show yet."
+            )}
           </EmptyState>
         ) : null}
       </div>

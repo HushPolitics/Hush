@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: "Issue Finder" };
  */
 export default function IssueFinderPage() {
   return (
-    <AppShell kicker="My issues" title="Find your top issues">
+    <AppShell>
       <Suspense fallback={null}>
         <IssueFinderView topicPool={topicPool()} finderBank={issueFinderBank()} />
       </Suspense>

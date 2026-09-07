@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Following" };
 
 export default function FollowingPage() {
   return (
-    <AppShell kicker="Following" title="Politicians you're following">
+    <AppShell>
       <FollowingView politicians={listPoliticians()} />
     </AppShell>
   );

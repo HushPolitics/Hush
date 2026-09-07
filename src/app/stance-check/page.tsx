@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Stance Check" };
 
 export default function StanceCheckPage() {
   return (
-    <AppShell kicker="Stance Check" title="Where you stand, statement by statement">
+    <AppShell>
       <StanceCheckView
         politicians={listPoliticians()}
         races={listRaces()}

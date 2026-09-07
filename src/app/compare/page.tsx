@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Compare" };
 
 export default function ComparePage() {
   return (
-    <AppShell kicker="Compare" title="Vote compare & side-by-side">
+    <AppShell>
       <CompareView
         politicians={listPoliticians()}
         races={listRaces()}

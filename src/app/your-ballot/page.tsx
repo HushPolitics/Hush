@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Your Ballot" };
 
 export default function YourBallotPage() {
   return (
-    <AppShell kicker="Your Ballot" title="General election · Nov 3, 2026">
+    <AppShell>
       <BallotView races={listRaces()} politicians={listPoliticians()} />
     </AppShell>
   );

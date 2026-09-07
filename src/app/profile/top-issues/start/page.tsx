@@ -20,7 +20,7 @@ export default async function IssueFinderStartPage({
   const { next } = await searchParams;
 
   return (
-    <AppShell kicker="My issues" title="Find your top issues">
+    <AppShell>
       <IssueOnboardingView topicPool={topicPool()} next={next} />
     </AppShell>
   );

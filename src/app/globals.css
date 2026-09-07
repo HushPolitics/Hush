@@ -176,38 +176,37 @@ input::placeholder {
   transform: rotateY(180deg);
 }
 
-/* Below the shell's 1100px design floor the sidebar collapses to a top bar. */
+/*
+   Search collapses to an icon before anything else in the top bar's right
+   group gives up space -- see AppShell's SEARCH_COLLAPSE_WIDTH constant for
+   the reasoning behind this exact number (keep the two in sync). React
+   mounts `.topbar-search-toggle` whenever the field isn't open, on every
+   width -- it relies entirely on this base rule to stay invisible above
+   the threshold, so the full field and the icon are never both on screen
+   at once. `.topbar-search-field` is the piece that's hidden by default
+   below the threshold and revealed again once AppShell adds `.is-open`.
+*/
+.topbar-search-toggle {
+  display: none;
+}
+@media (max-width: 1720px) {
+  .topbar-search-toggle {
+    display: flex;
+  }
+  .topbar-search-field {
+    display: none;
+  }
+  .topbar-search-field.is-open {
+    display: block;
+  }
+}
+
+/* Below the shell's 1100px design floor the contextual rail has no home --
+   same reasoning the old sidebar's section-nav zone used: a variable-length
+   jump list doesn't fit a horizontal strip, and there's no mobile-specific
+   destination for it yet. Hidden rather than squeezed in. */
 @media (max-width: 1100px) {
-  .app-shell {
-    flex-direction: column;
-    height: auto;
-    min-height: 100vh;
-  }
-  .app-sidebar {
-    width: 100% !important;
-    flex: none !important;
-    border-right: 0 !important;
-    border-bottom: 1px solid var(--line);
-    flex-direction: row !important;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-    padding: 14px 18px !important;
-  }
-  .app-sidebar .sidebar-nav {
-    flex-direction: row !important;
-    flex-wrap: wrap;
-  }
-  .app-sidebar .election-countdown-card {
-    margin-top: 0 !important;
-    margin-left: auto;
-  }
-  /* Section navigation (jump links / the Feed scope filter list) has no
-     home in the collapsed top-bar layout below this breakpoint -- a
-     variable-length list doesn't fit the horizontal strip primary nav
-     reflows into here. Hidden rather than squeezed in; see this PR's notes
-     for the mobile pattern this still needs. */
-  .sidebar-section-nav {
+  .app-rail {
     display: none !important;
   }
   .split {
@@ -260,9 +259,9 @@ input::placeholder {
     display: none !important;
   }
 
-  /* App shell header: the district pill and election countdown are already
-     shown elsewhere (district card, ballot countdown), so they're dropped
-     at phone width to keep the title, search and profile link on one row. */
+  /* Top bar: the location pill and election-day text are already shown
+     elsewhere (district card, ballot countdown), so they're dropped at
+     phone width to keep the logo, nav and avatar on fewer rows. */
   .header-pill,
   .header-days {
     display: none !important;
@@ -289,32 +288,38 @@ input::placeholder {
     flex: 1 1 100% !important;
   }
 
-  /* App shell header: the title group and the search field (flex: 1,
-     basis 0) both sit in the same row. When space runs out the browser
-     distributes the shrinkage almost entirely onto the title (its
-     basis*shrink is nonzero while the search field's basis is 0), so the
-     title collapses to near-zero width instead of the search field giving
-     up room. Wrap the header and drop the search field to its own
-     full-width row below the title/avatar so neither has to fight for
-     space on the first line. */
-  .app-header {
-    flex: 0 0 auto !important;
+  /* Top bar: the grid used at wider widths assumes the logo, nav and
+     right-hand group fit one row. Below phone width they don't -- switch
+     to a wrapping flex row so logo+nav share the first line and whatever's
+     left of the right-hand group (just search + avatar; location and
+     election day are already dropped above) wraps beneath it. */
+  .app-topbar {
+    display: flex !important;
+    flex-wrap: wrap !important;
     height: auto !important;
     min-height: 66px;
-    flex-wrap: wrap !important;
     gap: 10px !important;
     padding: 12px 16px !important;
   }
-  .header-title {
-    order: 1;
-  }
   .header-right {
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+    flex: 1 1 100% !important;
+  }
+  /* The narrower-desktop icon-collapse (see AppShell's SEARCH_COLLAPSE_WIDTH)
+     is for desktop widths that are merely tight, not phones -- phones never
+     had a tap-to-open search step before that feature existed, so it's
+     forced back open here: full width, own row, same as the old header. */
+  .topbar-search-toggle {
+    display: none !important;
+  }
+  .topbar-search-field {
+    display: block !important;
+    flex: 1 1 100% !important;
     order: 2;
   }
   .header-search {
-    order: 3;
-    flex: 1 1 100% !important;
-    max-width: none !important;
+    width: 100% !important;
   }
 
   /* Narrower cards wrap onto more lines — taller fixed height keeps both

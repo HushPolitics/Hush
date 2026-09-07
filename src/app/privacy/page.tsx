@@ -30,7 +30,7 @@ const SECTIONS: { title: string; body: string }[] = [
 
 export default function PrivacyPage() {
   return (
-    <AppShell kicker="Privacy" title="How HUSH uses your information">
+    <AppShell>
       <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16, maxWidth: 640 }}>
         <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>

@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "HUSH Guide" };
 
 export default function HushGuidePage() {
   return (
-    <AppShell kicker="HUSH Guide" title="Your ballot, researched">
+    <AppShell>
       <GuideView
         politicians={listPoliticians()}
         races={listRaces()}

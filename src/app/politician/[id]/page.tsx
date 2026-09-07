@@ -32,7 +32,7 @@ export default async function PoliticianPage({
   const p = getPolitician(id);
 
   return (
-    <AppShell kicker={p.office} title={p.name}>
+    <AppShell>
       <PoliticianView
         politician={p}
         checks={factChecksFor(id)}

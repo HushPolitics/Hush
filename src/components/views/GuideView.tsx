@@ -466,13 +466,16 @@ function TileGrid({
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
             <span style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Your {topics.length} issue{topics.length === 1 ? "" : "s"}
+              Your {topics.length} issue{topics.length === 1 ? "" : "s"}, ranked
             </span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {topics.map((i) => (
+              {topics.map((i, idx) => (
                 <span
                   key={i}
                   style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
                     fontSize: 11,
                     padding: "3px 8px",
                     borderRadius: 12,
@@ -481,29 +484,45 @@ function TileGrid({
                     whiteSpace: "nowrap",
                   }}
                 >
+                  <span style={{ fontFamily: cond, color: C.faint }}>{idx + 1}</span>
                   {i}
                 </span>
               ))}
             </div>
           </div>
-          <button
-            type="button"
-            className="link-quiet"
-            onClick={onEditIssues}
-            style={{
-              marginLeft: "auto",
-              border: 0,
-              background: "transparent",
-              color: C.navy,
-              fontSize: 12,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-              padding: 6,
-            }}
-          >
-            Edit issues
-          </button>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+            {/*
+              Both edits happen in place -- this swaps `manualStep` rather
+              than navigating, so the grid is still one page. "Try Issue
+              Finder" is new: it used to be reachable only after clicking
+              Edit issues into IssuesStep below; per the top-bar brief it
+              needs to be visible here directly, not one click deeper.
+            */}
+            <Link
+              href="/profile/top-issues/issue-finder?next=/hush-guide"
+              className="link-quiet"
+              style={{ color: C.muted, fontSize: 12 }}
+            >
+              Try Issue Finder →
+            </Link>
+            <button
+              type="button"
+              className="link-quiet"
+              onClick={onEditIssues}
+              style={{
+                border: 0,
+                background: "transparent",
+                color: C.navy,
+                fontSize: 12,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                cursor: "pointer",
+                padding: 6,
+              }}
+            >
+              Edit issues
+            </button>
+          </div>
         </Card>
       </div>
 
