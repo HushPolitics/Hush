@@ -6,7 +6,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
-import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
+import { ELECTION_ISO } from "@/lib/seed-data";
 import { createClient } from "@/lib/supabase/client";
 import { jumpToSection, useScrollSpy, useSectionNavItems, type SectionNavItem } from "@/lib/sectionNav";
 import { FEED_SCOPES, useFeedScope } from "@/lib/feedScope";
@@ -27,6 +27,16 @@ const NAV = [
   { href: "/stance-check", label: "Stance Check" },
 ];
 
+// Sized to its contents, not to a nav several times this length. 188px is
+// the narrowest value in the brief's 180-200px range that comfortably fits
+// the longest label ("Stance Check", ~84.5px at the active item's 600
+// weight in Barlow 14px) with room to spare: 16px aside padding + 10px item
+// padding + 6px dot + 10px dot-gap + 84.5px text ≈ 153px needed, leaving
+// ~30px of trailing space per row at 188px -- enough that nothing feels
+// cramped, without reintroducing the old 240px's ~88px of dead space per
+// row. Single source of truth so reverting this change is a one-line edit.
+const SIDEBAR_WIDTH = 188;
+
 const AVATAR_MENU = [
   { href: "/profile/top-issues", label: "My issues" },
   { href: "/following", label: "Following" },
@@ -41,46 +51,6 @@ function isActive(pathname: string, href: string) {
 function daysToElection() {
   const ms = new Date(ELECTION_ISO).getTime() - Date.now();
   return Math.max(0, Math.floor(ms / 86400000));
-}
-
-const MONTHS: Record<string, number> = {
-  Jan: 0,
-  Feb: 1,
-  Mar: 2,
-  Apr: 3,
-  May: 4,
-  Jun: 5,
-  Jul: 6,
-  Aug: 7,
-  Sep: 8,
-  Oct: 9,
-  Nov: 10,
-  Dec: 11,
-};
-
-/**
- * Which `KEY_DATES` entry is coming up next, for the sidebar countdown card
- * below -- unlike `ElectionCountdownBanner`'s full row of all three, there's
- * only room for one here. A range ("Oct 19 - 30") sorts on its start date.
- * Same implicit-election-year, "Mon D" parsing convention as Feed's
- * `parseFeedDate`. Whichever entry hasn't passed yet and comes soonest wins,
- * so this rotates from "Register by" to "Early voting" to "Mail ballot
- * request" as the election approaches -- same three key dates the banner
- * shows, just one at a time.
- */
-function nearestKeyDate(dates: typeof KEY_DATES, year: number, now: number) {
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-
-  let best: { date: (typeof KEY_DATES)[number]; ts: number } | null = null;
-  for (const d of dates) {
-    const m = d.value.match(/^([A-Za-z]{3})\s+(\d{1,2})/);
-    if (!m || MONTHS[m[1]] === undefined) continue;
-    const ts = new Date(year, MONTHS[m[1]], Number(m[2])).getTime();
-    if (ts < todayStart.getTime()) continue;
-    if (!best || ts < best.ts) best = { date: d, ts };
-  }
-  return best?.date ?? null;
 }
 
 export default function AppShell({
@@ -104,7 +74,6 @@ export default function AppShell({
   // Rendered client-side only so the server and client markup agree.
   const mounted = useMounted();
   const days = mounted ? daysToElection() : null;
-  const nextKeyDate = mounted ? nearestKeyDate(KEY_DATES, new Date(ELECTION_ISO).getFullYear(), Date.now()) : null;
 
   // Section-nav zone: registered by whichever view is mounted below (see
   // lib/sectionNav.tsx). `mainRef` is the scroll-spy's observer root -- the
@@ -162,8 +131,8 @@ export default function AppShell({
       <aside
         className="app-sidebar"
         style={{
-          width: 240,
-          flex: "0 0 240px",
+          width: SIDEBAR_WIDTH,
+          flex: `0 0 ${SIDEBAR_WIDTH}px`,
           background: C.sand,
           borderRight: `1px solid ${C.line}`,
           display: "flex",
@@ -192,7 +161,11 @@ export default function AppShell({
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
-                  padding: 10,
+                  // Vertical padding trimmed from the original 10px so the
+                  // three-item group reads as compact at the narrower rail
+                  // width instead of loose; horizontal padding is untouched
+                  // -- it's part of SIDEBAR_WIDTH's fit math above.
+                  padding: "7px 10px",
                   borderRadius: 8,
                   fontSize: 14,
                   background: on ? C.ink : "transparent",
@@ -237,52 +210,28 @@ export default function AppShell({
         </div>
 
         {/*
-          Compact vertical countdown for the sidebar column -- the district
-          box that used to live here (see git history) is gone; this and
-          `ElectionCountdownBanner`'s wide horizontal version on HUSH Guide
-          share the same `ELECTION_ISO`/`KEY_DATES` source data rather than
-          each hardcoding their own copy. Only room for one key date here,
-          so it's whichever is coming up next (see `nearestKeyDate` above),
-          not the banner's full row of all three, and there's no register
-          button -- this card is a glance, not a destination.
-
-          Rendered only once `mounted` -- `days`/`nextKeyDate` are both
-          `null` before hydration (see above), and a "—" placeholder there
-          would be a visible empty field for no reason; better to show
-          nothing for one frame than a value that isn't one.
+          Quiet bottom anchor -- gives the rail a bottom edge without adding
+          a feature. The election countdown card (and the district box
+          before it, see git history) that used to sit here is gone: three
+          items anchored at the top plus this one line is the whole rail
+          now. Plain text, not a control -- the header's location pill is
+          still the only way to edit it. `city`/`state`/`zip` come from
+          `usePrefs`, whose server snapshot already resolves to real
+          defaults (see lib/prefs.tsx), so this doesn't need `mounted`
+          gating the way the old countdown card did.
         */}
-        {mounted ? (
-          <div
-            className="election-countdown-card"
-            style={{
-              marginTop: "auto",
-              padding: "17px 15px",
-              border: "1px solid rgba(21,21,21,0.14)",
-              borderRadius: 10,
-              background: "rgba(255,255,255,0.55)",
-            }}
-          >
-            <div
-              style={{
-                fontFamily: cond,
-                fontSize: 10,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: C.rust,
-              }}
-            >
-              Election day
-            </div>
-            <div style={{ fontFamily: cond, fontSize: 19, marginTop: 2 }}>
-              {days} {days === 1 ? "day" : "days"}
-            </div>
-            {nextKeyDate ? (
-              <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.4, marginTop: 6 }}>
-                {nextKeyDate.label} · {nextKeyDate.value}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+        <div
+          className="sidebar-location-anchor"
+          style={{
+            marginTop: "auto",
+            padding: "14px 8px 0",
+            fontSize: 11,
+            lineHeight: 1.5,
+            color: C.faint,
+          }}
+        >
+          {city} · {state} · {zip}
+        </div>
       </aside>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>

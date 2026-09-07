@@ -198,16 +198,20 @@ input::placeholder {
     flex-direction: row !important;
     flex-wrap: wrap;
   }
-  .app-sidebar .election-countdown-card {
-    margin-top: 0 !important;
-    margin-left: auto;
-  }
   /* Section navigation (jump links / the Feed scope filter list) has no
      home in the collapsed top-bar layout below this breakpoint -- a
      variable-length list doesn't fit the horizontal strip primary nav
      reflows into here. Hidden rather than squeezed in; see this PR's notes
      for the mobile pattern this still needs. */
   .sidebar-section-nav {
+    display: none !important;
+  }
+  /* Same reasoning as .sidebar-section-nav above: the quiet bottom-of-rail
+     location line depends on `margin-top: auto` pinning it beneath a
+     column layout. In the collapsed row layout it has no natural home
+     either, and the header's own location pill already covers this width,
+     so it's hidden rather than reflowed. */
+  .sidebar-location-anchor {
     display: none !important;
   }
   .split {
