@@ -1,7 +1,7 @@
 "use client";
 
 import { C, cond } from "@/lib/theme";
-import { useNow } from "@/lib/hooks";
+import { useMounted, useNow } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
 import { Kicker, RustButton } from "@/components/ui";
 
@@ -26,6 +26,12 @@ export default function ElectionCountdownBanner() {
   const target = new Date(ELECTION_ISO).getTime();
   // 0 until hydration, then ticks every second.
   const now = useNow(1000);
+  // Gates the countdown text on mount rather than on `now === 0`: by the
+  // render where `mounted` flips true, `now` has already been read for
+  // real (see useNow's lazy first-read in lib/hooks.ts), so this renders
+  // nothing for one frame instead of a "—" with no value behind it -- the
+  // em-dash-with-no-value bug the top-bar brief called out.
+  const mounted = useMounted();
 
   return (
     <section
@@ -52,7 +58,7 @@ export default function ElectionCountdownBanner() {
             fontVariantNumeric: "tabular-nums",
           }}
         >
-          {now === 0 ? "—" : formatCountdown(target, now)}
+          {mounted ? formatCountdown(target, now) : ""}
         </span>
       </div>
       <span style={{ height: 44, width: 1, background: "rgba(243,239,228,0.2)" }} />

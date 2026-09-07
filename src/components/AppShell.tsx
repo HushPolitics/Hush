@@ -6,21 +6,16 @@ import { useRef, useState, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
-import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
+import { ELECTION_ISO } from "@/lib/seed-data";
 import { createClient } from "@/lib/supabase/client";
 import { jumpToSection, useScrollSpy, useSectionNavItems, type SectionNavItem } from "@/lib/sectionNav";
-import { FEED_SCOPES, useFeedScope } from "@/lib/feedScope";
 import { RustButton, SearchField } from "./ui";
 import PersonalizeBanner from "./PersonalizeBanner";
 import { HushScoreInfoProvider } from "./HushScoreInfo";
 
 // Nav trimmed to three destinations plus the avatar menu (see AVATAR_MENU
-// below) — Compare and the politician page are reached from other pages now
-// rather than being top-level tabs, Fact Check's own page is going away
-// (its card renders in three other places instead), and Profile has split
-// three ways (My issues / Following live in the avatar menu, Account
-// settings keeps its own route). None of those routes were deleted here —
-// only their nav entries — except where a phase below says otherwise.
+// below). Unchanged from the sidebar era -- only the layout around it
+// changed, from a vertical list to a horizontal one in the top bar.
 const NAV = [
   { href: "/feed", label: "Feed" },
   { href: "/hush-guide", label: "HUSH Guide" },
@@ -43,68 +38,50 @@ function daysToElection() {
   return Math.max(0, Math.floor(ms / 86400000));
 }
 
-const MONTHS: Record<string, number> = {
-  Jan: 0,
-  Feb: 1,
-  Mar: 2,
-  Apr: 3,
-  May: 4,
-  Jun: 5,
-  Jul: 6,
-  Aug: 7,
-  Sep: 8,
-  Oct: 9,
-  Nov: 10,
-  Dec: 11,
-};
-
 /**
- * Which `KEY_DATES` entry is coming up next, for the sidebar countdown card
- * below -- unlike `ElectionCountdownBanner`'s full row of all three, there's
- * only room for one here. A range ("Oct 19 - 30") sorts on its start date.
- * Same implicit-election-year, "Mon D" parsing convention as Feed's
- * `parseFeedDate`. Whichever entry hasn't passed yet and comes soonest wins,
- * so this rotates from "Register by" to "Early voting" to "Mail ballot
- * request" as the election approaches -- same three key dates the banner
- * shows, just one at a time.
+ * Routes that get the contextual left rail. `useRegisterSectionNav` (see
+ * lib/sectionNav.tsx) is called by three views -- GuideView's tile grid,
+ * PoliticianView, and StanceCheckView's summary screen -- but per the
+ * top-bar brief only the first two get a rail; Stance Check keeps
+ * registering its own summary sections (something else may read them
+ * later) without AppShell rendering anything for them. Gating on the route
+ * rather than "did the current page register anything" is what makes that
+ * omission explicit rather than incidental to how sectionNav happens to work.
  */
-function nearestKeyDate(dates: typeof KEY_DATES, year: number, now: number) {
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
-
-  let best: { date: (typeof KEY_DATES)[number]; ts: number } | null = null;
-  for (const d of dates) {
-    const m = d.value.match(/^([A-Za-z]{3})\s+(\d{1,2})/);
-    if (!m || MONTHS[m[1]] === undefined) continue;
-    const ts = new Date(year, MONTHS[m[1]], Number(m[2])).getTime();
-    if (ts < todayStart.getTime()) continue;
-    if (!best || ts < best.ts) best = { date: d, ts };
-  }
-  return best?.date ?? null;
+function showsRail(pathname: string) {
+  return pathname === "/hush-guide" || pathname.startsWith("/politician/");
 }
 
-export default function AppShell({
-  kicker,
-  title,
-  children,
-}: {
-  kicker: string;
-  title: string;
-  children: ReactNode;
-}) {
+// Sized to the longest section label across both rail routes -- "Bills
+// being considered" (HUSH Guide) and "Claims checked" (politician page) --
+// plus SectionJumpList's own "7px 10px 7px 22px" padding. Single source of
+// truth so the rail's width is a one-line revert.
+const RAIL_WIDTH = 200;
+
+// Above this width the top bar's right-hand group (location, search,
+// election day, avatar) has room for a full search field alongside
+// everything else. Below it, search collapses to an icon that expands on
+// click rather than any element being dropped -- see the brief. Reasoned
+// from the right group's own content (location ~140px + search 260px +
+// election-day text ~110px + avatar 32px + gaps), not measured against a
+// live page the way the sidebar width was, since this is a responsive
+// threshold rather than a fixed content width.
+const SEARCH_COLLAPSE_WIDTH = 1280;
+
+export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { zip, city, state, setZip, setCity, setState } = usePrefs();
   const [q, setQ] = useState("");
   const [locationOpen, setLocationOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [cityDraft, setCityDraft] = useState(city);
   const [stateDraft, setStateDraft] = useState(state);
   const [zipDraft, setZipDraft] = useState(zip);
   // Rendered client-side only so the server and client markup agree.
   const mounted = useMounted();
   const days = mounted ? daysToElection() : null;
-  const nextKeyDate = mounted ? nearestKeyDate(KEY_DATES, new Date(ELECTION_ISO).getFullYear(), Date.now()) : null;
 
   // Section-nav zone: registered by whichever view is mounted below (see
   // lib/sectionNav.tsx). `mainRef` is the scroll-spy's observer root -- the
@@ -112,10 +89,11 @@ export default function AppShell({
   const mainRef = useRef<HTMLElement | null>(null);
   const sectionItems = useSectionNavItems();
   const activeSectionId = useScrollSpy(mainRef, sectionItems.map((i) => i.id));
-  // Feed's scope filter takes over this zone instead of jump links while on
-  // /feed -- see FeedScopeList below and the doc comment on GUIDE_SECTIONS'
-  // sibling in FeedView.tsx.
-  const onFeed = pathname === "/feed";
+  // Collapses gracefully (renders nothing, not an empty rail) on a rail
+  // route that hasn't registered anything yet -- HUSH Guide's address/issues
+  // onboarding steps render before the tile grid does -- same as the old
+  // sidebar's section-nav zone did.
+  const showRail = showsRail(pathname) && sectionItems.length > 0;
 
   function openLocationForm() {
     setCityDraft(city);
@@ -153,33 +131,52 @@ export default function AppShell({
       className="app-shell"
       style={{
         display: "flex",
+        flexDirection: "column",
         height: "100vh",
         width: "100%",
         color: C.ink,
         background: C.cream,
       }}
     >
-      <aside
-        className="app-sidebar"
+      {/*
+        The top bar. A three-column grid (not flex) so the center nav group
+        is genuinely centered regardless of how wide the left (logo) and
+        right (location/search/election day/avatar) groups end up -- flex's
+        `justify-content: space-between` can't do that once the two flanks
+        are different widths. Outside `.scroll` below, so it never scrolls
+        away -- same structural trick the old header/sidebar used, just
+        without needing `position: sticky` to say so.
+      */}
+      <header
+        className="app-topbar"
         style={{
-          width: 240,
-          flex: "0 0 240px",
-          background: C.sand,
-          borderRight: `1px solid ${C.line}`,
-          display: "flex",
-          flexDirection: "column",
-          padding: "24px 16px 18px",
+          flex: "0 0 66px",
+          height: 66,
+          display: "grid",
+          gridTemplateColumns: "1fr auto 1fr",
+          alignItems: "center",
+          columnGap: 20,
+          borderBottom: `1px solid ${C.line}`,
+          padding: "0 28px",
+          background: C.cream,
         }}
       >
-        <Link href="/feed" style={{ display: "flex", alignItems: "baseline", padding: "0 8px", color: C.ink }}>
-          <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 28, letterSpacing: "0.22em" }}>
+        <Link
+          href="/feed"
+          className="topbar-logo"
+          style={{ display: "flex", alignItems: "baseline", justifySelf: "start", color: C.ink }}
+        >
+          <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 22, letterSpacing: "0.2em" }}>
             HUSH
           </span>
-          <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 28, color: C.rust }}>.</span>
+          <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 22, color: C.rust }}>.</span>
         </Link>
-        <div style={{ height: 2, width: 46, margin: "8px 8px 26px", background: C.rust }} />
 
-        <nav className="sidebar-nav" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <nav
+          className="topbar-nav"
+          aria-label="Primary"
+          style={{ display: "flex", gap: 4, justifySelf: "center" }}
+        >
           {NAV.map((item) => {
             const on = isActive(pathname, item.href);
             return (
@@ -191,10 +188,11 @@ export default function AppShell({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
-                  padding: 10,
+                  gap: 8,
+                  padding: "9px 14px",
                   borderRadius: 8,
                   fontSize: 14,
+                  whiteSpace: "nowrap",
                   background: on ? C.ink : "transparent",
                   color: on ? C.sand : C.body,
                   fontWeight: on ? 600 : 500,
@@ -214,121 +212,10 @@ export default function AppShell({
           })}
         </nav>
 
-        {/*
-          Section navigation: a second, lighter-weight nav zone below primary
-          nav, showing where you are within the current page rather than
-          another top-level destination -- see lib/sectionNav.tsx. Renders
-          nothing (not an empty box) on a route with nothing to show, so the
-          sidebar collapses gracefully instead of leaving a gap. On /feed
-          this zone is taken over by the scope filter list instead of jump
-          links -- different job (changes what the page shows, not where you
-          scroll to), so it's styled to look different too (solid ink fill,
-          matching primary nav's own active treatment, rather than the jump
-          links' plain tint). Hidden below the tablet breakpoint -- see the
-          `.sidebar-section-nav` rule in globals.css and this PR's notes on
-          why (no bottom-tab-bar destination for it exists yet).
-        */}
-        <div className="sidebar-section-nav">
-          {onFeed ? (
-            <FeedScopeList />
-          ) : sectionItems.length > 0 ? (
-            <SectionJumpList items={sectionItems} activeId={activeSectionId} />
-          ) : null}
-        </div>
-
-        {/*
-          Compact vertical countdown for the sidebar column -- the district
-          box that used to live here (see git history) is gone; this and
-          `ElectionCountdownBanner`'s wide horizontal version on HUSH Guide
-          share the same `ELECTION_ISO`/`KEY_DATES` source data rather than
-          each hardcoding their own copy. Only room for one key date here,
-          so it's whichever is coming up next (see `nearestKeyDate` above),
-          not the banner's full row of all three, and there's no register
-          button -- this card is a glance, not a destination.
-
-          Rendered only once `mounted` -- `days`/`nextKeyDate` are both
-          `null` before hydration (see above), and a "—" placeholder there
-          would be a visible empty field for no reason; better to show
-          nothing for one frame than a value that isn't one.
-        */}
-        {mounted ? (
-          <div
-            className="election-countdown-card"
-            style={{
-              marginTop: "auto",
-              padding: "17px 15px",
-              border: "1px solid rgba(21,21,21,0.14)",
-              borderRadius: 10,
-              background: "rgba(255,255,255,0.55)",
-            }}
-          >
-            <div
-              style={{
-                fontFamily: cond,
-                fontSize: 10,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: C.rust,
-              }}
-            >
-              Election day
-            </div>
-            <div style={{ fontFamily: cond, fontSize: 19, marginTop: 2 }}>
-              {days} {days === 1 ? "day" : "days"}
-            </div>
-            {nextKeyDate ? (
-              <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.4, marginTop: 6 }}>
-                {nextKeyDate.label} · {nextKeyDate.value}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-      </aside>
-
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-        <header
-          className="app-header"
-          style={{
-            height: 66,
-            flex: "0 0 66px",
-            borderBottom: `1px solid ${C.line}`,
-            display: "flex",
-            alignItems: "center",
-            gap: 18,
-            padding: "0 28px",
-            background: C.cream,
-          }}
+        <div
+          className="header-right"
+          style={{ display: "flex", alignItems: "center", gap: 12, justifySelf: "end", minWidth: 0 }}
         >
-          <div
-            className="header-title"
-            style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0, overflow: "hidden" }}
-          >
-            <span
-              style={{
-                fontFamily: cond,
-                fontSize: 11,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: C.rust,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {kicker}
-            </span>
-            <h1
-              style={{
-                fontFamily: cond,
-                fontSize: 22,
-                fontWeight: 400,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {title}
-            </h1>
-          </div>
-
           <div className="header-pill" style={{ position: "relative", flex: "0 0 auto" }}>
             <button
               type="button"
@@ -367,7 +254,7 @@ export default function AppShell({
                   style={{
                     position: "absolute",
                     top: "calc(100% + 6px)",
-                    left: 0,
+                    right: 0,
                     zIndex: 10,
                     width: 240,
                     display: "flex",
@@ -440,151 +327,209 @@ export default function AppShell({
             ) : null}
           </div>
 
-          <SearchField
-            value={q}
-            onChange={submitSearch}
-            placeholder="Search politicians, promises, or issues"
-            className="header-search"
-            style={{ flex: 1, maxWidth: 430 }}
-          />
-
-          <div className="header-right" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
-            <span
-              className="header-days"
+          {/*
+            Search collapses to an icon below SEARCH_COLLAPSE_WIDTH (see
+            that constant) rather than anything being dropped. The toggle
+            button is only ever rendered while collapsed-and-closed, so
+            there's no inline-vs-stylesheet specificity fight over
+            `display` -- CSS alone hides `.topbar-search-field` by default
+            in that width band and `.is-open` (added once `searchOpen` is
+            true) overrides it; above the band neither rule applies and the
+            field just shows, same as before this brief.
+          */}
+          {!searchOpen ? (
+            <button
+              type="button"
+              className="topbar-search-toggle"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Open search"
               style={{
-                fontFamily: cond,
-                fontSize: 12,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: C.muted,
-                whiteSpace: "nowrap",
+                border: "1px solid rgba(21,21,21,0.16)",
+                borderRadius: 7,
+                background: "transparent",
+                width: 34,
+                height: 34,
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 14,
+                color: C.faint,
+                cursor: "pointer",
+                flex: "0 0 auto",
               }}
             >
-              Nov 3 {days === null ? "" : `· ${days} days`}
-            </span>
-            <div style={{ position: "relative" }}>
-              <button
-                type="button"
-                onClick={() => setAvatarOpen((o) => !o)}
-                aria-haspopup="true"
-                aria-expanded={avatarOpen}
-                aria-label="Account menu"
-                className="header-avatar"
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  border: 0,
-                  background: C.navy,
-                  color: C.sand,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontFamily: cond,
-                  fontSize: 13,
-                  cursor: "pointer",
-                }}
-              >
-                JR
-              </button>
+              <span aria-hidden>⌕</span>
+            </button>
+          ) : null}
+          <div className={`topbar-search-field${searchOpen ? " is-open" : ""}`} style={{ minWidth: 0 }}>
+            <SearchField
+              value={q}
+              onChange={submitSearch}
+              placeholder="Search politicians, promises, or issues"
+              className="header-search"
+              style={{ width: 260 }}
+            />
+          </div>
 
-              {avatarOpen ? (
-                <>
-                  <div
-                    style={{ position: "fixed", inset: 0, zIndex: 9 }}
-                    onClick={() => setAvatarOpen(false)}
-                  />
-                  <div
-                    role="menu"
-                    aria-label="Account menu"
-                    style={{
-                      position: "absolute",
-                      top: "calc(100% + 6px)",
-                      right: 0,
-                      zIndex: 10,
-                      minWidth: 190,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 2,
-                      padding: 6,
-                      border: `1px solid ${C.line}`,
-                      borderRadius: 10,
-                      background: C.white,
-                      boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
-                    }}
-                  >
-                    {AVATAR_MENU.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        role="menuitem"
-                        onClick={() => setAvatarOpen(false)}
-                        style={{
-                          padding: "9px 10px",
-                          borderRadius: 6,
-                          fontSize: 13,
-                          color: C.ink,
-                        }}
-                      >
-                        {item.label}
-                      </Link>
-                    ))}
-                    <span style={{ height: 1, background: C.line, margin: "4px 2px" }} />
-                    <button
-                      type="button"
+          <span
+            className="header-days"
+            style={{
+              fontFamily: cond,
+              fontSize: 12,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              color: C.muted,
+              whiteSpace: "nowrap",
+            }}
+          >
+            Nov 3 {days === null ? "" : `· ${days} days`}
+          </span>
+
+          <div style={{ position: "relative" }}>
+            <button
+              type="button"
+              onClick={() => setAvatarOpen((o) => !o)}
+              aria-haspopup="true"
+              aria-expanded={avatarOpen}
+              aria-label="Account menu"
+              className="header-avatar"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                border: 0,
+                background: C.navy,
+                color: C.sand,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontFamily: cond,
+                fontSize: 13,
+                cursor: "pointer",
+                flex: "0 0 auto",
+              }}
+            >
+              JR
+            </button>
+
+            {avatarOpen ? (
+              <>
+                <div
+                  style={{ position: "fixed", inset: 0, zIndex: 9 }}
+                  onClick={() => setAvatarOpen(false)}
+                />
+                <div
+                  role="menu"
+                  aria-label="Account menu"
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 6px)",
+                    right: 0,
+                    zIndex: 10,
+                    minWidth: 190,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    padding: 6,
+                    border: `1px solid ${C.line}`,
+                    borderRadius: 10,
+                    background: C.white,
+                    boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
+                  }}
+                >
+                  {AVATAR_MENU.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
                       role="menuitem"
-                      onClick={logOut}
+                      onClick={() => setAvatarOpen(false)}
                       style={{
-                        border: 0,
-                        background: "transparent",
-                        borderRadius: 6,
                         padding: "9px 10px",
-                        textAlign: "left",
+                        borderRadius: 6,
                         fontSize: 13,
-                        color: C.rust,
-                        cursor: "pointer",
+                        color: C.ink,
                       }}
                     >
-                      Log out
-                    </button>
-                  </div>
-                </>
-              ) : null}
-            </div>
+                      {item.label}
+                    </Link>
+                  ))}
+                  <span style={{ height: 1, background: C.line, margin: "4px 2px" }} />
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={logOut}
+                    style={{
+                      border: 0,
+                      background: "transparent",
+                      borderRadius: 6,
+                      padding: "9px 10px",
+                      textAlign: "left",
+                      fontSize: 13,
+                      color: C.rust,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Log out
+                  </button>
+                </div>
+              </>
+            ) : null}
           </div>
-        </header>
+        </div>
+      </header>
 
-        <PersonalizeBanner />
+      <PersonalizeBanner />
 
-        <main ref={mainRef} className="scroll" style={{ flex: 1, minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", minWidth: 0, minHeight: 0 }}>
+        {/*
+          The contextual left rail -- only on HUSH Guide and a politician
+          page (see showsRail above), and only once that page has actually
+          registered sections to jump to. Every other route renders this as
+          `null`, so content simply starts at the shell's left edge -- no
+          reserved, permanently-empty column the way the old sidebar was.
+        */}
+        {showRail ? (
+          <aside
+            className="app-rail"
+            style={{
+              width: RAIL_WIDTH,
+              flex: `0 0 ${RAIL_WIDTH}px`,
+              borderRight: `1px solid ${C.line}`,
+              padding: "18px 8px",
+            }}
+          >
+            <SectionJumpList items={sectionItems} activeId={activeSectionId} />
+          </aside>
+        ) : null}
+
+        <main ref={mainRef} className="scroll" style={{ flex: 1, minWidth: 0 }}>
           {children}
         </main>
-
-        <footer
-          style={{
-            flex: "0 0 34px",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "0 28px",
-            background: C.sand,
-            borderTop: `1px solid ${C.line}`,
-            fontSize: 11,
-            color: C.muted,
-          }}
-        >
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.rust, flex: "0 0 6px" }} />
-          Illustrative placeholder data — HUSH. Scores, promise records and fact-check verdicts in this
-          prototype are not real.
-        </footer>
       </div>
+
+      <footer
+        style={{
+          flex: "0 0 34px",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "0 28px",
+          background: C.sand,
+          borderTop: `1px solid ${C.line}`,
+          fontSize: 11,
+          color: C.muted,
+        }}
+      >
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.rust, flex: "0 0 6px" }} />
+        Illustrative placeholder data — HUSH. Scores, promise records and fact-check verdicts in this
+        prototype are not real.
+      </footer>
     </div>
     </HushScoreInfoProvider>
   );
 }
 
 /**
- * Section-nav jump links — deliberately lighter than primary nav's solid
+ * Section-nav jump links -- deliberately lighter than primary nav's solid
  * ink-filled active state (no fill at all when idle, a plain tint when
  * active, no party/rust dot) so the hierarchy between "a top-level
  * destination" and "a spot on this page" stays unmistakable at a glance.
@@ -607,7 +552,7 @@ function SectionJumpList({ items, activeId }: { items: SectionNavItem[]; activeI
               display: "block",
               width: "100%",
               textAlign: "left",
-              padding: "7px 10px 7px 22px",
+              padding: "7px 10px 7px 14px",
               borderRadius: 7,
               border: 0,
               background: on ? C.hover : "transparent",
@@ -617,61 +562,6 @@ function SectionJumpList({ items, activeId }: { items: SectionNavItem[]; activeI
             }}
           >
             {item.label}
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
-/**
- * The Feed's scope filter (My ballot / My issues / Following), moved here
- * from horizontal chips inside FeedView -- see lib/feedScope.ts. Styled to
- * read as a set of *filters* rather than jump links: a solid ink fill on
- * the active one, the same visual weight primary nav's active item uses,
- * because picking one changes what the page shows rather than just
- * scrolling to a spot on it. Only rendered while on /feed (see `onFeed`
- * above).
- */
-function FeedScopeList() {
-  const [scope, setScope] = useFeedScope();
-  return (
-    <nav aria-label="Feed filters" style={{ display: "flex", flexDirection: "column", gap: 3, padding: "10px 0" }}>
-      <span
-        style={{
-          fontFamily: cond,
-          fontSize: 10,
-          letterSpacing: "0.14em",
-          textTransform: "uppercase",
-          color: C.muted,
-          padding: "0 10px 3px",
-        }}
-      >
-        Filter
-      </span>
-      {FEED_SCOPES.map((s) => {
-        const on = scope === s.value;
-        return (
-          <button
-            key={s.value}
-            type="button"
-            onClick={() => setScope(s.value)}
-            aria-pressed={on}
-            style={{
-              display: "block",
-              width: "100%",
-              textAlign: "left",
-              padding: "8px 10px",
-              borderRadius: 7,
-              border: 0,
-              background: on ? C.ink : "transparent",
-              color: on ? C.sand : C.body,
-              fontSize: 13,
-              fontWeight: on ? 600 : 500,
-              cursor: "pointer",
-            }}
-          >
-            {s.label}
           </button>
         );
       })}
