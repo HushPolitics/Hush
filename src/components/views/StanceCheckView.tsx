@@ -7,26 +7,13 @@ import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
 import { useRegisterSectionNav, type SectionNavItem } from "@/lib/sectionNav";
-import type { FactCheck, FivePointAnswer, Party, Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
+import type { FactCheck, Party, Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
 import { Card, Display, Kicker, Pill, RustButton } from "@/components/ui";
 import { FactCheckCard } from "./FactCheckView";
 import { IssuesStep } from "./GuideView";
 
 type Bucket = StanceCheckAnswer | "No record";
 const BUCKETS: Bucket[] = ["Agree", "Neutral", "Disagree", "No record"];
-
-/**
- * Collapses the reader's five-point pick to the three-value direction used
- * everywhere a verdict is computed (breakdown ordering/headers, the
- * cross-party summary, matching against a candidate's sourced `stance`) --
- * see `FivePointAnswer` in lib/types.ts for why there's no separate strength
- * field. This collapse only happens at read time; `answers` below still
- * stores the raw five-point pick.
- */
-function directionOf(a: FivePointAnswer): StanceCheckAnswer {
-  if (a === "Unsure") return "Neutral";
-  return a === "Agree" || a === "Strongly agree" ? "Agree" : "Disagree";
-}
 
 /**
  * One identical neutral treatment for every bucket -- Agree, Neutral and
@@ -54,26 +41,26 @@ const RESULT_STYLE: Record<Bucket, { bg: string; fg: string; dot: string }> = {
 };
 
 /**
- * The answer picker itself (five points, Strongly disagree through Strongly
- * agree, in the question box) gets the same no-color-coding treatment as the
- * results grid below, and for the same reason: a per-choice color there
- * would still read as the UI hinting which answer is "normal" before the
- * user even picks. This is deliberately not the shared `Chip` from ui.tsx --
- * Chip's selected state inverts to a solid ink background, which would
- * swallow a same-toned dot into invisibility, so selection here is instead
- * carried by the ring (hollow outline -> solid navy fill) plus a bolder ink
- * label, identical for whichever of the five is picked. The "Your answers"
- * review strip below now shares this picker's no-color-coding treatment too
- * (see `RESULT_STYLE` above) -- it used to keep its own per-answer accent,
- * but reviewing the user's own past picks shouldn't be color-coded good/bad
- * any more than the live picker should.
+ * The answer picker itself (Disagree/Neutral/Agree, in the question box)
+ * gets the same no-color-coding treatment as the results grid below, and for
+ * the same reason: a per-choice color there would still read as the UI
+ * hinting which answer is "normal" before the user even picks. This is
+ * deliberately not the shared `Chip` from ui.tsx -- Chip's selected state
+ * inverts to a solid ink background, which would swallow a same-toned dot
+ * into invisibility, so selection here is instead carried by the ring
+ * (hollow outline -> solid navy fill) plus a bolder ink label, identical for
+ * whichever of the three is picked. The "Your answers" review strip below
+ * now shares this picker's no-color-coding treatment too (see `RESULT_STYLE`
+ * above) -- it used to keep its own per-answer accent, but reviewing the
+ * user's own past picks shouldn't be color-coded good/bad any more than the
+ * live picker should.
  */
 /**
- * `variant="tertiary"` is Unsure's demoted treatment (see 1.4): smaller,
- * lower-contrast, visually subordinate to the two Agree/Disagree pairs
- * without being removed as a choice. Unsure is a legitimate answer, it
- * just produces a dead reveal (no one to be surprised about), so the picker
- * shouldn't present it as an equal-weight option among the five.
+ * `variant="tertiary"` is Neutral's demoted treatment (see 1.4): smaller,
+ * lower-contrast, visually subordinate to Agree and Disagree without being
+ * removed as a choice. Neutral is a legitimate answer, it just produces a
+ * dead reveal (no one to be surprised about), so the picker shouldn't
+ * present it as an equal-weight option among the three.
  */
 function AnswerChip({ on, onClick, children, variant = "primary" }: {
   on: boolean;
@@ -161,16 +148,21 @@ interface Candidacy {
  * `topics` list HUSH Guide's own setup step fills in (and "My Top Issues" in
  * the account menu ranks) -- not to be confused with Issue Finder, the
  * separate instrument that produces `topics` in the first place. Each issue
- * becomes one specific
- * statement; the user answers on a five-point scale (Strongly disagree
- * through Strongly agree), which collapses to Agree / Neutral / Disagree
- * (see `directionOf`) for immediately seeing which politicians actually
+ * becomes one specific statement; the user answers Agree / Neutral /
+ * Disagree directly, for immediately seeing which politicians actually
  * running in their races (the same
  * candidate set `Race`/`RACES` already defines for Your Ballot, HUSH Guide
  * and Compare) recorded the same stance, sourced. There is deliberately no
  * rolled-up score anywhere on this page — each question's breakdown stands
  * on its own, and the "Your answers" strip at the bottom is a review index,
- * not a result.
+ * not a result. Three points, not five: an earlier pass here briefly
+ * offered Strongly disagree/Disagree/Unsure/Agree/Strongly agree and
+ * collapsed that to Agree/Neutral/Disagree at read time, matching the
+ * marketing site's spec. The app has since deliberately reverted to storing
+ * the three-value answer directly -- a sourced candidate stance is binary
+ * to begin with, so a five-point pick on the user's side implied a
+ * precision the underlying data never had. This is a standing divergence
+ * from the marketing site, not a pending fix.
  */
 export default function StanceCheckView({
   politicians,
@@ -198,11 +190,7 @@ export default function StanceCheckView({
   const picking = showPicker ?? topics.length === 0;
 
   const [index, setIndex] = useState(0);
-  // Raw five-point picks -- see `FivePointAnswer`. `directions` below is the
-  // collapsed three-value view every verdict computation actually reads.
-  const [answers, setAnswers] = useState<Record<string, FivePointAnswer>>({});
-  const directions: Record<string, StanceCheckAnswer> = {};
-  for (const [q, a] of Object.entries(answers)) directions[q] = directionOf(a);
+  const [answers, setAnswers] = useState<Record<string, StanceCheckAnswer>>({});
 
   const knownIds = new Set(politicians.map((p) => p.id));
 
@@ -252,7 +240,7 @@ export default function StanceCheckView({
   const issue = done ? undefined : topics[at];
   const answer = issue ? answers[issue] : undefined;
 
-  function pickAnswer(a: FivePointAnswer) {
+  function pickAnswer(a: StanceCheckAnswer) {
     if (!issue) return;
     setAnswers((prev) => ({ ...prev, [issue]: a }));
   }
@@ -287,7 +275,7 @@ export default function StanceCheckView({
       {done ? (
         <StanceSummary
           topics={topics}
-          answers={directions}
+          answers={answers}
           candidacies={candidacies}
           positions={positions}
           onReviewFromStart={() => setIndex(0)}
@@ -299,21 +287,17 @@ export default function StanceCheckView({
             {statements[issue!]}
           </Display>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            {(["Strongly disagree", "Disagree"] as FivePointAnswer[]).map((a) => (
-              <AnswerChip key={a} on={answer === a} onClick={() => pickAnswer(a)}>
-                {a}
-              </AnswerChip>
-            ))}
-            <span aria-hidden style={{ width: 1, height: 20, background: C.line }} />
-            <AnswerChip on={answer === "Unsure"} onClick={() => pickAnswer("Unsure")} variant="tertiary">
-              Unsure
+            <AnswerChip on={answer === "Disagree"} onClick={() => pickAnswer("Disagree")}>
+              Disagree
             </AnswerChip>
             <span aria-hidden style={{ width: 1, height: 20, background: C.line }} />
-            {(["Agree", "Strongly agree"] as FivePointAnswer[]).map((a) => (
-              <AnswerChip key={a} on={answer === a} onClick={() => pickAnswer(a)}>
-                {a}
-              </AnswerChip>
-            ))}
+            <AnswerChip on={answer === "Neutral"} onClick={() => pickAnswer("Neutral")} variant="tertiary">
+              Neutral
+            </AnswerChip>
+            <span aria-hidden style={{ width: 1, height: 20, background: C.line }} />
+            <AnswerChip on={answer === "Agree"} onClick={() => pickAnswer("Agree")}>
+              Agree
+            </AnswerChip>
           </div>
         </Card>
       )}
@@ -326,7 +310,7 @@ export default function StanceCheckView({
           candidacies={candidacies}
           positions={positions}
           knownIds={knownIds}
-          userAnswer={directionOf(answer)}
+          userAnswer={answer}
           checks={checks}
         />
       ) : null}
@@ -346,7 +330,6 @@ export default function StanceCheckView({
           <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
             {topics.map((q, i) => {
               const a = answers[q];
-              const direction = a ? directionOf(a) : undefined;
               return (
                 <button
                   key={q}
@@ -361,12 +344,12 @@ export default function StanceCheckView({
                     borderRadius: 16,
                     fontSize: 12,
                     border: `1px solid ${!done && i === at ? C.ink : C.line}`,
-                    background: direction ? RESULT_STYLE[direction].bg : C.white,
-                    color: direction ? RESULT_STYLE[direction].fg : C.muted,
+                    background: a ? RESULT_STYLE[a].bg : C.white,
+                    color: a ? RESULT_STYLE[a].fg : C.muted,
                     cursor: "pointer",
                   }}
                 >
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: direction ? RESULT_STYLE[direction].dot : C.muted }} />
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: a ? RESULT_STYLE[a].dot : C.muted }} />
                   {q}
                 </button>
               );
