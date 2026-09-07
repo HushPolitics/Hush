@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Feed" };
 
 export default function FeedPage() {
   return (
-    <AppShell kicker="Feed" title="What's happened">
+    <AppShell>
       <Suspense fallback={null}>
         <FeedView
           politicians={listPoliticians()}
