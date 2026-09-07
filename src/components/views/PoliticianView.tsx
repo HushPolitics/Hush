@@ -60,7 +60,7 @@ export default function PoliticianView({
     { id: "claims-checked", label: "Claims checked" },
   ]);
 
-  const band = trustBand(p.trust);
+  const scoreColor = trustBand(p.trust);
   const split = promiseSplit(p);
   const isSaved = saved.includes(p.id);
   const ledgerRows = p.promises.filter((x) => ledgerStatus === "All" || x.status === ledgerStatus);
@@ -179,7 +179,7 @@ export default function PoliticianView({
                 <Kicker>HUSH. Score</Kicker>
                 <HushScoreInfoIcon politicianId={p.id} />
               </span>
-              <span style={{ fontFamily: cond, fontSize: 56, lineHeight: 1, color: band.color }}>
+              <span style={{ fontFamily: cond, fontSize: 56, lineHeight: 1, color: scoreColor }}>
                 {p.trust}
               </span>
               <span style={{ fontSize: 12, color: C.muted }}>{split.total} promises tracked</span>
@@ -204,6 +204,14 @@ export default function PoliticianView({
                 </span>
               </div>
 
+              {/*
+                Three distinguishable neutral shades, not one flat color --
+                unlike STATUS_STYLE's per-row treatment, this is a stacked
+                proportion bar, and a stacked bar with all-identical segments
+                is illegible (no visible boundary between them). Dark-to-
+                light (ink/body/faint) reads as three plain categories with
+                no good/bad association, the same way a legend would.
+              */}
               <div
                 style={{
                   display: "flex",
@@ -213,16 +221,16 @@ export default function PoliticianView({
                   background: C.shell,
                 }}
               >
-                <span style={{ width: `${split.keptPct}%`, background: C.navy }} />
-                <span style={{ width: `${split.progPct}%`, background: C.tan }} />
-                <span style={{ width: `${split.brokenPct}%`, background: C.rust }} />
+                <span style={{ width: `${split.keptPct}%`, background: C.ink }} />
+                <span style={{ width: `${split.progPct}%`, background: C.body }} />
+                <span style={{ width: `${split.brokenPct}%`, background: C.faint }} />
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
                 {[
-                  { label: "Delivered", value: p.kept, color: C.navy },
-                  { label: "In progress", value: p.prog, color: C.tan },
-                  { label: "No movement", value: p.broken, color: C.rust },
+                  { label: "Delivered", value: p.kept, color: C.ink },
+                  { label: "In progress", value: p.prog, color: C.body },
+                  { label: "No movement", value: p.broken, color: C.faint },
                 ].map((s) => (
                   <div key={s.label} style={{ display: "flex", flexDirection: "column" }}>
                     <span
@@ -498,8 +506,18 @@ export default function PoliticianView({
                     style={{ flex: 1, minWidth: 130, display: "flex", flexDirection: "column", gap: 8 }}
                   >
                     <div style={{ display: "flex", alignItems: "center" }}>
+                      {/*
+                        `t.dot` (see TimelineEvent in lib/types.ts) is seed
+                        data documented as a verdict color -- navy for
+                        progress, tan for slippage, rust for failure. Not
+                        hand-editing seed-data.ts itself (generated fixture,
+                        per the repo's own rule), but deliberately not
+                        reading that field here anymore: the milestone label
+                        text is what tells the reader what happened on this
+                        date, not the color of its dot.
+                      */}
                       <span
-                        style={{ width: 12, height: 12, borderRadius: "50%", background: t.dot, flex: "0 0 12px" }}
+                        style={{ width: 12, height: 12, borderRadius: "50%", background: C.ink, flex: "0 0 12px" }}
                       />
                       <span style={{ flex: 1, height: 2, background: C.shell }} />
                     </div>
@@ -532,7 +550,7 @@ export default function PoliticianView({
             </span>
             <div style={{ display: "flex", alignItems: "flex-end", gap: 14, height: 210 }}>
               {p.terms.map((t) => {
-                const color = trustBand(t.score).color;
+                const color = trustBand(t.score);
                 return (
                   <div
                     key={t.label}
