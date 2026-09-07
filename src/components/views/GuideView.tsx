@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
+import { useMounted } from "@/lib/hooks";
+import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
+import { ballotPoliticianIds } from "@/lib/feed";
 import { issueCoverage, parseRaceTitle, stripPartySuffix, topRankedIssueForRace } from "@/lib/guide";
-import { useRegisterSectionNav } from "@/lib/sectionNav";
+import { useRegisterRailFooter, useRegisterSectionNav } from "@/lib/sectionNav";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, ExpandableQuote, GhostButton, Kicker, RustButton } from "@/components/ui";
-import ElectionCountdownBanner from "@/components/ElectionCountdownBanner";
+import RepresentativesCard from "@/components/RepresentativesCard";
 import PollingPlaceCard from "@/components/PollingPlaceCard";
 import { BillsSection } from "./GuideBills";
 
@@ -17,10 +20,16 @@ import { BillsSection } from "./GuideBills";
  * HUSH Guide's section-nav list, in the sidebar contextual-nav brief's
  * specified order — always this order regardless of whether `GUIDE_LEAD`
  * puts Bills before or after the races grid in the DOM below.
+ *
+ * "Your address" isn't in this list -- app-layout-v2 phase 2 moved it out
+ * of the jump list entirely and into the rail's footer (see
+ * `useRegisterRailFooter` below), since it's a short standing fact about
+ * the reader rather than a section of the page to scroll to.
  */
 const GUIDE_SECTIONS = [
-  { id: "address", label: "Your address" },
   { id: "issues", label: "Your issues" },
+  { id: "voting", label: "Voting information" },
+  { id: "polling", label: "Polling place" },
   { id: "bills", label: "Bills being considered" },
   { id: "races", label: "Your races" },
 ];
@@ -392,145 +401,128 @@ function TileGrid({
   const router = useRouter();
   const { streetAddress, city, state, zip, topics } = usePrefs();
   const knownIds = new Set(politicians.map((p) => p.id));
+  const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
+  const ballotPoliticians = useMemo(
+    () => politicians.filter((p) => ballotIds.has(p.id)),
+    [politicians, ballotIds],
+  );
 
   // Only registered while the grid is actually showing -- address/issues
   // onboarding steps render a different `Step` entirely (see GuideView's
   // top-level switch), so there's nothing to jump to from the sidebar then.
   useRegisterSectionNav(GUIDE_SECTIONS);
 
+  // Phase 2 moved the address out of the jump list and into the rail's own
+  // footer -- a short standing fact about the reader, not a section to
+  // scroll to. Memoized on the fields it actually depends on so the rail
+  // doesn't re-register on every unrelated render.
+  const addressFooter = useMemo(
+    () => (
+      <AddressRailFooter
+        streetAddress={streetAddress}
+        city={city}
+        state={state}
+        zip={zip}
+        onEdit={onEditAddress}
+      />
+    ),
+    [streetAddress, city, state, zip, onEditAddress],
+  );
+  useRegisterRailFooter(addressFooter);
+
   return (
     <>
-      <ElectionCountdownBanner />
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-        <Kicker>HUSH Guide</Kicker>
-        <Display size={25}>Your ballot, by the issues you picked</Display>
-      </div>
+      <GuideHero />
 
       <div
         className="stack-row"
-        style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "flex-start" }}
+        style={{ display: "flex", gap: 20, alignItems: "flex-start" }}
       >
-        <Card
-          id="address"
-          style={{
-            flex: 1,
-            minWidth: 260,
-            padding: "14px 16px",
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            flexWrap: "wrap",
-          }}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <span style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Address
-            </span>
-            <span style={{ fontSize: 13, color: C.ink }}>
-              {streetAddress ? `${streetAddress}, ` : ""}
-              {city}, {state} {zip}
-            </span>
-          </div>
-          <button
-            type="button"
-            className="link-quiet"
-            onClick={onEditAddress}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
+          <Card
+            id="issues"
             style={{
-              marginLeft: "auto",
-              border: 0,
-              background: "transparent",
-              color: C.navy,
-              fontSize: 12,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-              padding: 6,
+              padding: "14px 16px",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              flexWrap: "wrap",
             }}
           >
-            Edit address
-          </button>
-        </Card>
-
-        <Card
-          id="issues"
-          style={{
-            flex: 1,
-            minWidth: 260,
-            padding: "14px 16px",
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            flexWrap: "wrap",
-          }}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
-            <span style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Your {topics.length} issue{topics.length === 1 ? "" : "s"}, ranked
-            </span>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {topics.map((i, idx) => (
-                <span
-                  key={i}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                    fontSize: 11,
-                    padding: "3px 8px",
-                    borderRadius: 12,
-                    background: C.shell,
-                    color: C.body,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  <span style={{ fontFamily: cond, color: C.faint }}>{idx + 1}</span>
-                  {i}
-                </span>
-              ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+              <span style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                Your {topics.length} issue{topics.length === 1 ? "" : "s"}, ranked
+              </span>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {topics.map((i, idx) => (
+                  <span
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      fontSize: 11,
+                      padding: "3px 8px",
+                      borderRadius: 12,
+                      background: C.shell,
+                      color: C.body,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <span style={{ fontFamily: cond, color: C.faint }}>{idx + 1}</span>
+                    {i}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-            {/*
-              Both edits happen in place -- this swaps `manualStep` rather
-              than navigating, so the grid is still one page. "Try Issue
-              Finder" is new: it used to be reachable only after clicking
-              Edit issues into IssuesStep below; per the top-bar brief it
-              needs to be visible here directly, not one click deeper.
-            */}
-            <Link
-              href="/profile/top-issues/issue-finder?next=/hush-guide"
-              className="link-quiet"
-              style={{ color: C.muted, fontSize: 12 }}
-            >
-              Try Issue Finder →
-            </Link>
-            <button
-              type="button"
-              className="link-quiet"
-              onClick={onEditIssues}
-              style={{
-                border: 0,
-                background: "transparent",
-                color: C.navy,
-                fontSize: 12,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                cursor: "pointer",
-                padding: 6,
-              }}
-            >
-              Edit issues
-            </button>
-          </div>
-        </Card>
-      </div>
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+              {/*
+                Both edits happen in place -- this swaps `manualStep` rather
+                than navigating, so the grid is still one page. "Try Issue
+                Finder" is new: it used to be reachable only after clicking
+                Edit issues into IssuesStep below; per the top-bar brief it
+                needs to be visible here directly, not one click deeper.
+              */}
+              <Link
+                href="/profile/top-issues/issue-finder?next=/hush-guide"
+                className="link-quiet"
+                style={{ color: C.muted, fontSize: 12 }}
+              >
+                Try Issue Finder →
+              </Link>
+              <button
+                type="button"
+                className="link-quiet"
+                onClick={onEditIssues}
+                style={{
+                  border: 0,
+                  background: "transparent",
+                  color: C.navy,
+                  fontSize: 12,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  cursor: "pointer",
+                  padding: 6,
+                }}
+              >
+                Edit issues
+              </button>
+            </div>
+          </Card>
 
-      <PollingPlaceCard />
+          <VotingInformationSection />
 
-      {GUIDE_LEAD === "bills" ? <BillsSection bills={bills} /> : null}
+          <section id="polling" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <Kicker>Polling Place</Kicker>
+              <Display size={22}>Where you vote</Display>
+            </div>
+            <PollingPlaceCard />
+          </section>
 
-      {/*
+          {GUIDE_LEAD === "bills" ? <BillsSection bills={bills} /> : null}
+
+          {/*
         RACES has 6 entries seeded (U.S. House, U.S. Senate, Mayor, State
         Senate, County Judge, School Board), all for the same Jacksonville/Duval
         County sample ballot BallotView and CompareView already use — there's
@@ -664,9 +656,250 @@ function TileGrid({
           })}
         </div>
       )}
-      </div>
+          </div>
 
-      {GUIDE_LEAD === "races" ? <BillsSection bills={bills} /> : null}
+          {GUIDE_LEAD === "races" ? <BillsSection bills={bills} /> : null}
+        </div>
+
+        <aside
+          style={{
+            width: 280,
+            flex: "0 0 280px",
+            minWidth: 260,
+            display: "flex",
+            flexDirection: "column",
+            gap: 14,
+          }}
+        >
+          <RepresentativesCard politicians={ballotPoliticians} />
+          <VotingInfoSummaryCard />
+        </aside>
+      </div>
     </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Phase 2 additions -- hero banner, rail-footer address, Voting Information
+// ---------------------------------------------------------------------------
+
+/**
+ * HUSH Guide's hero banner. The capitol glyph is a flat, single-stroke line
+ * drawing HUSH drew itself -- not a real photograph. app-layout-v2's brief
+ * calls for a "placeholder capitol photograph"; rather than fetch or fake a
+ * real photo (this app draws no real building, seal, or likeness of a real
+ * place anywhere else either), this stays honest about being a placeholder
+ * the way `PollingPlaceCard` already handles a missing Maps key -- drop back
+ * to something clearly provisional instead of a broken or misleading asset.
+ * Swap this for a real photograph whenever one is licensed for the site.
+ */
+function GuideHero() {
+  return (
+    <div
+      style={{
+        position: "relative",
+        borderRadius: 12,
+        overflow: "hidden",
+        background: C.ink,
+        minHeight: 176,
+        display: "flex",
+        alignItems: "flex-end",
+      }}
+    >
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: 0.6,
+        }}
+      >
+        <CapitolGlyph />
+      </div>
+      <div
+        style={{
+          position: "relative",
+          padding: "22px 26px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+        }}
+      >
+        <Kicker color={C.tan}>HUSH Guide</Kicker>
+        <Display size={28} color={C.sand}>
+          Your ballot, by the issues you picked
+        </Display>
+        <span style={{ fontSize: 11, color: "rgba(243,239,228,0.55)" }}>
+          Placeholder hero image — official capitol photograph pending
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** Flat single-stroke capitol-building glyph -- see GuideHero's doc comment. */
+function CapitolGlyph() {
+  return (
+    <svg
+      viewBox="0 0 400 140"
+      width="66%"
+      height="100%"
+      style={{ maxWidth: 520 }}
+      fill="none"
+      stroke="rgba(181,168,138,0.55)"
+      strokeWidth="1.5"
+      aria-hidden
+    >
+      <line x1="200" y1="8" x2="200" y2="22" />
+      <circle cx="200" cy="46" r="26" />
+      <line x1="174" y1="46" x2="226" y2="46" />
+      <path d="M150 72 L200 72 L250 72" />
+      <path d="M140 100 L200 72 L260 100" />
+      <line x1="120" y1="100" x2="280" y2="100" />
+      {[130, 160, 190, 220, 250, 270].map((x) => (
+        <line key={x} x1={x} y1="100" x2={x} y2="128" />
+      ))}
+      <line x1="100" y1="128" x2="300" y2="128" />
+      <line x1="90" y1="136" x2="310" y2="136" />
+    </svg>
+  );
+}
+
+/**
+ * The rail-footer address readout -- see GUIDE_SECTIONS' doc comment and
+ * AppShell's `railFooter` slot. Deliberately plain: a standing fact plus one
+ * edit action, not a card, since it's rendered inside the rail's own
+ * `<aside>` padding rather than the main content column.
+ */
+function AddressRailFooter({
+  streetAddress,
+  city,
+  state,
+  zip,
+  onEdit,
+}: {
+  streetAddress: string;
+  city: string;
+  state: string;
+  zip: string;
+  onEdit: () => void;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 4,
+        padding: "10px 10px 4px",
+        marginTop: 6,
+        borderTop: `1px solid ${C.line}`,
+      }}
+    >
+      <span style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+        Address
+      </span>
+      <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.4 }}>
+        {streetAddress ? `${streetAddress}, ` : ""}
+        {city}, {state} {zip}
+      </span>
+      <button
+        type="button"
+        onClick={onEdit}
+        style={{
+          alignSelf: "flex-start",
+          border: 0,
+          background: "transparent",
+          color: C.navy,
+          fontSize: 11,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          cursor: "pointer",
+          padding: 0,
+        }}
+      >
+        Edit address
+      </button>
+    </div>
+  );
+}
+
+function useDaysToElection(): number | null {
+  const mounted = useMounted();
+  return mounted ? Math.max(0, Math.floor((new Date(ELECTION_ISO).getTime() - Date.now()) / 86400000)) : null;
+}
+
+/**
+ * The Voting Information section -- registration deadline, early voting
+ * window, and mail-ballot request date, plus the countdown. Reuses the same
+ * `KEY_DATES`/`ELECTION_ISO` data `ElectionCountdownBanner` draws from
+ * (that banner itself is no longer used on this page -- see GuideHero --
+ * so the countdown lives in exactly one place here, not two).
+ */
+function VotingInformationSection() {
+  const days = useDaysToElection();
+  return (
+    <section id="voting" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <Kicker>Voting Information</Kicker>
+        <Display size={22}>Key dates for this election</Display>
+      </div>
+      <Card style={{ padding: 18, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1, color: C.rust }}>
+            {days === null ? "—" : days}
+          </span>
+          <span style={{ fontSize: 13, color: C.body }}>days until Election Day</span>
+        </div>
+        <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
+          {KEY_DATES.map((k) => (
+            <div key={k.label} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <span style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                {k.label}
+              </span>
+              <span style={{ fontFamily: cond, fontSize: 17, color: C.ink }}>{k.value}</span>
+            </div>
+          ))}
+        </div>
+        <RustButton
+          style={{ alignSelf: "flex-start", padding: "10px 16px", fontSize: 13 }}
+          onClick={() => window.open("https://www.vote.org/am-i-registered-to-vote/", "_blank", "noopener")}
+        >
+          Check my registration
+        </RustButton>
+      </Card>
+    </section>
+  );
+}
+
+/**
+ * Right column's compact companion to the full Voting Information section
+ * -- countdown, the nearest key date, and the polling place name, all
+ * linking down to id="voting" for the rest. Page-local (unlike
+ * `RepresentativesCard`, this isn't reused anywhere else yet).
+ */
+function VotingInfoSummaryCard() {
+  const days = useDaysToElection();
+  const { polling } = usePrefs();
+  const nextDate = KEY_DATES[0];
+  return (
+    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+      <Kicker>Voting Information</Kicker>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+        <span style={{ fontFamily: cond, fontSize: 26, lineHeight: 1, color: C.rust }}>
+          {days === null ? "—" : days}
+        </span>
+        <span style={{ fontSize: 12, color: C.body }}>days left</span>
+      </div>
+      <span style={{ fontSize: 12, color: C.muted }}>
+        {nextDate.label}: {nextDate.value}
+      </span>
+      <span style={{ fontSize: 12, color: C.muted }}>Polling place: {polling.name}</span>
+      <a href="#voting" style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}>
+        Full details →
+      </a>
+    </Card>
   );
 }

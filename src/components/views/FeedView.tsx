@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
-import { C, PARTY, STATUS_STYLE, cond } from "@/lib/theme";
+import { C, STATUS_STYLE, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO } from "@/lib/seed-data";
@@ -36,6 +36,7 @@ import type {
   VoteRecord,
 } from "@/lib/types";
 import { Avatar, Card, Chip, Display, EmptyState, ExpandableQuote, Kicker, Pill } from "@/components/ui";
+import RepresentativesCard from "@/components/RepresentativesCard";
 import { FactCheckCard } from "./FactCheckView";
 
 type TypeFilter = "all" | FeedEvent["type"];
@@ -428,45 +429,6 @@ function TopIssuesCard({ topics }: { topics: string[] }) {
       <Link href="/profile/top-issues" style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}>
         Manage issues →
       </Link>
-    </Card>
-  );
-}
-
-/**
- * Your Representatives. No scores -- see the standing rule against showing
- * two HUSH. Scores on one screen; this is a directory, and the full list
- * (with each person's own score, on their own page) is one click away at
- * /representatives.
- */
-function RepresentativesCard({ politicians }: { politicians: Politician[] }) {
-  const shown = politicians.slice(0, 4);
-  return (
-    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <Kicker>Your Representatives</Kicker>
-        <Link
-          href="/representatives"
-          aria-label="See all your representatives"
-          style={{ marginLeft: "auto", fontSize: 15, color: C.muted }}
-        >
-          →
-        </Link>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-        {shown.map((p) => (
-          <Link
-            key={p.id}
-            href={`/politician/${p.id}`}
-            style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: C.ink }}
-          >
-            <span style={{ width: 7, height: 7, borderRadius: 2, background: PARTY[p.party], flex: "0 0 7px" }} />
-            <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {p.name}
-            </span>
-            <span style={{ fontSize: 11, color: C.muted, whiteSpace: "nowrap" }}>{p.office}</span>
-          </Link>
-        ))}
-      </div>
     </Card>
   );
 }
