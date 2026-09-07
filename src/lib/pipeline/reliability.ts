@@ -29,7 +29,8 @@ const PRIMARY_RECORD_DOMAINS = [
   "bls.gov",
   "census.gov",
   "courtlistener.com",
-  "capitol.texas.gov",
+  "flsenate.gov",
+  "myfloridahouse.gov",
   "legiscan.com",
   "openstates.org",
 ];
@@ -41,9 +42,9 @@ const NEWS_DESK_DOMAINS: Record<string, number> = {
   "npr.org": 0.7,
   "bbc.com": 0.7,
   "propublica.org": 0.75,
-  "texastribune.org": 0.7,
-  "statesman.com": 0.68,
-  "kut.org": 0.68,
+  "floridaphoenix.com": 0.7,
+  "jacksonville.com": 0.68,
+  "wjct.org": 0.68,
 };
 
 const OPINION_PATH = /\/(opinion|editorial|commentary|op-ed|blogs?)\//i;

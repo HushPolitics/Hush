@@ -14,7 +14,6 @@ import {
   FACT_CHECKS,
   RACES,
   BALLOT,
-  TRENDING,
   STANCES,
   TOPIC_POOL,
   TOP_ISSUES_QUIZ,
@@ -28,7 +27,6 @@ import type {
   FactCheck,
   Race,
   BallotItem,
-  TrendingClaim,
   IssuePosition,
   StanceCheckPosition,
   Bill,
@@ -77,10 +75,6 @@ export function guidePositions(): Record<string, Record<string, IssuePosition>> 
 
 export function listBallot(): BallotItem[] {
   return BALLOT;
-}
-
-export function listTrending(): TrendingClaim[] {
-  return TRENDING;
 }
 
 export function stanceGrid() {

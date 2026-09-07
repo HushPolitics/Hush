@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import AppShell from "@/components/AppShell";
 import CompareView from "@/components/views/CompareView";
-import { listPoliticians, listRaces, stanceGrid } from "@/lib/repo";
+import { guidePositions, listPoliticians, listRaces, stanceGrid } from "@/lib/repo";
 
 export const metadata: Metadata = { title: "Compare" };
 
@@ -12,6 +12,7 @@ export default function ComparePage() {
         politicians={listPoliticians()}
         races={listRaces()}
         stances={stanceGrid()}
+        guidePositions={guidePositions()}
       />
     </AppShell>
   );

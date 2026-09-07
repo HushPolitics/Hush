@@ -1,10 +1,10 @@
 import type { IssuePosition, Race } from "./types";
 
 /**
- * Splits a `Race.title` like "U.S. House · TX-35" into office + district.
- * Some races carry no district ("Mayor of Austin", "County Judge") — those
- * titles have no " · " separator, so `district` comes back undefined rather
- * than an empty string.
+ * Splits a `Race.title` like "U.S. House · FL-04" into office + district.
+ * Some races carry no district ("Mayor of Jacksonville", "County Judge") —
+ * those titles have no " · " separator, so `district` comes back undefined
+ * rather than an empty string.
  */
 export function parseRaceTitle(title: string): { office: string; district?: string } {
   const [office, district] = title.split(" · ");

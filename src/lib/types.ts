@@ -57,6 +57,23 @@ export interface TimelineEvent {
   dot: string;
 }
 
+/**
+ * A dated change to a politician's HUSH Score, with the reason attached --
+ * per the app IA restructure brief's amendment, the score is never shown
+ * comparing two candidates at once (see CompareView/GuideView: no score row,
+ * no score column). The only two places it's allowed to appear are the
+ * politician's own page and here, as a single politician's own change event
+ * in the Feed. Optional per politician, same "illustrative, not universal"
+ * convention as `timeline`/`terms`/`career` below -- most politicians have
+ * no recorded change yet, which is a normal state, not a gap to fill.
+ */
+export interface ScoreChangeEvent {
+  date: string;
+  from: number;
+  to: number;
+  reason: string;
+}
+
 export interface CareerEntry {
   year: string;
   what: string;
@@ -83,6 +100,8 @@ export interface Politician {
   terms: TermScore[];
   timeline: TimelineEvent[];
   career: CareerEntry[];
+  /** Dated HUSH Score changes with their reason -- see ScoreChangeEvent. */
+  scoreEvents?: ScoreChangeEvent[];
 }
 
 export interface FactCheck {
@@ -163,6 +182,20 @@ export interface IssuePosition {
 export type StanceCheckAnswer = "Agree" | "Neutral" | "Disagree";
 
 /**
+ * The reader's raw pick on a Stance Check question -- five points, per the
+ * public site's spec. `directionOf()` in StanceCheckView collapses this to
+ * `StanceCheckAnswer` for every verdict computation (breakdown ordering, the
+ * cross-party summary, matching against a candidate's sourced `stance`):
+ * Strongly agree and Agree produce an identical verdict, because a sourced
+ * vote is binary and implying a gradient of agreement from it would be a
+ * claim the data can't support. The raw five-point value is still what's
+ * stored per answer, so strength is preserved for later weighting without a
+ * separate strength field -- a future weighting pass reads "Strongly agree"
+ * vs. "Agree" directly off the stored answer, rather than a derived flag.
+ */
+export type FivePointAnswer = "Strongly disagree" | "Disagree" | "Unsure" | "Agree" | "Strongly agree";
+
+/**
  * Same shape and sourcing rigor as `IssuePosition` — this only exists as a
  * separate type because it carries `stance`, which `IssuePosition`
  * deliberately does not: HUSH Guide shows what a candidate said with no
@@ -191,12 +224,6 @@ export type TopIssuesQuizAnswer = "Not important" | "Somewhat important" | "Very
  */
 export type QuizDepth = "quick" | "standard" | "thorough";
 
-export interface TrendingClaim {
-  text: string;
-  meta: string;
-  dot: string;
-}
-
 /**
  * A piece of legislation shown in HUSH Guide's "Bills Being Considered"
  * section. `explanation`/`yesMeans`/`noMeans` are HUSH's own paraphrase, not
@@ -213,7 +240,7 @@ export interface TrendingClaim {
  */
 export interface Bill {
   id: string;
-  /** Official bill number, e.g. "H.R. 2145", "Texas SB 214". */
+  /** Official bill number, e.g. "H.R. 2145", "Florida SB 214". */
   number: string;
   /** Official title. */
   title: string;

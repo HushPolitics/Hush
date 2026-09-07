@@ -50,7 +50,7 @@ export function rankWeights(topics: string[]): { name: string; rank: number; pct
 
 /**
  * "Voting rights" -> "voting-rights". Matches the kebab-case convention the
- * schema already uses elsewhere ('tx-35', 'austin-citywide') and the slugs
+ * schema already uses elsewhere ('fl-04', 'jacksonville-citywide') and the slugs
  * seeded into `issues` for TOPIC_POOL in migration 0005. Used to resolve a
  * ranked topic name to its `issues.id` when syncing onboarding/profile
  * ranked issues to Supabase.

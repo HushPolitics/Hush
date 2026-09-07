@@ -199,7 +199,7 @@ function HushScoreInfoModal({
         </p>
 
         <Link
-          href={politicianId ? `/politician/${politicianId}/trust` : "/feed"}
+          href={politicianId ? `/politician/${politicianId}#ledger` : "/feed"}
           onClick={onClose}
           style={{ fontSize: 13, color: C.rust, fontWeight: 600, textDecoration: "none" }}
         >

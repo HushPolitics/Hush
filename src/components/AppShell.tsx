@@ -7,18 +7,29 @@ import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, lookupDistrict } from "@/lib/seed-data";
+import { createClient } from "@/lib/supabase/client";
 import { RustButton, SearchField } from "./ui";
 import PersonalizeBanner from "./PersonalizeBanner";
 import { HushScoreInfoProvider } from "./HushScoreInfo";
 
+// Nav trimmed to three destinations plus the avatar menu (see AVATAR_MENU
+// below) — Compare and the politician page are reached from other pages now
+// rather than being top-level tabs, Fact Check's own page is going away
+// (its card renders in three other places instead), and Profile has split
+// three ways (My issues / Following live in the avatar menu, Account
+// settings keeps its own route). None of those routes were deleted here —
+// only their nav entries — except where a phase below says otherwise.
 const NAV = [
   { href: "/feed", label: "Feed" },
   { href: "/hush-guide", label: "HUSH Guide" },
-  { href: "/compare", label: "Compare" },
   { href: "/stance-check", label: "Stance Check" },
-  { href: "/fact-check", label: "Fact Check" },
-  { href: "/profile", label: "Profile" },
 ];
+
+const AVATAR_MENU = [
+  { href: "/profile/top-issues", label: "My issues" },
+  { href: "/following", label: "Following" },
+  { href: "/profile/settings", label: "Account settings" },
+] as const;
 
 function isActive(pathname: string, href: string) {
   if (href === "/feed") return pathname === "/feed" || pathname.startsWith("/politician");
@@ -44,6 +55,7 @@ export default function AppShell({
   const { zip, city, state, setZip, setCity, setState } = usePrefs();
   const [q, setQ] = useState("");
   const [locationOpen, setLocationOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
   const [cityDraft, setCityDraft] = useState(city);
   const [stateDraft, setStateDraft] = useState(state);
   const [zipDraft, setZipDraft] = useState(zip);
@@ -69,6 +81,16 @@ export default function AppShell({
     setQ(v);
     const target = v.trim() ? `/feed?q=${encodeURIComponent(v.trim())}` : "/feed";
     router.replace(target, { scroll: false });
+  }
+
+  // Accounts aren't switched on everywhere yet (see createClient's doc
+  // comment) — when there's no Supabase client there's no real session to
+  // end, so this just sends the visitor to /login rather than throwing.
+  async function logOut() {
+    setAvatarOpen(false);
+    const supabase = createClient();
+    if (supabase) await supabase.auth.signOut();
+    router.push("/login");
   }
 
   return (
@@ -354,24 +376,95 @@ export default function AppShell({
             >
               Nov 3 {days === null ? "" : `· ${days} days`}
             </span>
-            <Link
-              href="/profile"
-              className="header-avatar"
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: C.navy,
-                color: C.sand,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontFamily: cond,
-                fontSize: 13,
-              }}
-            >
-              JR
-            </Link>
+            <div style={{ position: "relative" }}>
+              <button
+                type="button"
+                onClick={() => setAvatarOpen((o) => !o)}
+                aria-haspopup="true"
+                aria-expanded={avatarOpen}
+                aria-label="Account menu"
+                className="header-avatar"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  border: 0,
+                  background: C.navy,
+                  color: C.sand,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: cond,
+                  fontSize: 13,
+                  cursor: "pointer",
+                }}
+              >
+                JR
+              </button>
+
+              {avatarOpen ? (
+                <>
+                  <div
+                    style={{ position: "fixed", inset: 0, zIndex: 9 }}
+                    onClick={() => setAvatarOpen(false)}
+                  />
+                  <div
+                    role="menu"
+                    aria-label="Account menu"
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 6px)",
+                      right: 0,
+                      zIndex: 10,
+                      minWidth: 190,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      padding: 6,
+                      border: `1px solid ${C.line}`,
+                      borderRadius: 10,
+                      background: C.white,
+                      boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
+                    }}
+                  >
+                    {AVATAR_MENU.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        role="menuitem"
+                        onClick={() => setAvatarOpen(false)}
+                        style={{
+                          padding: "9px 10px",
+                          borderRadius: 6,
+                          fontSize: 13,
+                          color: C.ink,
+                        }}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                    <span style={{ height: 1, background: C.line, margin: "4px 2px" }} />
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={logOut}
+                      style={{
+                        border: 0,
+                        background: "transparent",
+                        borderRadius: 6,
+                        padding: "9px 10px",
+                        textAlign: "left",
+                        fontSize: 13,
+                        color: C.rust,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Log out
+                    </button>
+                  </div>
+                </>
+              ) : null}
+            </div>
           </div>
         </header>
 

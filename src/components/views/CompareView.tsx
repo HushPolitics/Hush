@@ -1,24 +1,46 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { C, PARTY, TAG_STYLE, cond, trustBand } from "@/lib/theme";
+import { C, PARTY, TAG_STYLE, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { DEFAULT_DISTRICT } from "@/lib/seed-data";
 import { stripPartySuffix } from "@/lib/guide";
 import { initials } from "@/lib/scoring";
-import type { Politician, Race, StanceCell } from "@/lib/types";
-import { Avatar, Display, Kicker, RustButton } from "@/components/ui";
-import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
+import type { IssuePosition, Politician, Race, StanceCell } from "@/lib/types";
+import { Avatar, Display, ExpandableQuote, Kicker, RustButton } from "@/components/ui";
 
+/**
+ * Side-by-side stance grid -- app IA restructure phase 5. Two changes from
+ * the original brief's "ranked-issue rows plus a score row": the amendment
+ * overrides the score row entirely (no HUSH. Score anywhere in Compare, ever
+ * -- it's a single politician's own number, and this view exists specifically
+ * to put politicians next to each other; the header used to show every pick's
+ * score in the same row, which is exactly the "two scores visible at once"
+ * case the amendment rules out). What ships instead is the ranked-issue half:
+ * rows are reordered so the issues the user ranked lead, in rank order, each
+ * tagged "Your #N" -- same convention HUSH Guide's race cards already use for
+ * "Your #N issue". `stances` only ever covers a handful of issues (whichever
+ * ones have seeded StanceCell data); rows still come from those keys, same as
+ * before this phase -- ranking only changes their order and adds the label,
+ * it doesn't add or remove rows. Any of the user's ranked issues outside that
+ * set simply have no row here, same as always.
+ */
 export default function CompareView({
   politicians,
   races,
   stances,
+  guidePositions,
 }: {
   politicians: Politician[];
   races: Race[];
   stances: Record<string, Record<string, StanceCell>>;
+  /** Same sourced excerpts the politician page's "Positions" section reads
+   * from -- when a stance row's candidate has one for this issue, the row
+   * links to a real source + retrieval date instead of the inert
+   * "coming soon" placeholder, and through to the full quote there. */
+  guidePositions: Record<string, Record<string, IssuePosition>>;
 }) {
   const router = useRouter();
   const { zip, setZip, picks, setPicks, topics } = usePrefs();
@@ -29,10 +51,16 @@ export default function CompareView({
     [politicians],
   );
 
-  const heads = picks.map((id) => {
-    const p = byId.get(id) ?? politicians[0];
-    return { ...p, band: trustBand(p.trust) };
-  });
+  const heads = picks.map((id) => byId.get(id) ?? politicians[0]);
+
+  // Issues the user ranked, in rank order, promoted to the top of the grid;
+  // everything else keeps its original order after them. `stances` only
+  // covers a handful of issues (whichever have seeded StanceCell data), so
+  // this reorders that fixed set rather than adding or removing rows.
+  const rankOf = new Map(topics.map((t, i) => [t, i + 1]));
+  const orderedIssues = Object.keys(stances)
+    .map((issue) => ({ issue, rank: rankOf.get(issue) }))
+    .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity));
 
   const gridCols = `150px ${picks.map(() => "1fr").join(" ")}`;
 
@@ -292,15 +320,18 @@ export default function CompareView({
                 <span style={{ fontSize: 11, color: C.muted }}>
                   {h.office} · {h.district}
                 </span>
-                <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: h.band.color }}>
-                  HUSH. {h.trust}
-                  <HushScoreInfoIcon politicianId={h.id} />
-                </span>
               </div>
             ))}
 
-            {Object.keys(stances).map((issue) => (
-              <Row key={issue} issue={issue} picks={picks} stances={stances} />
+            {orderedIssues.map(({ issue, rank }) => (
+              <Row
+                key={issue}
+                issue={issue}
+                rank={rank}
+                picks={picks}
+                stances={stances}
+                guidePositions={guidePositions}
+              />
             ))}
           </div>
         </div>
@@ -311,12 +342,17 @@ export default function CompareView({
 
 function Row({
   issue,
+  rank,
   picks,
   stances,
+  guidePositions,
 }: {
   issue: string;
+  /** This issue's 1-based position in the user's ranked list, if it's on it. */
+  rank?: number;
   picks: string[];
   stances: Record<string, Record<string, StanceCell>>;
+  guidePositions: Record<string, Record<string, IssuePosition>>;
 }) {
   return (
     <>
@@ -325,24 +361,55 @@ function Row({
           padding: "11px 12px",
           borderBottom: `1px solid ${C.lineSoft}`,
           background: C.hover,
-          fontFamily: cond,
-          fontSize: 14,
-          letterSpacing: "0.04em",
-          textTransform: "uppercase",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
         }}
       >
-        {issue}
+        <span
+          style={{
+            fontFamily: cond,
+            fontSize: 14,
+            letterSpacing: "0.04em",
+            textTransform: "uppercase",
+          }}
+        >
+          {issue}
+        </span>
+        {rank ? (
+          <span
+            style={{
+              padding: "2px 7px",
+              borderRadius: 10,
+              fontSize: 10,
+              letterSpacing: "0.02em",
+              whiteSpace: "nowrap",
+              background: "rgba(156,63,50,0.10)",
+              color: C.rust,
+            }}
+          >
+            Your #{rank}
+          </span>
+        ) : null}
       </span>
       {picks.map((id, i) => {
         const fallback: StanceCell = ["No record", "Not tracked for this office"];
         const cell = stances[issue]?.[id] ?? fallback;
-        const [tag, blurb, sourceUrl] = cell;
+        const [tag, blurb, cellSourceUrl] = cell;
         const style = TAG_STYLE[tag];
+        // Prefer the sourced HUSH Guide position for this exact (candidate,
+        // issue) pair when one exists -- it carries a real source URL and a
+        // retrieval date, and is the same excerpt the politician page's
+        // "Positions" section renders in full, so this row can link there
+        // rather than promising a source that isn't populated on `StanceCell`
+        // itself (see its own doc comment: no seed data sets `sourceUrl` yet).
+        const position = guidePositions[id]?.[issue];
         // "No record" has nothing sourced to link to; the other three tags
-        // are link bubbles that will deep-link to the sourced passage once
-        // sourceUrl is populated (see StanceCell) — until then they're
-        // link-styled but inert rather than pointing somewhere fake.
+        // are link bubbles that deep-link to the sourced passage when
+        // `position` (or, later, `cellSourceUrl`) is populated — until then
+        // they're link-styled but inert rather than pointing somewhere fake.
         const isLinkable = tag !== "No record";
+        const sourceUrl = position?.sourceUrl ?? cellSourceUrl;
         const bubbleStyle = {
           alignSelf: "flex-start" as const,
           padding: "3px 8px",
@@ -364,18 +431,33 @@ function Row({
               gap: 4,
             }}
           >
-            <span style={{ fontSize: 12, color: C.body, lineHeight: 1.45 }}>{blurb}</span>
+            {position ? (
+              <ExpandableQuote
+                text={position.excerpt}
+                style={{ fontSize: 12, color: C.body, lineHeight: 1.45 }}
+              />
+            ) : (
+              <span style={{ fontSize: 12, color: C.body, lineHeight: 1.45 }}>{blurb}</span>
+            )}
             {isLinkable ? (
               sourceUrl ? (
-                <a
-                  href={sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="stance-tag-link"
-                  style={{ ...bubbleStyle, textDecoration: "none", cursor: "pointer" }}
-                >
-                  Source
-                </a>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  <a
+                    href={sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="stance-tag-link"
+                    style={{ ...bubbleStyle, textDecoration: "none", cursor: "pointer" }}
+                  >
+                    Source
+                  </a>
+                  {position?.date ? <span style={{ fontSize: 11, color: C.muted }}>{position.date}</span> : null}
+                  {position ? (
+                    <Link href={`/politician/${id}#positions`} style={{ fontSize: 11, color: C.navy }}>
+                      Full quote →
+                    </Link>
+                  ) : null}
+                </div>
               ) : (
                 <span
                   className="stance-tag-link"

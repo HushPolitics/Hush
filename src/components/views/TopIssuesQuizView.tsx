@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
@@ -46,6 +46,15 @@ export default function TopIssuesQuizView({
   quizBank: Record<string, string[]>;
 }) {
   const router = useRouter();
+  const params = useSearchParams();
+  // Present when this quiz was reached via HUSH Guide's own onboarding gate
+  // (an empty `topics` list routes here with `?next=/hush-guide`) rather than
+  // a voluntary visit from the avatar menu's "My issues" — lets both "leave
+  // without finishing" and "save and continue" land back where the visit
+  // started instead of always assuming a standalone visit.
+  const next = params.get("next");
+  const exitHref = next ?? "/feed";
+  const skipHref = next ? `/profile/top-issues?next=${encodeURIComponent(next)}` : "/profile/top-issues";
   const { quizAnswers, recordQuizAnswer, setTopics } = usePrefs();
   const [step, setStep] = useState<Step>("depth");
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -137,14 +146,14 @@ export default function TopIssuesQuizView({
         </div>
 
         <Link
-          href="/profile/top-issues"
+          href={skipHref}
           style={{ fontSize: 13, color: C.muted, textDecoration: "underline" }}
         >
           Skip the quiz — rank your own issues
         </Link>
 
-        <Link href="/profile" style={{ fontSize: 13, color: C.navy, textDecoration: "underline" }}>
-          Back to Profile
+        <Link href={exitHref} style={{ fontSize: 13, color: C.navy, textDecoration: "underline" }}>
+          {next ? "Back" : "Back to Feed"}
         </Link>
       </div>
     );
@@ -162,7 +171,7 @@ export default function TopIssuesQuizView({
           <button
             type="button"
             className="link-quiet"
-            onClick={() => router.push("/profile")}
+            onClick={() => router.push(exitHref)}
             style={{
               border: 0,
               background: "transparent",
@@ -215,9 +224,9 @@ export default function TopIssuesQuizView({
           onChange: setDraftTopics,
           onSave: () => {
             setTopics(draftTopics);
-            router.push("/profile/top-issues");
+            router.push(next ?? "/profile/top-issues");
           },
-          onDiscard: () => router.push("/profile"),
+          onDiscard: () => router.push(exitHref),
           saveLabel: "Save my top issues",
         }}
       />

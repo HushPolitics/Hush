@@ -49,7 +49,7 @@ $$;
 -- ranked-issue writes (onboarding Step 3, and Profile's existing "Your top
 -- issues" panel once it moves off Prefs-only) have real issue_id rows to
 -- reference. Slugs are hand-picked to match the app's existing kebab-case
--- convention ('tx-35', 'austin-citywide') rather than derived at insert time.
+-- convention ('fl-04', 'jacksonville-citywide') rather than derived at insert time.
 insert into issues (slug, label, sort_order) values
   ('healthcare',           'Healthcare',           1),
   ('housing',               'Housing',              2),
