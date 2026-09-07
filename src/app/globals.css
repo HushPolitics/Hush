@@ -198,7 +198,7 @@ input::placeholder {
     flex-direction: row !important;
     flex-wrap: wrap;
   }
-  .app-sidebar .district-card {
+  .app-sidebar .election-countdown-card {
     margin-top: 0 !important;
     margin-left: auto;
   }
