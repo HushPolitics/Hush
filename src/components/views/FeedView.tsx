@@ -57,6 +57,30 @@ const TYPE_FILTERS: { value: TypeFilter; label: string }[] = [
 // rather than a route AppShell's contextual-rail mechanism knows about.
 const TYPE_RAIL_WIDTH = 210;
 
+/**
+ * Category color per event type -- rust for the legislative record (what
+ * officials actually did), faded blue for sourced/evidentiary material
+ * (anything traced to a document), faded green for civic logistics (dates
+ * and deadlines, not a record or a source). `score` and `promise` are
+ * deliberately absent -- those stay neutral, same as STATUS_STYLE.
+ */
+const TYPE_COLOR: Partial<Record<FeedEvent["type"], string>> = {
+  vote: C.rust,
+  bill: C.rust,
+  factcheck: C.slate,
+  position: C.slate,
+  article: C.slate,
+  electionUpdate: C.independent,
+};
+const TYPE_FILL: Partial<Record<FeedEvent["type"], string>> = {
+  vote: C.rustFill,
+  bill: C.rustFill,
+  factcheck: C.slateFill,
+  position: C.slateFill,
+  article: C.slateFill,
+  electionUpdate: C.independentFill,
+};
+
 function typeLabel(t: FeedEvent["type"]): string {
   switch (t) {
     case "score":
@@ -313,6 +337,8 @@ export default function FeedView({
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
+      <FeedHero />
+
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <Kicker>Feed</Kicker>
         <Display size={25}>What&apos;s happened · {events.length}</Display>
@@ -388,6 +414,50 @@ export default function FeedView({
             ) : null}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Feed's hero banner -- modeled directly on GuideView.tsx's GuideHero(),
+ * same shell and scrim treatment, so it reads as the same device rather
+ * than a new one. Purely additive above the existing Kicker/Display title
+ * row, which stays exactly where it is (the functional page title; this is
+ * the branded banner above it, not a replacement).
+ */
+function FeedHero() {
+  return (
+    <div
+      style={{
+        position: "relative",
+        borderRadius: 12,
+        overflow: "hidden",
+        background: C.ink,
+        minHeight: 260,
+        display: "flex",
+        alignItems: "flex-end",
+      }}
+    >
+      <img
+        src="/images/feed-hero.jpg"
+        alt=""
+        aria-hidden
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+      />
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(to top, rgba(11,10,8,0.85), rgba(11,10,8,0.35))",
+        }}
+      />
+      <div style={{ position: "relative", padding: "22px 26px", display: "flex", flexDirection: "column", gap: 6 }}>
+        <Kicker color={C.tan}>Feed</Kicker>
+        <Display size={28} color={C.sand}>
+          The record, not the spin.
+        </Display>
       </div>
     </div>
   );
@@ -503,18 +573,14 @@ function TodayStrip({ events }: { events: FeedEvent[] }) {
           return (
             <Card key={e.id} style={{ flex: "0 0 220px", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <TypeIcon type={e.type} size={13} />
-                <span
-                  style={{
-                    fontFamily: cond,
-                    fontSize: 10.5,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    color: C.muted,
-                  }}
+                <TypeIcon type={e.type} size={13} color={TYPE_COLOR[e.type] ?? C.slate} />
+                <Pill
+                  bg={TYPE_FILL[e.type] ?? C.shell}
+                  fg={TYPE_COLOR[e.type] ?? C.muted}
+                  style={{ fontFamily: cond, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", padding: "2px 8px" }}
                 >
                   {typeLabel(e.type)}
-                </span>
+                </Pill>
               </div>
               <span style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.4 }}>{eventHeadline(e)}</span>
               {politician ? <span style={{ fontSize: 11, color: C.muted }}>{politician.name}</span> : null}
@@ -569,14 +635,14 @@ function EventCard({ event, children }: { event: FeedEvent; children: ReactNode 
           borderBottom: `1px solid ${C.line}`,
         }}
       >
-        <TypeIcon type={event.type} />
+        <TypeIcon type={event.type} color={TYPE_COLOR[event.type] ?? C.slate} />
         <span
           style={{
             fontFamily: cond,
             fontSize: 12.5,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
-            color: C.ink,
+            color: TYPE_COLOR[event.type] ?? C.ink,
           }}
         >
           {typeLabel(event.type)}
