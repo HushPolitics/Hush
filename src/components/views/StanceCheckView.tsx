@@ -309,6 +309,8 @@ export default function StanceCheckView({
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
+      <StanceCheckHero />
+
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
         <Kicker>Stance Check</Kicker>
         <Display size={25}>
@@ -422,6 +424,64 @@ export default function StanceCheckView({
           </aside>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Stance Check's hero banner -- same shell/scrim device as Feed's FeedHero
+ * and GuideView.tsx's GuideHero. Only rendered once the reader is past the
+ * issue picker (see the `picking` gate above) -- that's a short setup
+ * screen, same reasoning as skipping this on Guide's AddressStep/IssuesStep.
+ */
+function StanceCheckHero() {
+  return (
+    <div
+      style={{
+        position: "relative",
+        borderRadius: 12,
+        overflow: "hidden",
+        background: C.ink,
+        minHeight: 260,
+        display: "flex",
+        alignItems: "flex-end",
+      }}
+    >
+      <img
+        src="/images/stance-check-hero.jpg"
+        alt=""
+        aria-hidden
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+      />
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(to top, rgba(11,10,8,0.85), rgba(11,10,8,0.35))",
+        }}
+      />
+      <div style={{ position: "relative", padding: "22px 26px", display: "flex", flexDirection: "column", gap: 6 }}>
+        <Kicker color={C.tan}>Stance Check</Kicker>
+        <Display size={28} color={C.sand}>
+          Same questions. Real positions.{" "}
+          <span
+            style={{
+              display: "inline-block",
+              backgroundImage:
+                "linear-gradient(to bottom,rgba(255,109,0,0) 0 5%,rgba(255,126,22,0.88) 5% 18%,rgba(255,122,14,1) 18% 52%,rgba(236,96,0,1) 52% 84%,rgba(255,109,0,0.72) 84% 95%,rgba(255,109,0,0.3) 95% 100%),linear-gradient(96deg,rgba(255,109,0,0.5) 0 1.5%,rgba(255,109,0,1) 4% 92%,rgba(255,109,0,0.45) 99% 100%)",
+              clipPath:
+                "polygon(0.6% 8%,2.2% 2%,48% 0.3%,96.8% 2.4%,99.6% 9%,100% 86%,97.4% 98%,44% 100%,2% 97.4%,0.2% 88%)",
+              transform: "rotate(-0.55deg)",
+              padding: "2px 8px 4px",
+              color: "#000000",
+              fontWeight: 700,
+            }}
+          >
+            No spin.
+          </span>
+        </Display>
+      </div>
     </div>
   );
 }
