@@ -553,20 +553,21 @@ function TileGrid({
             return (
               <Card
                 key={race.id}
-                style={{
-                  padding: 18,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 10,
-                }}
+                style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
               >
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <div
+                  style={{
+                    padding: "10px 16px",
+                    background: C.slateFill,
+                    borderBottom: `1px solid ${C.line}`,
+                  }}
+                >
                   <span style={{ fontFamily: cond, fontSize: 19, lineHeight: 1.15 }}>{office}</span>
                   {district ? (
-                    <span style={{ fontSize: 12, color: C.muted }}>{district}</span>
+                    <span style={{ fontSize: 12, color: C.muted, display: "block" }}>{district}</span>
                   ) : null}
                 </div>
-
+                <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
                 {top ? (
                   <>
                     <span style={{ fontSize: 11, color: C.rust, textTransform: "uppercase", letterSpacing: "0.06em" }}>
@@ -651,6 +652,7 @@ function TileGrid({
                 >
                   View Comparison
                 </RustButton>
+                </div>
               </Card>
             );
           })}
