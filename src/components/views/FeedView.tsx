@@ -322,7 +322,7 @@ export default function FeedView({
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: 12,
+          gap: 10,
         }}
       >
         <ElectionCard days={days} raceCount={races.length} />
@@ -339,14 +339,28 @@ export default function FeedView({
       </div>
 
       <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-        <aside style={{ width: TYPE_RAIL_WIDTH, flex: `0 0 ${TYPE_RAIL_WIDTH}px` }}>
+        <aside
+          style={{
+            width: TYPE_RAIL_WIDTH,
+            flex: `0 0 ${TYPE_RAIL_WIDTH}px`,
+            position: "sticky",
+            // AppShell's top bar (66px) and PersonalizeBanner both sit outside
+            // the scrolling pane (`main.scroll` in AppShell.tsx) as flex
+            // siblings above it, not inside it -- so this sticky offset is
+            // relative to the top of the scroll container itself, which
+            // already starts below the top bar. 16 just matches the page's
+            // own top padding, same as the rest of this layout's breathing
+            // room, rather than needing to clear the nav's height on top of it.
+            top: 16,
+          }}
+        >
           <TypeFilterRail value={typeFilter} onChange={setTypeFilter} counts={typeCounts} />
         </aside>
 
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
           <TodayStrip events={events} />
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {events.map((e) => (
               <FeedEventCard key={e.id} event={e} />
             ))}
@@ -550,7 +564,7 @@ function EventCard({ event, children }: { event: FeedEvent; children: ReactNode 
           display: "flex",
           alignItems: "center",
           gap: 9,
-          padding: "9px 16px",
+          padding: "8px 14px",
           background: C.slateFill,
           borderBottom: `1px solid ${C.line}`,
         }}
@@ -569,7 +583,7 @@ function EventCard({ event, children }: { event: FeedEvent; children: ReactNode 
         </span>
         <span style={{ marginLeft: "auto", fontSize: 12, color: C.muted }}>{event.date}</span>
       </div>
-      <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 8 }}>{children}</div>
+      <div style={{ padding: "11px 14px", display: "flex", flexDirection: "column", gap: 8 }}>{children}</div>
     </Card>
   );
 }

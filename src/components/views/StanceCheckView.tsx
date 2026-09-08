@@ -364,21 +364,31 @@ export default function StanceCheckView({
           </aside>
 
           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
-            <Card style={{ padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
-              <Kicker color={C.muted}>{issue}</Kicker>
-              <Display size={22} style={{ lineHeight: 1.3 }}>
-                {statements[issue!]}
-              </Display>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <AnswerChip on={answer === "Disagree"} onClick={() => pickAnswer("Disagree")}>
-                  Disagree
-                </AnswerChip>
-                <AnswerChip on={answer === "Neutral"} onClick={() => pickAnswer("Neutral")}>
-                  Neutral
-                </AnswerChip>
-                <AnswerChip on={answer === "Agree"} onClick={() => pickAnswer("Agree")}>
-                  Agree
-                </AnswerChip>
+            <Card style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+              <div
+                style={{
+                  padding: "10px 16px",
+                  background: C.slateFill,
+                  borderBottom: `1px solid ${C.line}`,
+                }}
+              >
+                <Kicker color={C.muted}>{issue}</Kicker>
+              </div>
+              <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+                <Display size={22} style={{ lineHeight: 1.3 }}>
+                  {statements[issue!]}
+                </Display>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <AnswerChip on={answer === "Disagree"} onClick={() => pickAnswer("Disagree")}>
+                    Disagree
+                  </AnswerChip>
+                  <AnswerChip on={answer === "Neutral"} onClick={() => pickAnswer("Neutral")}>
+                    Neutral
+                  </AnswerChip>
+                  <AnswerChip on={answer === "Agree"} onClick={() => pickAnswer("Agree")}>
+                    Agree
+                  </AnswerChip>
+                </div>
               </div>
             </Card>
 

@@ -115,7 +115,7 @@ function PersonalInfoSection() {
   }
 
   return (
-    <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+    <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16, borderTop: `2px solid ${C.rust}` }}>
       <SectionHeader kicker="Account" title="Personal Information" />
       <form onSubmit={save} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ display: "flex", gap: 10 }}>
@@ -269,7 +269,7 @@ function VotingLocationSection() {
   }
 
   return (
-    <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+    <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16, borderTop: `2px solid ${C.rust}` }}>
       <SectionHeader
         kicker="Ballot"
         title="Voting Location"
@@ -335,7 +335,7 @@ function VotingLocationSection() {
 function HushPreferencesSection({ topicPool }: { topicPool: string[] }) {
   const { topics, saved } = usePrefs();
   return (
-    <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 4 }}>
+    <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 4, borderTop: `2px solid ${C.rust}` }}>
       <SectionHeader
         kicker="Personalization"
         title="HUSH Preferences"
@@ -416,7 +416,7 @@ function EmailPreferencesSection() {
   const anyOn = EMAIL_PREF_ROWS.some((r) => emailPrefs[r.key]);
 
   return (
-    <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 4 }}>
+    <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 4, borderTop: `2px solid ${C.rust}` }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
         <SectionHeader
           kicker="Notifications"
@@ -469,7 +469,7 @@ function PrivacyItem({ children }: { children: ReactNode }) {
 
 function PrivacySection() {
   return (
-    <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+    <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14, borderTop: `2px solid ${C.rust}` }}>
       <SectionHeader kicker="Privacy" title="Privacy" />
       <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
         <PrivacyItem>
