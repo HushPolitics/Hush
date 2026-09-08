@@ -164,7 +164,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: 4,
                   fontSize: 14,
                   whiteSpace: "nowrap",
                   color: on ? C.ink : C.body,
@@ -174,7 +173,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 <span style={{ paddingBottom: 4, borderBottom: `2px solid ${on ? C.rust : "transparent"}` }}>
                   {item.label}
                 </span>
-                <span style={{ width: 4, height: 4, borderRadius: "50%", background: on ? C.rust : "transparent" }} />
               </Link>
             );
           })}
