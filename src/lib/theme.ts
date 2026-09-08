@@ -38,6 +38,12 @@ export const C = {
   // deliberate accent -- even though they render the same today).
   slate: "#2F4A6B",
   slateFill: "rgba(47,74,107,0.12)",
+  // Category-color tints (Feed type pills/labels) -- same 12%-over-cream
+  // pattern as slateFill above, one per accent that needed a tint and
+  // didn't already have one. rustFill pairs with the existing `rust`
+  // token; independentFill pairs with `independent` below.
+  rustFill: "rgba(156,63,50,0.12)",
+  independentFill: "rgba(46,96,76,0.12)",
   navy: "#2F4A6B",
   // Bright accent for dark grounds (kit's "Bright blue"). Not currently
   // wired into any live component -- `.btn-steel` in globals.css and this
