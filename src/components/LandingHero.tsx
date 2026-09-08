@@ -9,12 +9,22 @@ import { C, cond } from "@/lib/theme";
  * layered on top once measured below, so all four buttons — split across
  * the top bar and the bottom row — line up as one consistent set instead of
  * each hugging its own label.
+ *
+ * Background is the same bright highlighter orange as the headline's
+ * marker-slab device (`#FF6D00`, the peak color in that gradient) rather
+ * than the site's usual rust -- this page is the one place rust steps aside
+ * for the kit's full-saturation accent. Text goes black instead of cream
+ * for the same reason the headline's highlighted words did: cream on this
+ * orange only clears ~2.5:1, black clears ~7.4:1. Hover uses the CSS class
+ * below (`.btn-highlighter`, not the shared `.btn-rust`, since that class
+ * is still rust everywhere else it's used) rather than a token, since this
+ * one shade is specific to this page.
  */
 const landingBtnStyle: CSSProperties = {
   padding: "13px 26px",
   borderRadius: 8,
-  background: C.rust,
-  color: C.sand,
+  background: "#FF6D00",
+  color: "#000000",
   fontFamily: cond,
   fontSize: 15,
   letterSpacing: "0.08em",
@@ -109,10 +119,10 @@ export default function LandingHero() {
           zIndex: 2,
         }}
       >
-        <Link href="/signup" className="btn-rust landing-cta" ref={createAccountRef} style={btnStyle}>
+        <Link href="/signup" className="btn-highlighter landing-cta" ref={createAccountRef} style={btnStyle}>
           Create Account
         </Link>
-        <Link href="/login" className="btn-rust landing-cta" ref={loginRef} style={btnStyle}>
+        <Link href="/login" className="btn-highlighter landing-cta" ref={loginRef} style={btnStyle}>
           Login
         </Link>
       </div>
@@ -195,11 +205,11 @@ export default function LandingHero() {
           gap: 12,
         }}
       >
-        <Link href="/feed" className="btn-rust landing-cta" ref={uiPreviewRef} style={btnStyle}>
+        <Link href="/feed" className="btn-highlighter landing-cta" ref={uiPreviewRef} style={btnStyle}>
           UI Preview
         </Link>
         {/* Destination not built yet — placeholder link until that page exists. */}
-        <Link href="#" className="btn-rust landing-cta" ref={homePreviewRef} style={btnStyle}>
+        <Link href="#" className="btn-highlighter landing-cta" ref={homePreviewRef} style={btnStyle}>
           Home Page Preview
         </Link>
       </div>
