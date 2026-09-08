@@ -66,9 +66,9 @@ export default function ProfileSettingsView({ topicPool }: { topicPool: string[]
         padding: "24px 28px",
         display: "grid",
         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-        alignItems: "start",
         gap: 16,
         maxWidth: 960,
+        margin: "0 auto",
       }}
     >
       <PersonalInfoSection />
