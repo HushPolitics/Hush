@@ -3,17 +3,22 @@
 /* Hush design tokens. The canvas design is light-only by intent: it is a
    reading surface for public records, and the cream ground is load-bearing. */
 :root {
-  --ink: #151515;
-  --body: #4a4540;
-  --muted: #6b6560;
+  /* Brand-kit token swap (brand-tokens-v1) -- keep in sync with the C object
+     in src/lib/theme.ts, which these mirror. Several hover states below
+     (.btn-ink:hover, .link-quiet:hover) read var(--navy) directly rather
+     than going through theme.ts, so this block has to move whenever that
+     one does. */
+  --ink: #14110c;
+  --body: #3d3629;
+  --muted: #8c8477;
   --cream: #fffdf9;
-  --sand: #f3efe4;
-  --sand-deep: #f7f4ec;
-  --shell: #efeade;
+  --sand: #efe8da;
+  --sand-deep: #f4efe4;
+  --shell: #efe8da;
   --rust: #9c3f32;
-  --navy: #253746;
+  --navy: #2f4a6b;
   --tan: #b5a88a;
-  --line: rgba(21, 21, 21, 0.12);
+  --line: rgba(20, 17, 12, 0.12);
   color-scheme: light;
 }
 
@@ -55,7 +60,7 @@ select {
 }
 
 input::placeholder {
-  color: #9a938b;
+  color: #aaa293;
 }
 
 /* Scroll container used by the app shell's main pane. */
@@ -81,7 +86,7 @@ input::placeholder {
 }
 
 .row-hover:hover {
-  background: var(--hover, #faf7f0);
+  background: var(--hover, #f4efe4);
 }
 
 .card-hover:hover {
@@ -103,11 +108,13 @@ input::placeholder {
   text-decoration: none;
 }
 
-/* Hover lightens the fill and takes the label to full white. Going lighter on
-   the background alone would push the sand label under 4.5:1; white lifts it to
-   5.15:1 instead, so the state change costs no contrast. */
+/* Brand-kit swap: steel is now a much lighter bright blue (see the `steel`
+   note in theme.ts) -- not currently applied to any live component, so this
+   rule has nothing to visibly break today. If it's ever wired up again,
+   note that white text on this new value only clears ~2.3:1, well under
+   the 4.5:1 text bar -- it needs dark text, not white/sand. */
 .btn-steel:hover {
-  background: #4c709a !important;
+  background: #63b2ec !important;
   color: #ffffff !important;
 }
 
