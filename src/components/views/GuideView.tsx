@@ -684,14 +684,13 @@ function TileGrid({
 // ---------------------------------------------------------------------------
 
 /**
- * HUSH Guide's hero banner. The capitol glyph is a flat, single-stroke line
- * drawing HUSH drew itself -- not a real photograph. app-layout-v2's brief
- * calls for a "placeholder capitol photograph"; rather than fetch or fake a
- * real photo (this app draws no real building, seal, or likeness of a real
- * place anywhere else either), this stays honest about being a placeholder
- * the way `PollingPlaceCard` already handles a missing Maps key -- drop back
- * to something clearly provisional instead of a broken or misleading asset.
- * Swap this for a real photograph whenever one is licensed for the site.
+ * HUSH Guide's hero banner -- a full-bleed U.S. Capitol photograph (dusk,
+ * lit dome, one warm accent low in the sky) with a dark scrim behind the
+ * title text for legibility. The photo is already monochrome with that one
+ * warm accent, so no grayscale/desaturation filter is applied on top of it --
+ * a filter would flatten the accent out rather than improve anything.
+ * Replaces the flat single-stroke capitol glyph this banner used as a
+ * placeholder before a real photograph was licensed for the site.
  */
 function GuideHero() {
   return (
@@ -701,24 +700,25 @@ function GuideHero() {
         borderRadius: 12,
         overflow: "hidden",
         background: C.ink,
-        minHeight: 176,
+        minHeight: 260,
         display: "flex",
         alignItems: "flex-end",
       }}
     >
+      <img
+        src="/images/capitol-hero.jpg"
+        alt=""
+        aria-hidden
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+      />
       <div
         aria-hidden
         style={{
           position: "absolute",
           inset: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: 0.6,
+          background: "linear-gradient(to top, rgba(11,10,8,0.85), rgba(11,10,8,0.35))",
         }}
-      >
-        <CapitolGlyph />
-      </div>
+      />
       <div
         style={{
           position: "relative",
@@ -732,39 +732,8 @@ function GuideHero() {
         <Display size={28} color={C.sand}>
           Your ballot, by the issues you picked
         </Display>
-        <span style={{ fontSize: 11, color: "rgba(243,239,228,0.55)" }}>
-          Placeholder hero image — official capitol photograph pending
-        </span>
       </div>
     </div>
-  );
-}
-
-/** Flat single-stroke capitol-building glyph -- see GuideHero's doc comment. */
-function CapitolGlyph() {
-  return (
-    <svg
-      viewBox="0 0 400 140"
-      width="66%"
-      height="100%"
-      style={{ maxWidth: 520 }}
-      fill="none"
-      stroke="rgba(181,168,138,0.55)"
-      strokeWidth="1.5"
-      aria-hidden
-    >
-      <line x1="200" y1="8" x2="200" y2="22" />
-      <circle cx="200" cy="46" r="26" />
-      <line x1="174" y1="46" x2="226" y2="46" />
-      <path d="M150 72 L200 72 L250 72" />
-      <path d="M140 100 L200 72 L260 100" />
-      <line x1="120" y1="100" x2="280" y2="100" />
-      {[130, 160, 190, 220, 250, 270].map((x) => (
-        <line key={x} x1={x} y1="100" x2={x} y2="128" />
-      ))}
-      <line x1="100" y1="128" x2="300" y2="128" />
-      <line x1="90" y1="136" x2="310" y2="136" />
-    </svg>
   );
 }
 
