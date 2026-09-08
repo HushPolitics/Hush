@@ -4,17 +4,23 @@
  */
 
 export const C = {
-  ink: "#151515",
-  inkSoft: "#1C1C1C",
-  body: "#4A4540",
-  muted: "#6B6560",
-  faint: "#9A938B",
+  // Brand-kit token swap (brand-tokens-v1) -- same roles as before, new hex
+  // values pulled from the brand kit. See individual notes below for the
+  // handful of tokens that don't have a direct kit match.
+  ink: "#14110C",
+  inkSoft: "#0B0A08",
+  body: "#3D3629",
+  muted: "#8C8477",
+  // Derived, not a kit token -- the kit doesn't define a fourth, lighter
+  // light-ground text tone, so this splits the difference between kit
+  // Muted (#8C8477, above) and kit "Rule on light" (#C7BFAE).
+  faint: "#AAA293",
 
   cream: "#FFFDF9",
-  sand: "#F3EFE4",
-  sandDeep: "#F7F4EC",
-  shell: "#EFEADE",
-  hover: "#FAF7F0",
+  sand: "#EFE8DA",
+  sandDeep: "#F4EFE4",
+  shell: "#EFE8DA",
+  hover: "#F4EFE4",
   white: "#FFFFFF",
 
   rust: "#9C3F32",
@@ -25,34 +31,51 @@ export const C = {
   // background tints. Never on anything that signals true/false, good/bad,
   // or right/wrong -- verdicts, promise status, stance labels, HUSH Score
   // values and Compare's alignment tags all stay neutral ink/shell, same as
-  // before this token existed. This is the one addition to the palette; no
-  // further blues, and no green/red/amber/purple anywhere.
-  slate: "#5B7A8C",
-  slateFill: "rgba(91,122,140,0.12)",
-  navy: "#253746",
-  // Muted blue for actions on the near-black hero panel. Navy itself is far
-  // too dark there (#253746 on #1C1C1C is 1.39:1, effectively invisible), so
-  // this is the same hue — 212° vs navy's 209° — lifted into a readable range.
-  // Sand label at 4.61:1, and 3.22:1 against the panel, which clears the 3:1
-  // bar for a UI component. The rust button it replaces only managed 2.57:1.
-  // Do not lighten `steel` further: it sits at the ceiling where the label
-  // would drop below 4.5:1.
-  steel: "#4A6E96",
-  steelHover: "#4C709A",
+  // before this token existed. Brand-kit swap: now the kit's "Faded blue"
+  // -- and `navy` below is the same kit color for the same reason, so the
+  // two tokens are intentionally identical now (still kept separate: they
+  // mean different things -- navy is a base UI color, slate is the
+  // deliberate accent -- even though they render the same today).
+  slate: "#2F4A6B",
+  slateFill: "rgba(47,74,107,0.12)",
+  navy: "#2F4A6B",
+  // Bright accent for dark grounds (kit's "Bright blue"). Not currently
+  // wired into any live component -- `.btn-steel` in globals.css and this
+  // token aren't applied anywhere in the app right now -- kept so it's
+  // ready when a dark-ground accent is needed again. Note for whenever
+  // that happens: this is now a much lighter blue than before, so it needs
+  // dark text on top of it, not light/sand text -- onDark/sand only clears
+  // ~2.3:1 against it, well under the 4.5:1 text bar.
+  steel: "#4BA3E8",
+  steelHover: "#63B2EC",
   tan: "#B5A88A",
+  // Not in the brand kit and not touched by this pass -- still live (see
+  // HushScoreInfo's 100/50/0 score-key legend), so it can't just be
+  // deleted, and it's outside a token swap's scope to redesign that legend.
   olive: "#8A7A4E",
-  oliveDeep: "#6E6244",
 
-  line: "rgba(21,21,21,0.12)",
-  lineSoft: "rgba(21,21,21,0.07)",
-  lineHard: "rgba(21,21,21,0.2)",
-  onDark: "#F3EFE4",
+  line: "rgba(20,17,12,0.12)",
+  lineSoft: "rgba(20,17,12,0.07)",
+  lineHard: "rgba(20,17,12,0.2)",
+  onDark: "#F4EFE4",
+
+  // Independent's party color. Not in the brand kit (the kit's accents are
+  // only rust/orange/blue) -- party colors are their own protected token
+  // set, separate from the brand/UI accent palette, so that's fine here.
+  // Built the same way the kit builds its faded/bright pairs: same hue,
+  // faded roughly half the lightness/saturation of bright. `independent`
+  // is the one actually wired to PARTY.I below -- every party-color use in
+  // the app renders on a light/white card, which this clears at ~6.9:1.
+  // `independentBright` has nowhere to go yet (no dark-ground party-color
+  // context exists), kept named and defined for whenever one does.
+  independent: "#2E604C",
+  independentBright: "#40DD9C",
 } as const;
 
 export const PARTY: Record<string, string> = {
   D: C.navy,
   R: C.rust,
-  I: C.tan,
+  I: C.independent,
 };
 
 export const PARTY_LABEL: Record<string, string> = {
@@ -125,12 +148,6 @@ export const VERDICT_STYLE: Record<string, { bg: string; fg: string; dot: string
   True: { bg: C.shell, fg: C.ink, dot: C.body },
   Misleading: { bg: C.shell, fg: C.ink, dot: C.body },
   False: { bg: C.shell, fg: C.ink, dot: C.body },
-};
-
-export const BALLOT_STATE_STYLE: Record<string, { bg: string; fg: string }> = {
-  Reviewed: { bg: "rgba(37,55,70,0.10)", fg: C.navy },
-  "Needs review": { bg: "rgba(181,168,138,0.35)", fg: C.oliveDeep },
-  "No match yet": { bg: C.shell, fg: C.muted },
 };
 
 /** Chip styling for the on/off filter pills used across every view. */
