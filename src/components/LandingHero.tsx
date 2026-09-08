@@ -60,6 +60,40 @@ export default function LandingHero() {
         textAlign: "center",
       }}
     >
+      {/*
+        Full-viewport Capitol photo (same dusk/storm-into-sunset treatment as
+        HUSH Guide's hero) plus a flat scrim -- flat rather than the Guide
+        hero's top-to-bottom gradient, because this page has text at the top,
+        middle, and bottom, not just the bottom, so a directional fade would
+        only fix one of those. `C.ink` stays as the outer div's own
+        background: the fallback color while the photo loads, and the
+        backstop for any sliver `objectFit: cover` might leave uncovered at
+        an extreme viewport ratio. Every block of real content below gets its
+        own `position: relative, zIndex: 2` so it renders above these two
+        layers instead of underneath them.
+      */}
+      <img
+        src="/images/landing-hero.jpg"
+        alt=""
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          zIndex: 0,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(11, 10, 8, 0.65)", // C.inkSoft at ~65% -- nudge toward 0.75 if the dome still reads too bright behind the headline, toward 0.55 if the photo washes out
+          zIndex: 1,
+        }}
+      />
+
       <div
         style={{
           position: "absolute",
@@ -72,6 +106,7 @@ export default function LandingHero() {
           flexWrap: "wrap",
           gap: 12,
           padding: "20px 24px",
+          zIndex: 2,
         }}
       >
         <Link href="/signup" className="btn-rust landing-cta" ref={createAccountRef} style={btnStyle}>
@@ -82,7 +117,7 @@ export default function LandingHero() {
         </Link>
       </div>
 
-      <div style={{ display: "flex", alignItems: "baseline" }}>
+      <div style={{ position: "relative", zIndex: 2, display: "flex", alignItems: "baseline" }}>
         <span
           style={{
             fontFamily: cond,
@@ -97,7 +132,16 @@ export default function LandingHero() {
         <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 34, color: C.rust }}>.</span>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 560 }}>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 2,
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          maxWidth: 560,
+        }}
+      >
         <h1
           style={{
             margin: 0,
@@ -108,7 +152,22 @@ export default function LandingHero() {
             color: C.onDark,
           }}
         >
-          Politics is noisy, your vote shouldn&apos;t be
+          Politics is noisy,{" "}
+          <span
+            style={{
+              display: "inline-block",
+              backgroundImage:
+                "linear-gradient(to bottom,rgba(255,109,0,0) 0 5%,rgba(255,126,22,0.88) 5% 18%,rgba(255,122,14,1) 18% 52%,rgba(236,96,0,1) 52% 84%,rgba(255,109,0,0.72) 84% 95%,rgba(255,109,0,0.3) 95% 100%),linear-gradient(96deg,rgba(255,109,0,0.5) 0 1.5%,rgba(255,109,0,1) 4% 92%,rgba(255,109,0,0.45) 99% 100%)",
+              clipPath:
+                "polygon(0.6% 8%,2.2% 2%,48% 0.3%,96.8% 2.4%,99.6% 9%,100% 86%,97.4% 98%,44% 100%,2% 97.4%,0.2% 88%)",
+              transform: "rotate(-0.55deg)",
+              padding: "2px 10px 5px",
+              color: "#000000",
+              fontWeight: 700,
+            }}
+          >
+            your vote shouldn&apos;t be
+          </span>
         </h1>
         <p
           style={{
@@ -126,6 +185,8 @@ export default function LandingHero() {
 
       <div
         style={{
+          position: "relative",
+          zIndex: 2,
           marginTop: 8,
           display: "flex",
           alignItems: "center",
