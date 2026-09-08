@@ -102,6 +102,18 @@ input::placeholder {
   background: #b44a3b !important;
 }
 
+/* Landing page CTA buttons only (LandingHero.tsx) -- bright highlighter
+   orange, the same peak color as the headline's marker-slab device, not the
+   shared `.btn-rust` class used everywhere else in the app. Darkened on
+   hover rather than lightened -- the base color is already near-maximum
+   brightness/saturation, so lightening it further would blow out instead of
+   reading as a hover state. Black text (set inline in LandingHero.tsx)
+   stays black on hover too: #E65D00 vs black still clears ~5.9:1, comfortably
+   above the 4.5:1 text bar. */
+.btn-highlighter:hover {
+  background: #e65d00 !important;
+}
+
 /* Landing page CTA: it's an <a>, and the global `a:hover` rule above adds an
    underline that a filled button shouldn't get. */
 .landing-cta:hover {
