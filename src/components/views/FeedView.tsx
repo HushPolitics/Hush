@@ -337,7 +337,7 @@ export default function FeedView({
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
-      <FeedHero count={events.length} />
+      <FeedHero />
 
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <Kicker>Feed</Kicker>
@@ -426,7 +426,7 @@ export default function FeedView({
  * row, which stays exactly where it is (the functional page title; this is
  * the branded banner above it, not a replacement).
  */
-function FeedHero({ count }: { count: number }) {
+function FeedHero() {
   return (
     <div
       style={{
@@ -456,25 +456,8 @@ function FeedHero({ count }: { count: number }) {
       <div style={{ position: "relative", padding: "22px 26px", display: "flex", flexDirection: "column", gap: 6 }}>
         <Kicker color={C.tan}>Feed</Kicker>
         <Display size={28} color={C.sand}>
-          The record, not{" "}
-          <span
-            style={{
-              display: "inline-block",
-              backgroundImage:
-                "linear-gradient(to bottom,rgba(255,109,0,0) 0 5%,rgba(255,126,22,0.88) 5% 18%,rgba(255,122,14,1) 18% 52%,rgba(236,96,0,1) 52% 84%,rgba(255,109,0,0.72) 84% 95%,rgba(255,109,0,0.3) 95% 100%),linear-gradient(96deg,rgba(255,109,0,0.5) 0 1.5%,rgba(255,109,0,1) 4% 92%,rgba(255,109,0,0.45) 99% 100%)",
-              clipPath:
-                "polygon(0.6% 8%,2.2% 2%,48% 0.3%,96.8% 2.4%,99.6% 9%,100% 86%,97.4% 98%,44% 100%,2% 97.4%,0.2% 88%)",
-              transform: "rotate(-0.55deg)",
-              padding: "2px 8px 4px",
-              color: "#000000",
-              fontWeight: 700,
-            }}
-          >
-            the spin
-          </span>
-          .
+          The record, not the spin.
         </Display>
-        <span style={{ fontSize: 13, color: C.tan }}>{count} update{count === 1 ? "" : "s"}</span>
       </div>
     </div>
   );
