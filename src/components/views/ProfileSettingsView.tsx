@@ -61,12 +61,23 @@ function StatusLine({ status, message }: { status: "idle" | "saving" | "saved" |
  */
 export default function ProfileSettingsView({ topicPool }: { topicPool: string[] }) {
   return (
-    <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16, maxWidth: 640 }}>
+    <div
+      style={{
+        padding: "24px 28px",
+        display: "grid",
+        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+        alignItems: "start",
+        gap: 16,
+        maxWidth: 960,
+      }}
+    >
       <PersonalInfoSection />
       <VotingLocationSection />
       <HushPreferencesSection topicPool={topicPool} />
       <EmailPreferencesSection />
-      <PrivacySection />
+      <div style={{ gridColumn: "1 / -1" }}>
+        <PrivacySection />
+      </div>
     </div>
   );
 }
