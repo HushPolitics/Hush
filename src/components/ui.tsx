@@ -99,12 +99,21 @@ export function Pill({ children, bg, fg, style }: {
   );
 }
 
-/** Filter chip. `on` drives the inverted ink treatment. */
-export function Chip({ on, onClick, children, dot }: {
+/**
+ * Filter chip. `on` drives the selected treatment -- navy/cream by default,
+ * matching the selected-answer treatment AnswerChip (Stance Check) already
+ * uses. `activeBg`/`activeFg` are there so one call site can override the
+ * color for a specific reason (see PoliticiansView's party-filter row,
+ * which keeps the old ink/sand treatment so a selected "Democrat" chip
+ * doesn't render in the same navy as its own party dot).
+ */
+export function Chip({ on, onClick, children, dot, activeBg = C.navy, activeFg = C.cream }: {
   on: boolean;
   onClick: () => void;
   children: ReactNode;
   dot?: string;
+  activeBg?: string;
+  activeFg?: string;
 }) {
   return (
     <button
@@ -120,9 +129,9 @@ export function Chip({ on, onClick, children, dot }: {
         fontSize: 13,
         whiteSpace: "nowrap",
         cursor: "pointer",
-        background: on ? C.ink : "transparent",
-        color: on ? C.sand : C.body,
-        border: `1px solid ${on ? C.ink : "rgba(21,21,21,0.18)"}`,
+        background: on ? activeBg : "transparent",
+        color: on ? activeFg : C.body,
+        border: `1px solid ${on ? activeBg : "rgba(21,21,21,0.18)"}`,
       }}
     >
       {dot ? (
