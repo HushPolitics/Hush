@@ -8,12 +8,11 @@ import { initials } from "@/lib/scoring";
 import { Avatar, Chip, Display, EmptyState, Kicker, SearchField } from "@/components/ui";
 import type { Level, Party, Politician, Race } from "@/lib/types";
 
-type BallotFilter = "all" | "onBallot" | "notOnBallot";
+type BallotFilter = "all" | "onBallot";
 
 const BALLOT_FILTERS: { key: BallotFilter; label: string }[] = [
   { key: "all", label: "All" },
   { key: "onBallot", label: "On my ballot" },
-  { key: "notOnBallot", label: "Not on my ballot" },
 ];
 
 const LEVEL_FILTERS: (Level | "All")[] = ["All", "Federal", "State", "Local"];
