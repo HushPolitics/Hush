@@ -10,13 +10,14 @@ import { SearchField } from "./ui";
 import PersonalizeBanner from "./PersonalizeBanner";
 import { HushScoreInfoProvider } from "./HushScoreInfo";
 
-// Nav trimmed to three destinations plus the avatar menu (see AVATAR_MENU
-// below). Unchanged from the sidebar era -- only the layout around it
-// changed, from a vertical list to a horizontal one in the top bar.
+// Nav: four destinations plus the avatar menu (see AVATAR_MENU below).
+// Politicians added as the fourth -- same horizontal top bar, no layout
+// change, just one more entry.
 const NAV = [
   { href: "/feed", label: "Feed" },
   { href: "/hush-guide", label: "HUSH Guide" },
   { href: "/stance-check", label: "Stance Check" },
+  { href: "/politicians", label: "Politicians" },
 ];
 
 const AVATAR_MENU = [
@@ -26,7 +27,7 @@ const AVATAR_MENU = [
 ] as const;
 
 function isActive(pathname: string, href: string) {
-  if (href === "/feed") return pathname === "/feed" || pathname.startsWith("/politician");
+  if (href === "/politicians") return pathname === "/politicians" || pathname.startsWith("/politician");
   return pathname === href || pathname.startsWith(href + "/");
 }
 

@@ -14,7 +14,7 @@ import type { Politician } from "@/lib/types";
  * Deliberately carries no HUSH. Score -- the standing rule against showing
  * two scores on one screen means the only place a politician's score
  * belongs is their own page, one click away via the name link or the
- * chevron to the full /representatives index.
+ * chevron to the full /politicians index.
  */
 export default function RepresentativesCard({
   politicians,
@@ -29,8 +29,8 @@ export default function RepresentativesCard({
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <Kicker>Your Representatives</Kicker>
         <Link
-          href="/representatives"
-          aria-label="See all your representatives"
+          href="/politicians"
+          aria-label="See the full politician directory"
           style={{ marginLeft: "auto", fontSize: 15, color: C.muted }}
         >
           →

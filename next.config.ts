@@ -27,6 +27,10 @@ const nextConfig: NextConfig = {
       // HUSH Guide moved from /guide to /hush-guide.
       { source: "/guide", destination: "/hush-guide", permanent: true },
       { source: "/guide/:raceId", destination: "/hush-guide/:raceId", permanent: true },
+      // "Your Representatives" is retired -- the Politicians directory (defaults
+      // to "On my ballot") is the canonical destination now, showing the same
+      // ballot-scoped list plus everyone else in the system one filter away.
+      { source: "/representatives", destination: "/politicians", permanent: true },
     ];
   },
 };
