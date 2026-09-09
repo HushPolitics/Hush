@@ -101,6 +101,8 @@ export default function PoliticiansView({
               on={partyFilter === party}
               onClick={() => setPartyFilter(party)}
               dot={party === "All" ? undefined : PARTY[party]}
+              activeBg={C.ink}
+              activeFg={C.sand}
             >
               {party === "All" ? "All parties" : PARTY_LABEL[party]}
             </Chip>
