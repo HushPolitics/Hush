@@ -148,3 +148,55 @@ export function finderStats(topicPool: string[], answers: FinderAnswers): { tota
   ).length;
   return { totalAnswered, issuesAnswered };
 }
+
+export interface FinderIssueDetail {
+  issue: string;
+  /** 0 (Not important) - 2 (Very important) average of this issue's answered sub-questions. */
+  raw: number;
+  /** How many of this issue's sub-questions have been answered. */
+  n: number;
+  /** The single highest-rated answered sub-question for this issue, for a grounded "why" line. */
+  topQuestion?: { text: string; value: IssueFinderAnswer };
+}
+
+/**
+ * Per-issue detail behind `scoreFinder`'s ranking -- a separate, additive
+ * function rather than a refactor of `scoreFinder` itself, so the existing
+ * ranking math (including its "shrink toward neutral" coverage weighting)
+ * stays exactly as it is. Built for the results screen's "why did this
+ * rank here" line: `topQuestion` is a real answered question, not
+ * generated text, so the explanation it feeds is grounded in what the
+ * person actually said.
+ */
+export function scoreFinderDetailed(
+  topicPool: string[],
+  answers: FinderAnswers,
+  bank: Record<string, string[]>,
+): FinderIssueDetail[] {
+  return topicPool.map((issue) => {
+    const prefix = `${issue}::`;
+    const forIssue = Object.entries(answers).filter(([id]) => id.startsWith(prefix));
+    const n = forIssue.length;
+    if (n === 0) return { issue, raw: NEUTRAL, n };
+    const raw = forIssue.reduce((sum, [, a]) => sum + ANSWER_VALUE[a.value], 0) / n;
+    const best = forIssue
+      .map(([id, a]) => {
+        const index = Number(id.slice(prefix.length));
+        return { index, value: a.value, text: (bank[issue] ?? [])[index] };
+      })
+      .sort((a, b) => ANSWER_VALUE[b.value] - ANSWER_VALUE[a.value] || a.index - b.index)[0];
+    return { issue, raw, n, topQuestion: best ? { text: best.text, value: best.value } : undefined };
+  });
+}
+
+/**
+ * Buckets a 0-2 average into one of the app's three real answer values --
+ * no invented middle tier. A genuinely low average essentially never shows
+ * up for an issue that made someone's own top-ranked list, but the
+ * function stays honest about the math either way.
+ */
+export function importanceLabel(raw: number): IssueFinderAnswer {
+  if (raw >= 1.5) return "Very important";
+  if (raw >= 0.5) return "Somewhat important";
+  return "Not important";
+}
