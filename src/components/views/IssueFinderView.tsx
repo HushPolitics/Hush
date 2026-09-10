@@ -34,20 +34,20 @@ const ANSWERS: { value: IssueFinderAnswer; description: string }[] = [
  * edit freely.
  */
 const WHY_WE_ASK: Record<string, string> = {
-  Healthcare: "Health coverage and costs affect nearly every household differently — your answer helps us surface the healthcare policies and candidates most relevant to your priorities.",
-  Housing: "Housing costs and availability vary widely by where you live — your answer helps us weigh housing policy and candidate positions the way they matter to you.",
-  "Voting rights": "Rules about who can vote and how are decided differently in every state — your answer helps us prioritize voting-access coverage relevant to you.",
-  Climate: "Climate and energy policy touches everything from utility bills to local jobs — your answer helps us weigh it against the other issues you care about.",
-  Labor: "Wages, workplace rules, and union protections affect people differently depending on where and how they work — your answer helps us calibrate this against your other priorities.",
-  Education: "School funding, curriculum, and access to higher education vary by district and state — your answer helps us surface the education coverage that matters most to you.",
-  Economy: "Economic policy covers everything from taxes to inflation to trade — your answer helps us understand how much weight to give it in your overall profile.",
-  Immigration: "Immigration policy spans the border, work visas, and paths to citizenship — your answer helps us calibrate how central this is to your priorities.",
-  "Criminal justice": "Policing, sentencing, and prison policy affect communities differently — your answer helps us weigh this issue against the rest of your profile.",
-  Guns: "Gun policy is one of the most locally variable issues in the country — your answer helps us understand how much it matters to you specifically.",
-  "Reproductive rights": "Reproductive health policy differs significantly by state — your answer helps us prioritize this issue the way it matters to you.",
-  Transit: "Public transit and infrastructure investment affect commutes and costs differently depending on where you live — your answer helps us weigh this against your other priorities.",
-  Water: "Water infrastructure and environmental protections vary widely by region — your answer helps us calibrate how central this is to you.",
-  Veterans: "Veterans' benefits and services affect a specific but significant part of the population — your answer helps us understand how much weight to give this in your profile.",
+  Healthcare: "Health coverage and costs land differently depending on your age, income, whether you have employer insurance, or you're managing a chronic condition — the same policy question can feel urgent to one household and abstract to another. Your answer here shapes how much weight healthcare gets across your Feed, HUSH Guide comparisons, and Stance Check results, alongside everything else you tell us matters.",
+  Housing: "Rent, mortgage rates, and housing supply vary enormously by city, state, and whether you're a renter, an owner, or still saving for a first home — a policy that helps one household can barely register for another. Your answer helps us calibrate how much housing policy and candidate positions should factor into your Top Issues, Feed, and comparisons against the rest of your priorities.",
+  "Voting rights": "Registration deadlines, ID requirements, mail-ballot rules, and early-voting windows are set state by state, so how much this issue matters can depend entirely on where you live and vote. Your answer helps us decide how prominently voting-access coverage and candidate records on this issue should surface relative to everything else in your profile.",
+  Climate: "Climate and energy policy shows up in utility bills, extreme-weather risk, local jobs tied to energy production, and long-term environmental costs — the mix that matters most depends heavily on where you live and what you do for work. Your answer helps us weigh climate and energy coverage against your other priorities across the Feed and HUSH Guide.",
+  Labor: "Wages, overtime rules, workplace safety, and union protections land differently depending on your industry, whether you're salaried or hourly, and whether collective bargaining is part of your workplace. Your answer helps us calibrate how much labor and workplace policy should factor into your Top Issues and the candidate comparisons we surface for you.",
+  Education: "School funding, curriculum decisions, and access to higher education vary by district and state, and matter differently depending on whether you have kids in school, are paying off student loans, or neither. Your answer helps us decide how much education coverage should weigh against everything else you've told us matters.",
+  Economy: "Economic policy spans taxes, inflation, trade, and interest rates — broad forces that touch everyone, but not evenly, depending on your income, whether you own a home or business, and how exposed your job is to economic swings. Your answer helps us calibrate how central economic policy should be in your overall issue profile.",
+  Immigration: "Immigration policy covers the border, work visas, and paths to citizenship — issues that can feel distant to some households and immediate to others depending on family, community, and industry. Your answer helps us understand how much weight immigration policy should carry alongside your other priorities.",
+  "Criminal justice": "Policing, sentencing, and prison policy affect communities very differently depending on where you live and your own experience with the justice system. Your answer helps us weigh criminal-justice coverage and candidate records against the rest of your Top Issues profile.",
+  Guns: "Gun policy is one of the most locally variable issues in the country — state laws, rural versus urban context, and personal experience all shape how much it matters to any one person. Your answer helps us understand how central this issue is to you specifically, separate from how loudly it's debated nationally.",
+  "Reproductive rights": "Reproductive health policy differs significantly by state, and how much it matters can depend on your age, whether you're planning a family, or your own health history. Your answer helps us prioritize this issue the way it actually matters to you, not by how much attention it gets elsewhere.",
+  Transit: "Public transit and infrastructure investment shape commutes, costs, and access differently depending on whether you live somewhere transit-dependent or car-dependent, urban or rural. Your answer helps us weigh transit and infrastructure coverage against your other priorities.",
+  Water: "Water infrastructure, quality, and environmental protections vary widely by region — a pressing local issue in some places, a background concern in others. Your answer helps us calibrate how central this should be in your issue profile.",
+  Veterans: "Veterans' benefits and services affect a specific but significant part of the population directly, and touch many more through family and community. Your answer helps us understand how much weight this issue should carry relative to everything else you've told us matters.",
 };
 
 // Persists the in-progress sitting (and the unsaved results-screen draft) so
@@ -449,11 +449,20 @@ export default function IssueFinderView({
             </button>
           </div>
 
-          <div style={{ display: "flex", gap: 12, paddingTop: 18, borderTop: `1px solid ${C.line}` }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 14,
+              marginTop: 6,
+              padding: "18px 22px",
+              borderRadius: 12,
+              background: C.slateFill,
+            }}
+          >
             <span aria-hidden style={{ fontSize: 16 }}>💡</span>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <Kicker color={C.muted}>Why we ask</Kicker>
-              <span style={{ fontSize: 12.5, color: C.body, lineHeight: 1.5, maxWidth: 560 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5, flex: 1, minWidth: 0 }}>
+              <Kicker color={C.navy}>Why we ask</Kicker>
+              <span style={{ fontSize: 13, color: C.body, lineHeight: 1.6 }}>
                 {WHY_WE_ASK[q.issue]}
               </span>
             </div>
