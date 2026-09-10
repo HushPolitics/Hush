@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import {
@@ -20,7 +20,35 @@ import { Card, Display, GhostButton, Kicker, RustButton } from "@/components/ui"
 import { TopIssuesCard } from "./TopIssuesCard";
 import { IssueFinderDepthCards } from "./IssueFinderDepthCards";
 
-const ANSWERS: IssueFinderAnswer[] = ["Not important", "Somewhat important", "Very important"];
+const ANSWERS: { value: IssueFinderAnswer; description: string }[] = [
+  { value: "Not important", description: "This isn't a priority for me." },
+  { value: "Somewhat important", description: "This matters, but isn't a top priority." },
+  { value: "Important", description: "This is an important issue for me." },
+  { value: "Very important", description: "This is one of my stronger priorities." },
+];
+
+/**
+ * One neutral, non-partisan line per issue for the sitting screen's "why
+ * we ask" box -- explains why the issue is worth having an opinion on,
+ * never which opinion to have. Drafted copy, not sourced from anywhere;
+ * edit freely.
+ */
+const WHY_WE_ASK: Record<string, string> = {
+  Healthcare: "Health coverage and costs land differently depending on your age, income, whether you have employer insurance, or you're managing a chronic condition — the same policy question can feel urgent to one household and abstract to another. Your answer here shapes how much weight healthcare gets across your Feed, HUSH Guide comparisons, and Stance Check results, alongside everything else you tell us matters.",
+  Housing: "Rent, mortgage rates, and housing supply vary enormously by city, state, and whether you're a renter, an owner, or still saving for a first home — a policy that helps one household can barely register for another. Your answer helps us calibrate how much housing policy and candidate positions should factor into your Top Issues, Feed, and comparisons against the rest of your priorities.",
+  "Voting rights": "Registration deadlines, ID requirements, mail-ballot rules, and early-voting windows are set state by state, so how much this issue matters can depend entirely on where you live and vote. Your answer helps us decide how prominently voting-access coverage and candidate records on this issue should surface relative to everything else in your profile.",
+  Climate: "Climate and energy policy shows up in utility bills, extreme-weather risk, local jobs tied to energy production, and long-term environmental costs — the mix that matters most depends heavily on where you live and what you do for work. Your answer helps us weigh climate and energy coverage against your other priorities across the Feed and HUSH Guide.",
+  Labor: "Wages, overtime rules, workplace safety, and union protections land differently depending on your industry, whether you're salaried or hourly, and whether collective bargaining is part of your workplace. Your answer helps us calibrate how much labor and workplace policy should factor into your Top Issues and the candidate comparisons we surface for you.",
+  Education: "School funding, curriculum decisions, and access to higher education vary by district and state, and matter differently depending on whether you have kids in school, are paying off student loans, or neither. Your answer helps us decide how much education coverage should weigh against everything else you've told us matters.",
+  Economy: "Economic policy spans taxes, inflation, trade, and interest rates — broad forces that touch everyone, but not evenly, depending on your income, whether you own a home or business, and how exposed your job is to economic swings. Your answer helps us calibrate how central economic policy should be in your overall issue profile.",
+  Immigration: "Immigration policy covers the border, work visas, and paths to citizenship — issues that can feel distant to some households and immediate to others depending on family, community, and industry. Your answer helps us understand how much weight immigration policy should carry alongside your other priorities.",
+  "Criminal justice": "Policing, sentencing, and prison policy affect communities very differently depending on where you live and your own experience with the justice system. Your answer helps us weigh criminal-justice coverage and candidate records against the rest of your Top Issues profile.",
+  Guns: "Gun policy is one of the most locally variable issues in the country — state laws, rural versus urban context, and personal experience all shape how much it matters to any one person. Your answer helps us understand how central this issue is to you specifically, separate from how loudly it's debated nationally.",
+  "Reproductive rights": "Reproductive health policy differs significantly by state, and how much it matters can depend on your age, whether you're planning a family, or your own health history. Your answer helps us prioritize this issue the way it actually matters to you, not by how much attention it gets elsewhere.",
+  Transit: "Public transit and infrastructure investment shape commutes, costs, and access differently depending on whether you live somewhere transit-dependent or car-dependent, urban or rural. Your answer helps us weigh transit and infrastructure coverage against your other priorities.",
+  Water: "Water infrastructure, quality, and environmental protections vary widely by region — a pressing local issue in some places, a background concern in others. Your answer helps us calibrate how central this should be in your issue profile.",
+  Veterans: "Veterans' benefits and services affect a specific but significant part of the population directly, and touch many more through family and community. Your answer helps us understand how much weight this issue should carry relative to everything else you've told us matters.",
+};
 
 // Persists the in-progress sitting (and the unsaved results-screen draft) so
 // a refresh resumes exactly where the person left off, including a finished
@@ -164,26 +192,37 @@ export default function IssueFinderView({
     }
   }, [step, questions, at, draftTopics, confirmReplace]);
 
-  function answer(value: IssueFinderAnswer) {
-    const q = questions[at];
-    recordFinderAnswer(q.id, value);
+  type FinderAnswerMap = Record<string, { value: IssueFinderAnswer; answeredAt: number }>;
 
+  // Shared by answer() and skip(): move to the next question, or -- on the
+  // last one -- score and land on results. `finalAnswers` lets answer()
+  // pass finderAnswers with its just-recorded value merged in locally,
+  // since usePrefs() hasn't re-rendered with it yet within the same click.
+  // skip() has nothing to merge, so it just scores off finderAnswers as-is.
+  function advance(finalAnswers: FinderAnswerMap) {
     if (at + 1 < questions.length) {
       setAt(at + 1);
       return;
     }
-
-    // Last question of the sitting: score from `finderAnswers` plus this one
-    // answer merged in locally. usePrefs() hasn't re-rendered this component
-    // with the just-recorded answer yet within this same click handler, so
-    // reading `finderAnswers` alone here would miss it.
-    const finalAnswers = {
-      ...finderAnswers,
-      [q.id]: { value, answeredAt: Date.now() },
-    };
     const suggested = scoreFinder(topicPool, finalAnswers);
     setDraftTopics(suggested);
     setStep("results");
+  }
+
+  function answer(value: IssueFinderAnswer) {
+    const q = questions[at];
+    recordFinderAnswer(q.id, value);
+    advance({ ...finderAnswers, [q.id]: { value, answeredAt: Date.now() } });
+  }
+
+  // Leaves this question unanswered and moves on -- doesn't touch
+  // finderAnswers at all, so a later retake still offers it first.
+  function skip() {
+    advance(finderAnswers);
+  }
+
+  function goPrevious() {
+    setAt((prev) => Math.max(0, prev - 1));
   }
 
   function saveResults() {
@@ -236,48 +275,199 @@ export default function IssueFinderView({
 
   if (step === "sitting") {
     const q = questions[at];
-    return (
-      <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-          <Kicker>
-            Question {at + 1} of {questions.length}
-          </Kicker>
-          <span style={{ height: 1, flex: 1, background: C.line }} />
-          <button
-            type="button"
-            className="link-quiet"
-            onClick={() => {
-              clearSession();
-              router.push(exitHref);
-            }}
-            style={{
-              border: 0,
-              background: "transparent",
-              color: C.navy,
-              fontSize: 12,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-              padding: 6,
-            }}
-          >
-            Exit Issue Finder
-          </button>
-        </div>
+    const currentAnswer = finderAnswers[q.id]?.value;
+    const issueQuestions = questions.filter((qq) => qq.issue === q.issue);
+    const posInIssue = issueQuestions.findIndex((qq) => qq.id === q.id) + 1;
+    const pct = Math.round(((at + 1) / questions.length) * 100);
 
-        <Card style={{ maxWidth: 640, padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
-          <Kicker color={C.muted}>{q.issue}</Kicker>
-          <Display size={22} style={{ lineHeight: 1.35 }}>
+    return (
+      <div style={{ padding: "24px 28px", display: "flex", gap: 28 }}>
+        <aside style={{ width: 300, flex: "0 0 300px", display: "flex", flexDirection: "column", gap: 20 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            <Kicker>Issue Finder</Kicker>
+            <Display size={22} style={{ lineHeight: 1.25 }}>
+              Find your top issues with a few questions
+            </Display>
+            <span style={{ fontSize: 12.5, color: C.body, lineHeight: 1.5 }}>
+              Every question is one specific policy detail — how you answer says how much that
+              detail matters to you, not which side you&apos;re on.
+            </span>
+          </div>
+
+          <nav aria-label="Issues in this sitting" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {topicPool.map((issue, i) => {
+              const indices = questions.reduce<number[]>((acc, qq, idx) => {
+                if (qq.issue === issue) acc.push(idx);
+                return acc;
+              }, []);
+              const on = issue === q.issue;
+              const done = indices.length > 0 && indices.every((idx) => idx < at);
+              return (
+                <div
+                  key={issue}
+                  aria-current={on ? "true" : undefined}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "8px 10px 8px 11px",
+                    borderRadius: 7,
+                    borderLeft: `3px solid ${on ? C.rust : "transparent"}`,
+                    background: on ? C.shell : "transparent",
+                    color: on ? C.ink : C.body,
+                    fontSize: 12.5,
+                    fontWeight: on ? 600 : 400,
+                  }}
+                >
+                  <span style={{ width: 16, fontSize: 11, color: C.muted }}>{String(i + 1).padStart(2, "0")}</span>
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      flex: "0 0 6px",
+                      background: on || done ? C.rust : C.faint,
+                      opacity: done && !on ? 0.5 : 1,
+                    }}
+                  />
+                  <span>{issue}</span>
+                </div>
+              );
+            })}
+          </nav>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: C.muted }}>
+              <span>
+                {at + 1} of {questions.length} questions
+              </span>
+              <span>{pct}%</span>
+            </div>
+            <div style={{ height: 4, borderRadius: 2, background: C.line, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${pct}%`, background: C.rust }} />
+            </div>
+          </div>
+        </aside>
+
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ height: 1, flex: 1, background: C.line }} />
+            <button
+              type="button"
+              className="link-quiet"
+              onClick={() => {
+                clearSession();
+                router.push(exitHref);
+              }}
+              style={{
+                border: 0,
+                background: "transparent",
+                color: C.navy,
+                fontSize: 12,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                cursor: "pointer",
+                padding: 6,
+              }}
+            >
+              Exit Issue Finder
+            </button>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <Kicker color={C.rust}>{q.issue}</Kicker>
+            <Kicker color={C.muted}>
+              Question {posInIssue} of {issueQuestions.length}
+            </Kicker>
+          </div>
+
+          <Display size={30} style={{ lineHeight: 1.3 }}>
             How important is it to you that {q.text}?
           </Display>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {ANSWERS.map((a) => (
-              <ImportanceChip key={a} onClick={() => answer(a)}>
-                {a}
-              </ImportanceChip>
-            ))}
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            {ANSWERS.map((a) => {
+              const selected = currentAnswer === a.value;
+              return (
+                <button
+                  key={a.value}
+                  type="button"
+                  onClick={() => answer(a.value)}
+                  aria-pressed={selected}
+                  style={{
+                    boxSizing: "border-box",
+                    flex: "1 1 180px",
+                    minWidth: 160,
+                    textAlign: "left",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                    padding: 14,
+                    borderRadius: 10,
+                    border: `1px solid ${selected ? C.rust : "rgba(21,21,21,0.16)"}`,
+                    background: selected ? C.shell : C.white,
+                    cursor: "pointer",
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: "50%",
+                      boxSizing: "border-box",
+                      border: `1.5px solid ${selected ? C.rust : C.faint}`,
+                      background: selected ? C.rust : "transparent",
+                    }}
+                  />
+                  <span style={{ fontSize: 13.5, fontWeight: 600, color: C.ink }}>{a.value}</span>
+                  <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>{a.description}</span>
+                </button>
+              );
+            })}
           </div>
-        </Card>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5 }}>
+            {at > 0 ? (
+              <button
+                type="button"
+                onClick={goPrevious}
+                style={{ border: 0, background: "transparent", color: C.navy, cursor: "pointer", padding: 0 }}
+              >
+                ← Previous
+              </button>
+            ) : (
+              <span />
+            )}
+            <button
+              type="button"
+              onClick={skip}
+              style={{ border: 0, background: "transparent", color: C.muted, cursor: "pointer", padding: 0 }}
+            >
+              Skip question →
+            </button>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 14,
+              marginTop: 6,
+              padding: "18px 22px",
+              borderRadius: 12,
+              background: C.slate,
+            }}
+          >
+            <span aria-hidden style={{ fontSize: 16 }}>💡</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 5, flex: 1, minWidth: 0 }}>
+              <Kicker color={C.onDark}>Why we ask</Kicker>
+              <span style={{ fontSize: 13, color: C.onDark, lineHeight: 1.6 }}>
+                {WHY_WE_ASK[q.issue]}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -361,7 +551,7 @@ export default function IssueFinderView({
               </span>
             </div>
             <span style={{ fontSize: 12.5, color: C.body }}>
-              {(["Very important", "Somewhat important", "Not important"] as const)
+              {(["Very important", "Important", "Somewhat important", "Not important"] as const)
                 .filter((l) => tierCounts[l])
                 .map((l) => `${tierCounts[l]} ${l}`)
                 .join(" · ")}
@@ -442,47 +632,5 @@ function NextActionRow({ href, label, desc }: { href: string; label: string; des
         ›
       </span>
     </Link>
-  );
-}
-
-/**
- * Same no-color-coding, ring-fill vocabulary as Stance Check's own answer
- * picker (`AnswerChip` in StanceCheckView.tsx) — a per-choice color here
- * would read as the UI hinting which answer is "normal" before the person
- * even picks, same reasoning, just not shared as one component since the
- * two features' picker state differs (Stance Check's stays selected and
- * shows a breakdown; this one answers and immediately advances).
- */
-function ImportanceChip({ onClick, children }: { onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "8px 14px",
-        borderRadius: 20,
-        fontSize: 13,
-        fontWeight: 500,
-        whiteSpace: "nowrap",
-        cursor: "pointer",
-        background: "transparent",
-        color: C.body,
-        border: "1px solid rgba(21,21,21,0.18)",
-      }}
-    >
-      <span
-        style={{
-          width: 9,
-          height: 9,
-          borderRadius: "50%",
-          boxSizing: "border-box",
-          border: `1.5px solid ${C.faint}`,
-        }}
-      />
-      {children}
-    </button>
   );
 }
