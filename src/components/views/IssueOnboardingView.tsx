@@ -45,7 +45,10 @@ export default function IssueOnboardingView({ topicPool, next }: { topicPool: st
         </span>
       </div>
 
-      <div className="stack-row" style={{ display: "flex", gap: 16, alignItems: "stretch", flexWrap: "wrap" }}>
+      <div
+        className="stack-row"
+        style={{ display: "flex", gap: 16, alignItems: "stretch", flexWrap: "wrap", maxWidth: 700, margin: "0 auto" }}
+      >
         <Card
           style={{
             flex: "1 1 320px",
@@ -57,10 +60,10 @@ export default function IssueOnboardingView({ topicPool, next }: { topicPool: st
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span style={{ fontFamily: cond, fontSize: 21 }}>Rank them yourself</span>
+            <span style={{ fontFamily: cond, fontSize: 21 }}>Rank your own issues</span>
             <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
-              Pick from the full list and drag them into the order that matters to you. Fastest if
-              you already know what you care about.
+              Drag the full list into the order that matters to you. Fastest if you already know
+              what you care about.
             </span>
           </div>
           <Link
@@ -96,10 +99,10 @@ export default function IssueOnboardingView({ topicPool, next }: { topicPool: st
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span style={{ fontFamily: cond, fontSize: 21 }}>Answer some questions</span>
+            <span style={{ fontFamily: cond, fontSize: 21 }}>Need help picking?</span>
             <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
-              Issue Finder asks specific policy questions and suggests an order from your answers
-              — you can still reorder or edit it before saving.
+              Take our quiz on the nuanced issues and we&apos;ll tell you what we think your top
+              issues are — you can still reorder or edit it before saving.
             </span>
           </div>
           <IssueFinderDepthCards topicPool={topicPool} onPick={startFinder} />
