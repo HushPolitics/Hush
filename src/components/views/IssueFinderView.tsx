@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import {
@@ -20,7 +20,35 @@ import { Card, Display, GhostButton, Kicker, RustButton } from "@/components/ui"
 import { TopIssuesCard } from "./TopIssuesCard";
 import { IssueFinderDepthCards } from "./IssueFinderDepthCards";
 
-const ANSWERS: IssueFinderAnswer[] = ["Not important", "Somewhat important", "Very important"];
+const ANSWERS: { value: IssueFinderAnswer; description: string }[] = [
+  { value: "Not important", description: "This isn't a priority for me." },
+  { value: "Somewhat important", description: "This matters, but isn't a top priority." },
+  { value: "Important", description: "This is an important issue for me." },
+  { value: "Very important", description: "This is one of my stronger priorities." },
+];
+
+/**
+ * One neutral, non-partisan line per issue for the sitting screen's "why
+ * we ask" box -- explains why the issue is worth having an opinion on,
+ * never which opinion to have. Drafted copy, not sourced from anywhere;
+ * edit freely.
+ */
+const WHY_WE_ASK: Record<string, string> = {
+  Healthcare: "Health coverage and costs affect nearly every household differently — your answer helps us surface the healthcare policies and candidates most relevant to your priorities.",
+  Housing: "Housing costs and availability vary widely by where you live — your answer helps us weigh housing policy and candidate positions the way they matter to you.",
+  "Voting rights": "Rules about who can vote and how are decided differently in every state — your answer helps us prioritize voting-access coverage relevant to you.",
+  Climate: "Climate and energy policy touches everything from utility bills to local jobs — your answer helps us weigh it against the other issues you care about.",
+  Labor: "Wages, workplace rules, and union protections affect people differently depending on where and how they work — your answer helps us calibrate this against your other priorities.",
+  Education: "School funding, curriculum, and access to higher education vary by district and state — your answer helps us surface the education coverage that matters most to you.",
+  Economy: "Economic policy covers everything from taxes to inflation to trade — your answer helps us understand how much weight to give it in your overall profile.",
+  Immigration: "Immigration policy spans the border, work visas, and paths to citizenship — your answer helps us calibrate how central this is to your priorities.",
+  "Criminal justice": "Policing, sentencing, and prison policy affect communities differently — your answer helps us weigh this issue against the rest of your profile.",
+  Guns: "Gun policy is one of the most locally variable issues in the country — your answer helps us understand how much it matters to you specifically.",
+  "Reproductive rights": "Reproductive health policy differs significantly by state — your answer helps us prioritize this issue the way it matters to you.",
+  Transit: "Public transit and infrastructure investment affect commutes and costs differently depending on where you live — your answer helps us weigh this against your other priorities.",
+  Water: "Water infrastructure and environmental protections vary widely by region — your answer helps us calibrate how central this is to you.",
+  Veterans: "Veterans' benefits and services affect a specific but significant part of the population — your answer helps us understand how much weight to give this in your profile.",
+};
 
 // Persists the in-progress sitting (and the unsaved results-screen draft) so
 // a refresh resumes exactly where the person left off, including a finished
@@ -164,26 +192,37 @@ export default function IssueFinderView({
     }
   }, [step, questions, at, draftTopics, confirmReplace]);
 
-  function answer(value: IssueFinderAnswer) {
-    const q = questions[at];
-    recordFinderAnswer(q.id, value);
+  type FinderAnswerMap = Record<string, { value: IssueFinderAnswer; answeredAt: number }>;
 
+  // Shared by answer() and skip(): move to the next question, or -- on the
+  // last one -- score and land on results. `finalAnswers` lets answer()
+  // pass finderAnswers with its just-recorded value merged in locally,
+  // since usePrefs() hasn't re-rendered with it yet within the same click.
+  // skip() has nothing to merge, so it just scores off finderAnswers as-is.
+  function advance(finalAnswers: FinderAnswerMap) {
     if (at + 1 < questions.length) {
       setAt(at + 1);
       return;
     }
-
-    // Last question of the sitting: score from `finderAnswers` plus this one
-    // answer merged in locally. usePrefs() hasn't re-rendered this component
-    // with the just-recorded answer yet within this same click handler, so
-    // reading `finderAnswers` alone here would miss it.
-    const finalAnswers = {
-      ...finderAnswers,
-      [q.id]: { value, answeredAt: Date.now() },
-    };
     const suggested = scoreFinder(topicPool, finalAnswers);
     setDraftTopics(suggested);
     setStep("results");
+  }
+
+  function answer(value: IssueFinderAnswer) {
+    const q = questions[at];
+    recordFinderAnswer(q.id, value);
+    advance({ ...finderAnswers, [q.id]: { value, answeredAt: Date.now() } });
+  }
+
+  // Leaves this question unanswered and moves on -- doesn't touch
+  // finderAnswers at all, so a later retake still offers it first.
+  function skip() {
+    advance(finderAnswers);
+  }
+
+  function goPrevious() {
+    setAt((prev) => Math.max(0, prev - 1));
   }
 
   function saveResults() {
@@ -236,48 +275,190 @@ export default function IssueFinderView({
 
   if (step === "sitting") {
     const q = questions[at];
-    return (
-      <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-          <Kicker>
-            Question {at + 1} of {questions.length}
-          </Kicker>
-          <span style={{ height: 1, flex: 1, background: C.line }} />
-          <button
-            type="button"
-            className="link-quiet"
-            onClick={() => {
-              clearSession();
-              router.push(exitHref);
-            }}
-            style={{
-              border: 0,
-              background: "transparent",
-              color: C.navy,
-              fontSize: 12,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-              padding: 6,
-            }}
-          >
-            Exit Issue Finder
-          </button>
-        </div>
+    const currentAnswer = finderAnswers[q.id]?.value;
+    const issueQuestions = questions.filter((qq) => qq.issue === q.issue);
+    const posInIssue = issueQuestions.findIndex((qq) => qq.id === q.id) + 1;
+    const pct = Math.round(((at + 1) / questions.length) * 100);
 
-        <Card style={{ maxWidth: 640, padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
-          <Kicker color={C.muted}>{q.issue}</Kicker>
-          <Display size={22} style={{ lineHeight: 1.35 }}>
+    return (
+      <div style={{ padding: "24px 28px", display: "flex", gap: 28 }}>
+        <aside style={{ width: 300, flex: "0 0 300px", display: "flex", flexDirection: "column", gap: 20 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            <Kicker>Issue Finder</Kicker>
+            <Display size={22} style={{ lineHeight: 1.25 }}>
+              Find your top issues with a few questions
+            </Display>
+            <span style={{ fontSize: 12.5, color: C.body, lineHeight: 1.5 }}>
+              Every question is one specific policy detail — how you answer says how much that
+              detail matters to you, not which side you&apos;re on.
+            </span>
+          </div>
+
+          <nav aria-label="Issues in this sitting" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {topicPool.map((issue, i) => {
+              const indices = questions.reduce<number[]>((acc, qq, idx) => {
+                if (qq.issue === issue) acc.push(idx);
+                return acc;
+              }, []);
+              const on = issue === q.issue;
+              const done = indices.length > 0 && indices.every((idx) => idx < at);
+              return (
+                <div
+                  key={issue}
+                  aria-current={on ? "true" : undefined}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "8px 10px 8px 11px",
+                    borderRadius: 7,
+                    borderLeft: `3px solid ${on ? C.rust : "transparent"}`,
+                    background: on ? C.shell : "transparent",
+                    color: on ? C.ink : C.body,
+                    fontSize: 12.5,
+                    fontWeight: on ? 600 : 400,
+                  }}
+                >
+                  <span style={{ width: 16, fontSize: 11, color: C.muted }}>{String(i + 1).padStart(2, "0")}</span>
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      flex: "0 0 6px",
+                      background: on || done ? C.rust : C.faint,
+                      opacity: done && !on ? 0.5 : 1,
+                    }}
+                  />
+                  <span>{issue}</span>
+                </div>
+              );
+            })}
+          </nav>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: C.muted }}>
+              <span>
+                {at + 1} of {questions.length} questions
+              </span>
+              <span>{pct}%</span>
+            </div>
+            <div style={{ height: 4, borderRadius: 2, background: C.line, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${pct}%`, background: C.rust }} />
+            </div>
+          </div>
+        </aside>
+
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ height: 1, flex: 1, background: C.line }} />
+            <button
+              type="button"
+              className="link-quiet"
+              onClick={() => {
+                clearSession();
+                router.push(exitHref);
+              }}
+              style={{
+                border: 0,
+                background: "transparent",
+                color: C.navy,
+                fontSize: 12,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                cursor: "pointer",
+                padding: 6,
+              }}
+            >
+              Exit Issue Finder
+            </button>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <Kicker color={C.rust}>{q.issue}</Kicker>
+            <Kicker color={C.muted}>
+              Question {posInIssue} of {issueQuestions.length}
+            </Kicker>
+          </div>
+
+          <Display size={30} style={{ lineHeight: 1.3, maxWidth: 640 }}>
             How important is it to you that {q.text}?
           </Display>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {ANSWERS.map((a) => (
-              <ImportanceChip key={a} onClick={() => answer(a)}>
-                {a}
-              </ImportanceChip>
-            ))}
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            {ANSWERS.map((a) => {
+              const selected = currentAnswer === a.value;
+              return (
+                <button
+                  key={a.value}
+                  type="button"
+                  onClick={() => answer(a.value)}
+                  aria-pressed={selected}
+                  style={{
+                    boxSizing: "border-box",
+                    flex: "1 1 180px",
+                    minWidth: 160,
+                    textAlign: "left",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                    padding: 14,
+                    borderRadius: 10,
+                    border: `1px solid ${selected ? C.rust : "rgba(21,21,21,0.16)"}`,
+                    background: selected ? C.shell : C.white,
+                    cursor: "pointer",
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: "50%",
+                      boxSizing: "border-box",
+                      border: `1.5px solid ${selected ? C.rust : C.faint}`,
+                      background: selected ? C.rust : "transparent",
+                    }}
+                  />
+                  <span style={{ fontSize: 13.5, fontWeight: 600, color: C.ink }}>{a.value}</span>
+                  <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>{a.description}</span>
+                </button>
+              );
+            })}
           </div>
-        </Card>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5 }}>
+            {at > 0 ? (
+              <button
+                type="button"
+                onClick={goPrevious}
+                style={{ border: 0, background: "transparent", color: C.navy, cursor: "pointer", padding: 0 }}
+              >
+                ← Previous
+              </button>
+            ) : (
+              <span />
+            )}
+            <button
+              type="button"
+              onClick={skip}
+              style={{ border: 0, background: "transparent", color: C.muted, cursor: "pointer", padding: 0 }}
+            >
+              Skip question →
+            </button>
+          </div>
+
+          <div style={{ display: "flex", gap: 12, paddingTop: 18, borderTop: `1px solid ${C.line}` }}>
+            <span aria-hidden style={{ fontSize: 16 }}>💡</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <Kicker color={C.muted}>Why we ask</Kicker>
+              <span style={{ fontSize: 12.5, color: C.body, lineHeight: 1.5, maxWidth: 560 }}>
+                {WHY_WE_ASK[q.issue]}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -361,7 +542,7 @@ export default function IssueFinderView({
               </span>
             </div>
             <span style={{ fontSize: 12.5, color: C.body }}>
-              {(["Very important", "Somewhat important", "Not important"] as const)
+              {(["Very important", "Important", "Somewhat important", "Not important"] as const)
                 .filter((l) => tierCounts[l])
                 .map((l) => `${tierCounts[l]} ${l}`)
                 .join(" · ")}
@@ -442,47 +623,5 @@ function NextActionRow({ href, label, desc }: { href: string; label: string; des
         ›
       </span>
     </Link>
-  );
-}
-
-/**
- * Same no-color-coding, ring-fill vocabulary as Stance Check's own answer
- * picker (`AnswerChip` in StanceCheckView.tsx) — a per-choice color here
- * would read as the UI hinting which answer is "normal" before the person
- * even picks, same reasoning, just not shared as one component since the
- * two features' picker state differs (Stance Check's stays selected and
- * shows a breakdown; this one answers and immediately advances).
- */
-function ImportanceChip({ onClick, children }: { onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "8px 14px",
-        borderRadius: 20,
-        fontSize: 13,
-        fontWeight: 500,
-        whiteSpace: "nowrap",
-        cursor: "pointer",
-        background: "transparent",
-        color: C.body,
-        border: "1px solid rgba(21,21,21,0.18)",
-      }}
-    >
-      <span
-        style={{
-          width: 9,
-          height: 9,
-          borderRadius: "50%",
-          boxSizing: "border-box",
-          border: `1.5px solid ${C.faint}`,
-        }}
-      />
-      {children}
-    </button>
   );
 }
