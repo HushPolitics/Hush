@@ -562,9 +562,6 @@ function TileGrid({
                     padding: "10px 16px",
                     background: C.slateFill,
                     borderBottom: `1px solid ${C.line}`,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
                   }}
                 >
                   <span style={{ fontFamily: cond, fontSize: 19, lineHeight: 1.15 }}>{office}</span>
