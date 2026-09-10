@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import {
@@ -21,6 +21,41 @@ import { TopIssuesCard } from "./TopIssuesCard";
 import { IssueFinderDepthCards } from "./IssueFinderDepthCards";
 
 const ANSWERS: IssueFinderAnswer[] = ["Not important", "Somewhat important", "Very important"];
+
+// Persists the in-progress sitting (and the unsaved results-screen draft) so
+// a refresh resumes exactly where the person left off, including a finished
+// but not-yet-saved ranking. sessionStorage on purpose, not localStorage --
+// this is a live in-progress flow, not a durable preference, so it should
+// clear when the tab closes rather than resurrect a quiz from weeks ago.
+const SESSION_KEY = "hush.issueFinderSession.v1";
+
+interface IssueFinderSession {
+  step: Step;
+  questions: FinderQuestion[];
+  at: number;
+  draftTopics: string[];
+  confirmReplace: boolean;
+}
+
+function loadSession(): IssueFinderSession | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as IssueFinderSession;
+  } catch {
+    return null;
+  }
+}
+
+function clearSession() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    // ignore
+  }
+}
 
 type Step = "depth" | "sitting" | "results";
 
@@ -93,14 +128,41 @@ export default function IssueFinderView({
     setStep("sitting");
   }
 
-  // `?depth=` from the two-path chooser: jump straight into that sitting
-  // instead of showing the depth-pick screen a second time.
+  // On mount: resume a persisted sitting/results draft if one exists, and
+  // only fall through to the `?depth=` deep-link (from the two-path chooser)
+  // when there's nothing to resume -- a restored session always wins over
+  // re-starting a fresh sitting.
   useEffect(() => {
-    if (depthParam && FINDER_DEPTHS[depthParam]) startSitting(depthParam);
-    // Only ever fires once, on mount -- re-running startSitting on every
-    // finderAnswers change would restart the sitting mid-question.
+    const restored = loadSession();
+    if (restored) {
+      setStep(restored.step);
+      setQuestions(restored.questions);
+      setAt(restored.at);
+      setDraftTopics(restored.draftTopics);
+      setConfirmReplace(restored.confirmReplace);
+    } else if (depthParam && FINDER_DEPTHS[depthParam]) {
+      startSitting(depthParam);
+    }
+    // Only ever fires once, on mount -- re-running this on every
+    // finderAnswers change would restart or re-resume mid-question.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Mirrors the local flow state to sessionStorage on every change, so a
+  // refresh at any point -- mid-question or sitting on a finished-but-unsaved
+  // results screen -- picks back up instead of bouncing to the depth screen.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.sessionStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({ step, questions, at, draftTopics, confirmReplace }),
+      );
+    } catch {
+      // Storage unavailable (private browsing, blocked): progress just
+      // won't survive a refresh this session -- same as today.
+    }
+  }, [step, questions, at, draftTopics, confirmReplace]);
 
   function answer(value: IssueFinderAnswer) {
     const q = questions[at];
@@ -129,6 +191,7 @@ export default function IssueFinderView({
       setConfirmReplace(true);
       return;
     }
+    clearSession();
     setTopics(draftTopics);
     router.push(next ?? "/profile/top-issues");
   }
@@ -158,12 +221,13 @@ export default function IssueFinderView({
 
         <Link
           href={skipHref}
+          onClick={clearSession}
           style={{ fontSize: 13, color: C.muted, textDecoration: "underline" }}
         >
           Rank them yourself instead
         </Link>
 
-        <Link href={exitHref} style={{ fontSize: 13, color: C.navy, textDecoration: "underline" }}>
+        <Link href={exitHref} onClick={clearSession} style={{ fontSize: 13, color: C.navy, textDecoration: "underline" }}>
           {next ? "Back" : "Back to Feed"}
         </Link>
       </div>
@@ -182,7 +246,10 @@ export default function IssueFinderView({
           <button
             type="button"
             className="link-quiet"
-            onClick={() => router.push(exitHref)}
+            onClick={() => {
+              clearSession();
+              router.push(exitHref);
+            }}
             style={{
               border: 0,
               background: "transparent",
@@ -272,7 +339,10 @@ export default function IssueFinderView({
                 setDraftTopics(next);
               },
               onSave: saveResults,
-              onDiscard: () => router.push(exitHref),
+              onDiscard: () => {
+                clearSession();
+                router.push(exitHref);
+              },
               saveLabel: confirmReplace ? "Yes, replace my ranking" : "Save my top issues",
             }}
             resultsDetail={resultsDetail}
@@ -301,6 +371,7 @@ export default function IssueFinderView({
             </RustButton>
             <GhostButton
               onClick={() => {
+                clearSession();
                 setDraftTopics([]);
                 setConfirmReplace(false);
                 setStep("depth");
