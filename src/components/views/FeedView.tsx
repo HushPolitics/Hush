@@ -654,7 +654,7 @@ function ElectionCard({ days, raceCount }: { days: number | null; raceCount: num
 }
 
 function TopIssuesCard({ topics }: { topics: string[] }) {
-  const shown = topics.slice(0, 5);
+  const shown = topics.slice(0, 4);
   return (
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
       <Kicker>Your Top Issues</Kicker>
