@@ -8,7 +8,7 @@ import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
 import { jumpToSection } from "@/lib/sectionNav";
 import type { FactCheck, Party, Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
-import { Card, Display, Kicker, Pill, RustButton } from "@/components/ui";
+import { Card, Display, GhostButton, Kicker, Pill, RustButton } from "@/components/ui";
 import { FactCheckCard } from "./FactCheckView";
 import { IssuesStep } from "./GuideView";
 
@@ -311,30 +311,38 @@ export default function StanceCheckView({
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
       <StanceCheckHero />
 
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <Kicker>Stance Check</Kicker>
-        <Display size={25}>
-          {done ? `You've gone through your ${total} issue${total === 1 ? "" : "s"}` : `Question ${at + 1} of ${total}`}
-        </Display>
-        <button
-          type="button"
-          className="link-quiet"
-          onClick={() => setShowPicker(true)}
-          style={{
-            marginLeft: "auto",
-            border: 0,
-            background: "transparent",
-            color: C.navy,
-            fontSize: 12,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            cursor: "pointer",
-            padding: 6,
-          }}
-        >
-          Edit issues
-        </button>
-      </div>
+      {/* This header (kicker + "Question X of Y" / "Edit issues") is
+          question-screen-only now -- on the completion screen it read as a
+          third "Stance Check" label stacked right under the hero's own and
+          right above StanceSummary's "Here's where you stand." headline.
+          "Edit issues" isn't reachable directly from the results screen
+          anymore as a result; "← Back to questions" (StanceSummary, below)
+          gets you back to the question view, where this row -- and Edit
+          issues with it -- is right there again. */}
+      {done ? null : (
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+          <Kicker>Stance Check</Kicker>
+          <Display size={25}>Question {at + 1} of {total}</Display>
+          <button
+            type="button"
+            className="link-quiet"
+            onClick={() => setShowPicker(true)}
+            style={{
+              marginLeft: "auto",
+              border: 0,
+              background: "transparent",
+              color: C.navy,
+              fontSize: 12,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+              padding: 6,
+            }}
+          >
+            Edit issues
+          </button>
+        </div>
+      )}
 
       {done ? (
         <StanceSummary
@@ -749,14 +757,88 @@ function partyCountList(counts: { party: Party; count: number }[]): string {
 }
 
 /**
+ * One row in the results screen's "Next steps" card -- a navigation row,
+ * not a CTA button, per the spec: a small icon tile, a label, a one-line
+ * description, and a trailing chevron. Either navigates directly (href) or
+ * runs a handler (onClick, used for the in-page jump to "Your full
+ * results").
+ */
+function NextActionRow({
+  href,
+  label,
+  desc,
+  onClick,
+}: {
+  href?: string;
+  label: string;
+  desc: string;
+  onClick?: () => void;
+}) {
+  const content = (
+    <>
+      <span
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: 7,
+          background: C.shell,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flex: "0 0 28px",
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+          <path d="M4 2.5L11 8L4 13.5" stroke={C.navy} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+      <span style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+        <span style={{ fontSize: 13.5, fontWeight: 500, color: C.ink }}>{label}</span>
+        <span style={{ fontSize: 11.5, color: C.muted }}>{desc}</span>
+      </span>
+      <span style={{ fontSize: 15, color: C.faint }} aria-hidden>
+        ›
+      </span>
+    </>
+  );
+  const rowStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "10px 4px",
+    textDecoration: "none",
+    color: "inherit",
+    cursor: "pointer",
+    border: 0,
+    background: "transparent",
+    width: "100%",
+    textAlign: "left" as const,
+  };
+  return href ? (
+    <Link href={href} style={rowStyle}>
+      {content}
+    </Link>
+  ) : (
+    <button type="button" onClick={onClick} style={rowStyle}>
+      {content}
+    </button>
+  );
+}
+
+/**
  * Stance Check's end-of-run screen (see 1.5) -- the payoff for the whole
- * feature, so it leads with the finding rather than a generic wrap-up.
- * Every number here is computed from the user's own answers and the same
- * sourced `STANCE_POSITIONS` the per-question breakdown already used; there
- * is still no score anywhere on this screen, only findings, in priority
- * order: the cross-party headline (if the data actually produced one), the
- * single strongest surprise, the issues where nobody on the ballot matched,
- * and one way back into HUSH Guide.
+ * feature. Every number here is computed from the user's own answers and
+ * the same sourced `STANCE_POSITIONS` the per-question breakdown already
+ * used -- there is still no score anywhere on this screen, only findings:
+ * overall alignment by party, the single strongest surprise, the issues
+ * where nobody on the ballot matched, and a full breakdown for anyone who
+ * wants it. app-layout-v2 phase 4: this is an editorial layout (headline,
+ * then distinct cards, then a two-column body) rather than the phase 3
+ * single-card-plus-rail treatment -- the old `StanceRail` jump list doesn't
+ * carry over here, since a jump list between sections only earns its space
+ * when the sections are long and undifferentiated, and every finding here
+ * is now already its own clearly-labeled card. The rail is untouched on
+ * the per-question screen above, where it's still doing real work.
  */
 function StanceSummary({
   topics,
@@ -772,12 +854,11 @@ function StanceSummary({
   onReviewFromStart: () => void;
 }) {
   const router = useRouter();
+  const { picks, setPicks } = usePrefs();
   const answeredTopics = topics.filter((t) => answers[t]);
 
   // Every (issue, candidate) pair where the candidate's sourced stance
-  // matches what the user picked -- "matched" means the same stance, not
-  // just an Agree/Agree pair, since a shared Disagree or Neutral is just as
-  // much a real match.
+  // matches what the user picked -- unchanged from before.
   const matches: Match[] = [];
   for (const issue of answeredTopics) {
     for (const candidacy of candidacies) {
@@ -796,8 +877,7 @@ function StanceSummary({
   const crossesParty = partyCounts.length >= 2;
 
   // The strongest surprise: a match against the party the user matched with
-  // *least* overall -- among parties matched at all, never a party with
-  // zero matches, since there's nothing to surprise the user with there.
+  // least overall, among parties matched at all.
   const leastMatchedParty = crossesParty
     ? partyCounts.reduce((min, p) => (p.count < min.count ? p : min))
     : null;
@@ -805,94 +885,207 @@ function StanceSummary({
 
   const noMatchIssues = answeredTopics.filter((issue) => !matches.some((m) => m.issue === issue));
 
-  // The completion screen's own progress rail (app-layout-v2 phase 3) --
-  // "surprise" and "no-match" are both conditional on the data, same as
-  // before. Every row shows as done: unlike the question rail, there's no
-  // remaining "current" or "upcoming" row here -- everything on this screen
-  // is already rendered and available the moment it mounts, so "done" is
-  // just an honest way to say "here, already found" rather than implying a
-  // sequence still in progress. Clicking a row scrolls to it (`jumpToSection`)
-  // rather than changing which question is showing, since these are findings
-  // within one card, not separate questions to answer.
-  const summaryRows: RailRow[] = [
-    { id: "overview", label: "Overview", status: "done", onClick: () => jumpToSection("overview") },
-  ];
-  if (surprise) {
-    summaryRows.push({ id: "surprise", label: "Strongest surprise", status: "done", onClick: () => jumpToSection("surprise") });
-  }
-  if (noMatchIssues.length > 0) {
-    summaryRows.push({ id: "no-match", label: "No match", status: "done", onClick: () => jumpToSection("no-match") });
+  // "Your Overall Alignment" always shows all three parties, zero-count
+  // ones included -- a party you matched nobody in is itself a finding,
+  // and dropping it would make the card's width jump around depending on
+  // how many parties happened to match.
+  const countByParty: Record<Party, number> = { D: 0, R: 0, I: 0 };
+  for (const p of partyCounts) countByParty[p.party] = p.count;
+
+  // Same pattern PoliticianView's own "Compare" link already uses --
+  // load the surprise candidate into the existing compare-picks slots and
+  // go straight to /compare, rather than a generic unfocused link there.
+  function goToComparison(politicianId: string) {
+    setPicks([politicianId, ...picks.filter((id) => id !== politicianId)].slice(0, 3));
+    router.push("/compare");
   }
 
   return (
-    <div className="stack-row" style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-      <aside style={{ width: STANCE_RAIL_WIDTH, flex: `0 0 ${STANCE_RAIL_WIDTH}px` }}>
-        <StanceRail rows={summaryRows} />
-      </aside>
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <button
+        type="button"
+        className="link-quiet"
+        onClick={onReviewFromStart}
+        style={{ alignSelf: "flex-start", border: 0, background: "transparent", color: C.muted, fontSize: 12.5, cursor: "pointer", padding: 0 }}
+      >
+        ← Back to questions
+      </button>
 
-      <Card style={{ flex: 1, minWidth: 0, maxWidth: 640, padding: 24, display: "flex", flexDirection: "column", gap: 18 }}>
-        <div id="overview" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-        <Kicker color={C.muted}>Your Stance Check, so far</Kicker>
+      {/* Headline block -- deliberately not inside a card, per the spec.
+          Subhead is new copy, not the spec's suggested line: that exact
+          line ("Same questions. Real positions. No spin.") is already on
+          screen in the hero banner directly above this component. */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <Kicker>Stance Check</Kicker>
+        <Display size={30} style={{ lineHeight: 1.15 }}>
+          Here&apos;s where you stand.
+        </Display>
+        <span style={{ fontSize: 14, color: C.muted, maxWidth: 560, lineHeight: 1.5 }}>
+          Based on your answers, here&apos;s where you and the candidates on your ballot actually
+          agree — and where you don&apos;t.
+        </span>
+      </div>
 
-        {crossesParty ? (
-          <Display size={22} style={{ lineHeight: 1.3 }}>
-            You agreed with {partyCountList(partyCounts)}.
-          </Display>
-        ) : partyCounts.length === 1 ? (
-          <Display size={22} style={{ lineHeight: 1.3 }}>
-            You agreed with {partyCountList(partyCounts)} — no matches outside that party yet.
-          </Display>
-        ) : (
-          <Display size={22} style={{ lineHeight: 1.3 }}>
-            You didn&apos;t match with anyone on your ballot on the issues you answered.
-          </Display>
-        )}
-        </div>
-
-        {surprise ? (
-          <div id="surprise" style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
-            <Kicker size={11}>Your strongest surprise</Kicker>
-            <span style={{ fontSize: 13, color: C.ink, lineHeight: 1.5 }}>
-              On <strong>{surprise.issue}</strong>, you matched {PARTY_LABEL[surprise.candidacy.party]}{" "}
-              <Link href={`/politician/${surprise.candidacy.politicianId}`} style={{ color: C.navy }}>
-                {stripPartySuffix(surprise.candidacy.name)}
-              </Link>{" "}
-              — the party you matched with least overall.
-            </span>
-            <p style={{ margin: 0, fontSize: 12, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
-              &ldquo;{surprise.position.excerpt}&rdquo;
-            </p>
-          </div>
-        ) : null}
-
-        {noMatchIssues.length > 0 ? (
-          <div id="no-match" style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: `1px solid ${C.line}` }}>
-            <Kicker size={11}>Where nobody on your ballot matched you</Kicker>
-            <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{noMatchIssues.join(", ")}</span>
-          </div>
-        ) : null}
-
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", paddingTop: 4 }}>
-          <RustButton onClick={() => router.push("/hush-guide")} style={{ padding: "11px 18px" }}>
-            Go to HUSH Guide →
-          </RustButton>
-          <button
-            type="button"
-            className="link-quiet"
-            onClick={onReviewFromStart}
-            style={{
-              border: 0,
-              background: "transparent",
-              color: C.navy,
-              fontSize: 13,
-              cursor: "pointer",
-              padding: "11px 4px",
-            }}
-          >
-            Review from the start
-          </button>
+      {/* Your Overall Alignment -- one wide card, three neutral columns.
+          No party color anywhere in this card: no red/blue fills, no dots,
+          no percentages, no "closest match" framing. */}
+      <Card style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+        <Kicker>Your overall alignment</Kicker>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 24 }}>
+          {(["D", "R", "I"] as Party[]).map((party) => {
+            const count = countByParty[party];
+            const plural = count === 1 ? PARTY_LABEL[party] : `${PARTY_LABEL[party]}s`;
+            return (
+              <div key={party} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <Display size={34}>{count}</Display>
+                <Kicker size={11}>{plural}</Kicker>
+                <span style={{ fontSize: 12.5, color: C.body, lineHeight: 1.45 }}>
+                  {count === 0
+                    ? `You didn't match any ${plural} on the issues you answered.`
+                    : `You aligned with ${count} ${plural.toLowerCase()} candidate${count === 1 ? "" : "s"}.`}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </Card>
+
+      {/* Two-column body: insight cards + full results on the left,
+          "What this means" and "Next steps" on the right. */}
+      <div className="stack-row" style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
+          {surprise || noMatchIssues.length > 0 ? (
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+              {surprise ? (
+                <Card style={{ flex: "1 1 300px", padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+                  <Kicker size={11}>Your strongest surprise</Kicker>
+                  <span style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.5 }}>
+                    On <strong>{surprise.issue}</strong>, you matched {PARTY_LABEL[surprise.candidacy.party]}{" "}
+                    <Link href={`/politician/${surprise.candidacy.politicianId}`} style={{ color: C.navy }}>
+                      {stripPartySuffix(surprise.candidacy.name)}
+                    </Link>{" "}
+                    — the party you matched with least overall.
+                  </span>
+                  <p style={{ margin: 0, fontSize: 12.5, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
+                    &ldquo;{surprise.position.excerpt}&rdquo;
+                  </p>
+                  <button
+                    type="button"
+                    className="link-quiet"
+                    onClick={() => goToComparison(surprise.candidacy.politicianId)}
+                    style={{ alignSelf: "flex-start", border: 0, background: "transparent", color: C.rust, fontSize: 12.5, cursor: "pointer", padding: 0, marginTop: 2 }}
+                  >
+                    See full comparison →
+                  </button>
+                </Card>
+              ) : null}
+              {noMatchIssues.length > 0 ? (
+                <Card style={{ flex: "1 1 300px", padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+                  <Kicker size={11}>Where nobody on your ballot matched you</Kicker>
+                  <span style={{ fontSize: 13.5, color: C.body, lineHeight: 1.5 }}>{noMatchIssues.join(", ")}</span>
+                  <Link href="/hush-guide" style={{ fontSize: 12.5, color: C.rust }}>
+                    Explore these issues →
+                  </Link>
+                </Card>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* New: a plain, complete breakdown -- every answered issue and
+              who matched, built from the same `matches` array above. This
+              is what "View your full results" (Next Steps, right) jumps
+              to. */}
+          <Card id="full-results" style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+            <Kicker>Your full results</Kicker>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {answeredTopics.map((issueName, i) => {
+                const issueMatches = matches.filter((m) => m.issue === issueName);
+                return (
+                  <div
+                    key={issueName}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 4,
+                      paddingBottom: 12,
+                      borderBottom: i < answeredTopics.length - 1 ? `1px solid ${C.line}` : "none",
+                    }}
+                  >
+                    <span style={{ fontFamily: cond, fontSize: 14, color: C.ink }}>{issueName}</span>
+                    {issueMatches.length === 0 ? (
+                      <span style={{ fontSize: 12, color: C.muted, fontStyle: "italic" }}>
+                        No one on your ballot matched you here.
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 12.5, color: C.body }}>
+                        Matched {issueMatches.map((m) => stripPartySuffix(m.candidacy.name)).join(", ")}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        </div>
+
+        <aside style={{ width: 300, flex: "0 0 300px", display: "flex", flexDirection: "column", gap: 20 }}>
+          <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+            <Kicker>What this means</Kicker>
+            <p style={{ margin: 0, fontSize: 13, color: C.body, lineHeight: 1.6 }}>
+              {crossesParty
+                ? `Your answers matched candidates across more than one party — ${partyCountList(partyCounts)}. That's not a contradiction. It means your views don't map neatly onto either party's platform.`
+                : partyCounts.length === 1
+                ? `Every match you found came from ${PARTY_LABEL[partyCounts[0].party]} candidates on your ballot. That doesn't mean everyone else is wrong on everything — only that, on the issues you answered, their sourced positions didn't line up with yours.`
+                : `None of your answers matched a sourced position from anyone on your ballot. That's a real finding, not a gap in the data — it means the candidates running haven't taken your side on these issues, at least not on the record.`}
+            </p>
+            <div>
+              <p style={{ margin: "0 0 8px 0", fontFamily: cond, fontSize: 18, color: C.ink, lineHeight: 1.3 }}>
+                &ldquo;Your views are yours. Know where they stand.&rdquo;
+              </p>
+              <span style={{ display: "block", width: 36, height: 2, background: C.rust }} />
+            </div>
+          </Card>
+
+          <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 2 }}>
+            <Kicker style={{ marginBottom: 8 }}>Next steps</Kicker>
+            <NextActionRow href="/hush-guide" label="Go to HUSH Guide" desc="See the full picture, race by race" />
+            <NextActionRow href="/compare" label="Compare candidates" desc="Put anyone on your ballot side by side" />
+            <NextActionRow
+              label="View your full results"
+              desc="Every issue you answered, every match found"
+              onClick={() => jumpToSection("full-results")}
+            />
+          </Card>
+        </aside>
+      </div>
+
+      {/* Bottom, full-width -- the spec's "want to revisit your answers"
+          section. Wired to the same onReviewFromStart as the top link:
+          it's still the one real capability this screen has (jump back to
+          question 1, every prior answer pre-filled so it reads as review,
+          not a blank restart), not a second, different reset. */}
+      <div
+        style={{
+          borderTop: `1px solid ${C.line}`,
+          paddingTop: 20,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 14,
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <Display size={16}>Want to revisit your answers?</Display>
+          <span style={{ fontSize: 12, color: C.muted }}>
+            You can update your answers anytime to see how your results change.
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <GhostButton onClick={onReviewFromStart}>Retake Stance Check</GhostButton>
+          <RustButton onClick={() => router.push("/hush-guide")}>Go to HUSH Guide →</RustButton>
+        </div>
+      </div>
     </div>
   );
 }
