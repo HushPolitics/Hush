@@ -557,9 +557,14 @@ function TileGrid({
               >
                 <div
                   style={{
+                    minHeight: 62,
+                    boxSizing: "border-box",
                     padding: "10px 16px",
                     background: C.slateFill,
                     borderBottom: `1px solid ${C.line}`,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
                   }}
                 >
                   <span style={{ fontFamily: cond, fontSize: 19, lineHeight: 1.15 }}>{office}</span>
@@ -567,7 +572,7 @@ function TileGrid({
                     <span style={{ fontSize: 12, color: C.muted, display: "block" }}>{district}</span>
                   ) : null}
                 </div>
-                <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
                 {top ? (
                   <>
                     <span style={{ fontSize: 11, color: C.rust, textTransform: "uppercase", letterSpacing: "0.06em" }}>
