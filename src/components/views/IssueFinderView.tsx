@@ -138,6 +138,12 @@ export default function IssueFinderView({
   const [at, setAt] = useState(0);
   const [draftTopics, setDraftTopics] = useState<string[]>([]);
   const [confirmReplace, setConfirmReplace] = useState(false);
+  // Set the instant a card is clicked so it can render as selected before
+  // advancing -- answer() used to record and advance in the same tick, so
+  // the click never had a visible moment on screen. Cleared once the pause
+  // below finishes and the real advance happens.
+  const [pendingAnswer, setPendingAnswer] = useState<IssueFinderAnswer | null>(null);
+  const pendingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const stats = useMemo(() => finderStats(topicPool, finderAnswers), [topicPool, finderAnswers]);
   // Computed unconditionally (not inside the `results`-only branch below) so
@@ -149,6 +155,12 @@ export default function IssueFinderView({
     [topicPool, finderAnswers, finderBank],
   );
   const detailByIssue = useMemo(() => Object.fromEntries(detail.map((d) => [d.issue, d])), [detail]);
+
+  useEffect(() => {
+    return () => {
+      if (pendingTimeout.current) clearTimeout(pendingTimeout.current);
+    };
+  }, []);
 
   function startSitting(depth: IssueFinderDepth) {
     setQuestions(selectFinderQuestions(topicPool, finderBank, depth, finderAnswers));
@@ -210,14 +222,21 @@ export default function IssueFinderView({
   }
 
   function answer(value: IssueFinderAnswer) {
+    if (pendingAnswer) return; // already mid-advance from a previous click
     const q = questions[at];
+    setPendingAnswer(value);
     recordFinderAnswer(q.id, value);
-    advance({ ...finderAnswers, [q.id]: { value, answeredAt: Date.now() } });
+    const finalAnswers = { ...finderAnswers, [q.id]: { value, answeredAt: Date.now() } };
+    pendingTimeout.current = setTimeout(() => {
+      setPendingAnswer(null);
+      advance(finalAnswers);
+    }, 400);
   }
 
   // Leaves this question unanswered and moves on -- doesn't touch
   // finderAnswers at all, so a later retake still offers it first.
   function skip() {
+    if (pendingAnswer) return;
     advance(finderAnswers);
   }
 
@@ -388,7 +407,7 @@ export default function IssueFinderView({
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             {ANSWERS.map((a) => {
-              const selected = currentAnswer === a.value;
+              const selected = pendingAnswer ? pendingAnswer === a.value : currentAnswer === a.value;
               return (
                 <button
                   key={a.value}
@@ -408,6 +427,7 @@ export default function IssueFinderView({
                     border: `1px solid ${selected ? C.rust : "rgba(21,21,21,0.16)"}`,
                     background: selected ? C.shell : C.white,
                     cursor: "pointer",
+                    transition: "border-color 120ms ease, background-color 120ms ease",
                   }}
                 >
                   <span
