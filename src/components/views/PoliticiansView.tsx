@@ -18,11 +18,14 @@ const BALLOT_FILTERS: { key: BallotFilter; label: string }[] = [
 const LEVEL_FILTERS: (Level | "All")[] = ["All", "Federal", "State", "Local"];
 const PARTY_FILTERS: (Party | "All")[] = ["All", "D", "R", "I"];
 
-// Avatar / Name / Party / Office / District / On your ballot. Office and
-// District are proportional, not fixed -- a few entries run long there
+// Avatar / Name / Party / Office / District / On your ballot. All four data
+// columns are proportional (not a fixed width mixed in) so they grow at a
+// consistent rate and read as evenly spaced instead of Name and Office
+// ballooning past a cramped, fixed-width Party column. Office keeps the
+// largest share and District close behind -- a few entries run long there
 // ("Florida State College at Jacksonville" as a district), so they need
 // room to wrap onto a second line rather than getting clipped.
-const ROW_GRID = "40px 1fr 100px 1.3fr 1fr 90px";
+const ROW_GRID = "40px 1fr 0.8fr 1.2fr 1fr 90px";
 
 /**
  * Everyone in the system, not just who's on your ballot -- the broader
