@@ -456,13 +456,13 @@ export default function IssueFinderView({
               marginTop: 6,
               padding: "18px 22px",
               borderRadius: 12,
-              background: C.slateFill,
+              background: C.slate,
             }}
           >
             <span aria-hidden style={{ fontSize: 16 }}>💡</span>
             <div style={{ display: "flex", flexDirection: "column", gap: 5, flex: 1, minWidth: 0 }}>
-              <Kicker color={C.navy}>Why we ask</Kicker>
-              <span style={{ fontSize: 13, color: C.body, lineHeight: 1.6 }}>
+              <Kicker color={C.onDark}>Why we ask</Kicker>
+              <span style={{ fontSize: 13, color: C.onDark, lineHeight: 1.6 }}>
                 {WHY_WE_ASK[q.issue]}
               </span>
             </div>
