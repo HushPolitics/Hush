@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { C, PARTY_LABEL, STATUS_STYLE, cond, progressColor, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
@@ -47,6 +47,7 @@ export default function PoliticianView({
   positions: Record<string, IssuePosition>;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { saved, toggleSaved, picks, setPicks, topics } = usePrefs();
   const [ledgerStatus, setLedgerStatus] = useState<PromiseStatus | "All">("All");
 
@@ -393,8 +394,8 @@ export default function PoliticianView({
           {topics.length === 0 ? (
             <EmptyState>
               You haven&apos;t ranked any issues yet.{" "}
-              <Link href="/profile/top-issues" style={{ color: C.navy }}>
-                Rank your top issues
+              <Link href={`/profile/top-issues/start?next=${encodeURIComponent(pathname)}`} style={{ color: C.navy }}>
+                Pick your top issues
               </Link>{" "}
               to see {p.name.split(" ").slice(-1)[0]}&apos;s positions on what matters to you.
             </EmptyState>

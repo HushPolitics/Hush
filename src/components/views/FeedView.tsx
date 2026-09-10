@@ -543,12 +543,11 @@ export default function FeedView({
                   "Nothing followed yet — open a profile and hit “Save to my list”."
                 ) : issuesEmpty ? (
                   <>
-                    You haven&apos;t ranked any issues yet — pick some from &ldquo;My issues&rdquo; in
-                    the account menu, or{" "}
-                    <Link href="/profile/top-issues/issue-finder?next=/feed" style={{ color: C.rust }}>
-                      answer a few questions with Issue Finder
-                    </Link>
-                    .
+                    You haven&apos;t ranked any issues yet —{" "}
+                    <Link href="/profile/top-issues/start?next=/feed" style={{ color: C.rust }}>
+                      pick your top issues
+                    </Link>{" "}
+                    to personalize your feed.
                   </>
                 ) : q.trim() ? (
                   `Nothing matches "${q.trim()}".`
@@ -661,8 +660,8 @@ function TopIssuesCard({ topics }: { topics: string[] }) {
       {topics.length === 0 ? (
         <span style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.5 }}>
           Nothing ranked yet —{" "}
-          <Link href="/profile/top-issues/issue-finder?next=/feed" style={{ color: C.rust }}>
-            answer a few questions
+          <Link href="/profile/top-issues/start?next=/feed" style={{ color: C.rust }}>
+            pick your top issues
           </Link>{" "}
           to personalize your feed.
         </span>

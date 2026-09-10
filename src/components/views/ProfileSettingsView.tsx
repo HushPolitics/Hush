@@ -356,8 +356,8 @@ function HushPreferencesSection({ topicPool }: { topicPool: string[] }) {
         <PrefRow
           label="Top issues"
           value={topics.length ? topics.join(", ") : "None selected yet"}
-          href="/profile/top-issues"
-          cta="Edit My Issues →"
+          href={topics.length ? "/profile/top-issues" : "/profile/top-issues/start"}
+          cta={topics.length ? "Edit My Issues →" : "Pick My Issues →"}
         />
         <PrefRow
           label="Politicians you follow"

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useRef, useState, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
+import { usePrefs } from "@/lib/prefs";
 import { createClient } from "@/lib/supabase/client";
 import { jumpToSection, useRailFooter, useScrollSpy, useSectionNavItems, type SectionNavItem } from "@/lib/sectionNav";
 import { SearchField } from "./ui";
@@ -20,8 +21,10 @@ const NAV = [
   { href: "/politicians", label: "Politicians" },
 ];
 
-const AVATAR_MENU = [
-  { href: "/profile/top-issues", label: "My issues" },
+// "My issues" is computed per-render below (points new users at the
+// rank-or-quiz chooser instead of straight into the ranked editor) --
+// these two are unconditional.
+const AVATAR_MENU_TAIL = [
   { href: "/following", label: "Following" },
   { href: "/profile/settings", label: "Account settings" },
 ] as const;
@@ -64,6 +67,13 @@ const RAIL_WIDTH = 200;
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { topics } = usePrefs();
+  const avatarMenu = [
+    topics.length
+      ? { href: "/profile/top-issues", label: "My issues" }
+      : { href: "/profile/top-issues/start", label: "Pick my issues" },
+    ...AVATAR_MENU_TAIL,
+  ];
   const [q, setQ] = useState("");
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -351,7 +361,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
                 }}
               >
-                {AVATAR_MENU.map((item) => (
+                {avatarMenu.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
