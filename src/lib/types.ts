@@ -202,7 +202,7 @@ export interface StanceCheckPosition {
 }
 
 /** One answer choice on the Issue Finder — see ISSUE_FINDER_BANK. */
-export type IssueFinderAnswer = "Not important" | "Somewhat important" | "Very important";
+export type IssueFinderAnswer = "Not important" | "Somewhat important" | "Important" | "Very important";
 
 /**
  * How many of each issue's 8 Issue Finder sub-questions a sitting asks —

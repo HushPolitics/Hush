@@ -2243,8 +2243,9 @@ export const TOPIC_POOL: string[] = [
  * preferred reforms.
  *
  * The UI supplies the fixed "How important is it to you that ___?" framing
- * and the fixed three answers (Not important / Somewhat important / Very
- * important) — see IssueFinderView — these strings are just the ___.
+ * and the fixed four answers (Not important / Somewhat important /
+ * Important / Very important) — see IssueFinderView — these strings are
+ * just the ___.
  *
  * `lib/issue-finder.ts` picks 2/3/4 of each issue's 8 (Quick/Standard/Thorough)
  * per sitting, unanswered-first, so a retake naturally surfaces fresh ones

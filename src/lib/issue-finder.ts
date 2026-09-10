@@ -92,11 +92,12 @@ export function selectFinderQuestions(
 const ANSWER_VALUE: Record<IssueFinderAnswer, number> = {
   "Not important": 0,
   "Somewhat important": 1,
-  "Very important": 2,
+  "Important": 2,
+  "Very important": 3,
 };
 
-/** Neutral midpoint on the 0 (Not important) - 2 (Very important) scale. */
-const NEUTRAL = 1;
+/** Neutral midpoint on the 0 (Not important) - 3 (Very important) scale. */
+const NEUTRAL = 1.5;
 
 /**
  * An issue's score is treated as fully confident once this many of its
@@ -190,13 +191,12 @@ export function scoreFinderDetailed(
 }
 
 /**
- * Buckets a 0-2 average into one of the app's three real answer values --
- * no invented middle tier. A genuinely low average essentially never shows
- * up for an issue that made someone's own top-ranked list, but the
- * function stays honest about the math either way.
+ * Buckets a 0-3 average into one of the app's four real answer values,
+ * split into even quarters of the scale.
  */
 export function importanceLabel(raw: number): IssueFinderAnswer {
-  if (raw >= 1.5) return "Very important";
-  if (raw >= 0.5) return "Somewhat important";
+  if (raw >= 2.25) return "Very important";
+  if (raw >= 1.5) return "Important";
+  if (raw >= 0.75) return "Somewhat important";
   return "Not important";
 }
