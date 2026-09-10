@@ -6,7 +6,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { C, STATUS_STYLE, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
-import { ELECTION_ISO } from "@/lib/seed-data";
+import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
 import { FEED_SCOPES, useFeedScope } from "@/lib/feedScope";
 import { initials } from "@/lib/scoring";
 import {
@@ -247,6 +247,153 @@ function TypeIcon({
 }
 
 /**
+ * One flat single-stroke line glyph per TOPIC_POOL issue -- same hand-drawn,
+ * no-fill convention TypeIcon already established for Feed event types,
+ * reused here rather than starting a second visual language for icons.
+ * Guns uses a plain shield and Reproductive rights a document glyph,
+ * deliberately, rather than anything more literal -- staying neutral on
+ * genuinely contested topics the same way STATUS_STYLE and RESULT_STYLE
+ * already do with color.
+ */
+function IssueIcon({ topic, size = 16, color = C.ink }: { topic: string; size?: number; color?: string }) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 16 16",
+    fill: "none",
+    stroke: color,
+    strokeWidth: 1.4,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+  switch (topic) {
+    case "Healthcare":
+      return (
+        <svg {...common} aria-hidden>
+          <circle cx="8" cy="8" r="5.5" />
+          <line x1="8" y1="5.2" x2="8" y2="10.8" />
+          <line x1="5.2" y1="8" x2="10.8" y2="8" />
+        </svg>
+      );
+    case "Housing":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M2.5 8.5L8 3.5L13.5 8.5" />
+          <path d="M4 7.5V13H12V7.5" />
+        </svg>
+      );
+    case "Voting rights":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M3 6h10l-1 7.5H4L3 6z" />
+          <line x1="5.5" y1="6" x2="6" y2="3.5" />
+          <line x1="10.5" y1="6" x2="10" y2="3.5" />
+          <line x1="6" y1="3.5" x2="10" y2="3.5" />
+          <line x1="5.5" y1="8.7" x2="10.5" y2="8.7" />
+        </svg>
+      );
+    case "Climate":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M8 13.5C4 12 3 8 5 4.5C7.5 6 10 5 12 3C13 7 12 11 8 13.5Z" />
+          <line x1="8" y1="13.5" x2="10.5" y2="4.5" />
+        </svg>
+      );
+    case "Labor":
+      return (
+        <svg {...common} aria-hidden>
+          <rect x="2.5" y="6" width="11" height="7" rx="1" />
+          <path d="M6 6V4.5a1 1 0 011-1h2a1 1 0 011 1V6" />
+          <line x1="2.5" y1="9.5" x2="13.5" y2="9.5" />
+        </svg>
+      );
+    case "Education":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M8 3L14 6L8 9L2 6L8 3Z" />
+          <path d="M4.5 7.2V10.5C4.5 11.5 6 12.5 8 12.5C10 12.5 11.5 11.5 11.5 10.5V7.2" />
+          <line x1="14" y1="6" x2="14" y2="10" />
+        </svg>
+      );
+    case "Economy":
+      return (
+        <svg {...common} aria-hidden>
+          <line x1="3" y1="13" x2="13" y2="13" />
+          <rect x="3.5" y="9" width="2.2" height="4" />
+          <rect x="6.9" y="6.5" width="2.2" height="6.5" />
+          <rect x="10.3" y="3.5" width="2.2" height="9.5" />
+        </svg>
+      );
+    case "Immigration":
+      return (
+        <svg {...common} aria-hidden>
+          <circle cx="8" cy="8" r="5.5" />
+          <ellipse cx="8" cy="8" rx="2.4" ry="5.5" />
+          <line x1="2.5" y1="8" x2="13.5" y2="8" />
+        </svg>
+      );
+    case "Criminal justice":
+      return (
+        <svg {...common} aria-hidden>
+          <line x1="8" y1="2.5" x2="8" y2="12" />
+          <line x1="8" y1="12" x2="5.5" y2="13.3" />
+          <line x1="8" y1="12" x2="10.5" y2="13.3" />
+          <line x1="3" y1="4.5" x2="13" y2="4.5" />
+          <line x1="3" y1="4.5" x2="3" y2="8" />
+          <line x1="13" y1="4.5" x2="13" y2="8" />
+          <path d="M1 8a2 2 0 004 0" />
+          <path d="M11 8a2 2 0 004 0" />
+        </svg>
+      );
+    case "Guns":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M8 2.5L13 4.3V8C13 11 10.8 13 8 13.5C5.2 13 3 11 3 8V4.3L8 2.5Z" />
+        </svg>
+      );
+    case "Reproductive rights":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M4.5 2.5H10L11.5 4V13.5H4.5V2.5Z" />
+          <path d="M10 2.5V4H11.5" />
+          <line x1="6" y1="6.5" x2="10" y2="6.5" />
+          <line x1="6" y1="9" x2="10" y2="9" />
+          <line x1="6" y1="11.5" x2="8.5" y2="11.5" />
+        </svg>
+      );
+    case "Transit":
+      return (
+        <svg {...common} aria-hidden>
+          <rect x="2.5" y="4" width="11" height="7" rx="1.5" />
+          <line x1="2.5" y1="7.5" x2="13.5" y2="7.5" />
+          <circle cx="5" cy="12.5" r="1.2" />
+          <circle cx="11" cy="12.5" r="1.2" />
+        </svg>
+      );
+    case "Water":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M8 2.5C8 2.5 12.5 8 12.5 10.8C12.5 13 10.5 14.2 8 14.2C5.5 14.2 3.5 13 3.5 10.8C3.5 8 8 2.5 8 2.5Z" />
+        </svg>
+      );
+    case "Veterans":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M8 2L9.4 6.2H13.8L10.2 8.7L11.6 13L8 10.4L4.4 13L5.8 8.7L2.2 6.2H6.6L8 2Z" />
+        </svg>
+      );
+    default:
+      // Any future TOPIC_POOL addition without a matching case here falls
+      // back to a plain dot instead of rendering nothing.
+      return (
+        <svg {...common} aria-hidden>
+          <circle cx="8" cy="8" r="2.5" fill={color} stroke="none" />
+        </svg>
+      );
+  }
+}
+
+/**
  * The Feed, restructured for app-layout-v2 phase 1. Three additions sit on
  * top of the existing reverse-chronological event list:
  *
@@ -329,6 +476,14 @@ export default function FeedView({
     [scopedEvents, typeFilter],
   );
 
+  // Same "is this event about one of my ranked issues" check the My Issues
+  // scope filter already uses (see eventInScope in lib/feed.ts) -- computed
+  // independent of whatever scope tab is currently selected.
+  const issuesEventCount = useMemo(
+    () => allEvents.filter((e) => eventInScope(e, "issues", ballotIds, saved, topics)).length,
+    [allEvents, ballotIds, saved, topics],
+  );
+
   const followingEmpty = scope === "following" && saved.length === 0;
   const issuesEmpty = scope === "issues" && topics.length === 0;
   const days = mounted
@@ -352,7 +507,7 @@ export default function FeedView({
         }}
       >
         <ElectionCard days={days} raceCount={races.length} />
-        <TopIssuesCard topics={topics} />
+        <TopIssuesCard topics={topics} issuesEventCount={issuesEventCount} />
         <RepresentativesCard politicians={ballotPoliticians} />
       </div>
 
@@ -464,31 +619,51 @@ function FeedHero() {
 }
 
 /**
- * Your Election. Compact by design -- the full ticking countdown with key
- * dates lives on Your Ballot / HUSH Guide's ElectionCountdownBanner; this is
- * just enough to orient before scrolling into the list.
+ * Your Election. Still short of the full ticking countdown on Your Ballot /
+ * HUSH Guide's ElectionCountdownBanner -- this shows both KEY_DATES entries
+ * that actually require the reader to act before Election Day (Register by,
+ * Early voting), not the full three-item spread that banner has room for.
  */
 function ElectionCard({ days, raceCount }: { days: number | null; raceCount: number }) {
+  const registerBy = KEY_DATES.find((k) => k.label === "Register by") ?? KEY_DATES[0];
+  const earlyVoting = KEY_DATES.find((k) => k.label === "Early voting");
   return (
-    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
       <Kicker>Your Election</Kicker>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
-        <span style={{ fontFamily: cond, fontSize: 30, lineHeight: 1, color: C.slate }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+        <span style={{ fontFamily: cond, fontSize: 34, lineHeight: 1, color: C.slate }}>
           {days === null ? "—" : days}
         </span>
-        <span style={{ fontSize: 13, color: C.body }}>days until Election Day</span>
+        <span style={{ fontSize: 14, color: C.body }}>days until Election Day</span>
       </div>
-      <span style={{ fontSize: 12, color: C.muted }}>{raceCount} races on your ballot</span>
-      <Link href="/your-ballot" style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+        <span style={{ fontFamily: cond, fontSize: 20, color: C.ink }}>{raceCount}</span>
+        <span style={{ fontSize: 13, color: C.body }}>races on your ballot</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {registerBy ? (
+          <span style={{ fontSize: 13, color: C.body }}>
+            <span style={{ color: C.muted }}>{registerBy.label}:</span>{" "}
+            <span style={{ fontFamily: cond, color: C.ink }}>{registerBy.value}</span>
+          </span>
+        ) : null}
+        {earlyVoting ? (
+          <span style={{ fontSize: 13, color: C.body }}>
+            <span style={{ color: C.muted }}>{earlyVoting.label}:</span>{" "}
+            <span style={{ fontFamily: cond, color: C.ink }}>{earlyVoting.value}</span>
+          </span>
+        ) : null}
+      </div>
+      <Link href="/your-ballot" style={{ fontSize: 13, color: C.rust, alignSelf: "flex-start" }}>
         View your ballot →
       </Link>
     </Card>
   );
 }
 
-function TopIssuesCard({ topics }: { topics: string[] }) {
+function TopIssuesCard({ topics, issuesEventCount }: { topics: string[]; issuesEventCount: number }) {
   return (
-    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
       <Kicker>Your Top Issues</Kicker>
       {topics.length === 0 ? (
         <span style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.5 }}>
@@ -499,16 +674,32 @@ function TopIssuesCard({ topics }: { topics: string[] }) {
           to personalize your feed.
         </span>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-          {topics.slice(0, 4).map((t, i) => (
-            <div key={t} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: C.ink }}>
-              <span style={{ fontFamily: cond, fontSize: 12, color: C.muted, width: 14, flex: "0 0 14px" }}>
-                {i + 1}
-              </span>
-              {t}
-            </div>
-          ))}
-        </div>
+        <>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
+            {topics.map((t) => (
+              <div key={t} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: 62 }}>
+                <span
+                  style={{
+                    width: 34,
+                    height: 34,
+                    flex: "0 0 34px",
+                    borderRadius: 9,
+                    background: C.shell,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <IssueIcon topic={t} size={17} />
+                </span>
+                <span style={{ fontSize: 11, color: C.ink, textAlign: "center", lineHeight: 1.25 }}>{t}</span>
+              </div>
+            ))}
+          </div>
+          <span style={{ fontSize: 12, color: C.muted }}>
+            {issuesEventCount} update{issuesEventCount === 1 ? "" : "s"} about these today
+          </span>
+        </>
       )}
       <Link href="/profile/top-issues" style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}>
         Manage issues →
