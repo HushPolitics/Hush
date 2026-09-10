@@ -63,6 +63,11 @@ interface IssueFinderSession {
   at: number;
   draftTopics: string[];
   confirmReplace: boolean;
+  // Answers given so far in *this* sitting, kept separate from the
+  // persisted, all-time finderAnswers -- so a question that already has an
+  // old answer on file (from a prior sitting, possibly weeks ago) starts
+  // blank here and only shows selected once actually clicked this round.
+  sittingAnswers?: FinderAnswerMap;
 }
 
 function loadSession(): IssueFinderSession | null {
@@ -86,6 +91,8 @@ function clearSession() {
 }
 
 type Step = "depth" | "sitting" | "results";
+
+type FinderAnswerMap = Record<string, { value: IssueFinderAnswer; answeredAt: number }>;
 
 /**
  * Issue Finder — formerly "the quiz." Renamed everywhere per the sidebar
@@ -144,6 +151,10 @@ export default function IssueFinderView({
   // below finishes and the real advance happens.
   const [pendingAnswer, setPendingAnswer] = useState<IssueFinderAnswer | null>(null);
   const pendingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // What's been answered in this sitting only -- see IssueFinderSession's
+  // sittingAnswers comment. Drives the answer cards' selected styling;
+  // the persisted, all-time finderAnswers below still drives scoring.
+  const [sittingAnswers, setSittingAnswers] = useState<FinderAnswerMap>({});
 
   const stats = useMemo(() => finderStats(topicPool, finderAnswers), [topicPool, finderAnswers]);
   // Computed unconditionally (not inside the `results`-only branch below) so
@@ -165,6 +176,7 @@ export default function IssueFinderView({
   function startSitting(depth: IssueFinderDepth) {
     setQuestions(selectFinderQuestions(topicPool, finderBank, depth, finderAnswers));
     setAt(0);
+    setSittingAnswers({});
     setStep("sitting");
   }
 
@@ -180,6 +192,7 @@ export default function IssueFinderView({
       setAt(restored.at);
       setDraftTopics(restored.draftTopics);
       setConfirmReplace(restored.confirmReplace);
+      setSittingAnswers(restored.sittingAnswers ?? {});
     } else if (depthParam && FINDER_DEPTHS[depthParam]) {
       startSitting(depthParam);
     }
@@ -196,15 +209,13 @@ export default function IssueFinderView({
     try {
       window.sessionStorage.setItem(
         SESSION_KEY,
-        JSON.stringify({ step, questions, at, draftTopics, confirmReplace }),
+        JSON.stringify({ step, questions, at, draftTopics, confirmReplace, sittingAnswers }),
       );
     } catch {
       // Storage unavailable (private browsing, blocked): progress just
       // won't survive a refresh this session -- same as today.
     }
-  }, [step, questions, at, draftTopics, confirmReplace]);
-
-  type FinderAnswerMap = Record<string, { value: IssueFinderAnswer; answeredAt: number }>;
+  }, [step, questions, at, draftTopics, confirmReplace, sittingAnswers]);
 
   // Shared by answer() and skip(): move to the next question, or -- on the
   // last one -- score and land on results. `finalAnswers` lets answer()
@@ -226,6 +237,7 @@ export default function IssueFinderView({
     const q = questions[at];
     setPendingAnswer(value);
     recordFinderAnswer(q.id, value);
+    setSittingAnswers((prev) => ({ ...prev, [q.id]: { value, answeredAt: Date.now() } }));
     const finalAnswers = { ...finderAnswers, [q.id]: { value, answeredAt: Date.now() } };
     pendingTimeout.current = setTimeout(() => {
       setPendingAnswer(null);
@@ -294,7 +306,10 @@ export default function IssueFinderView({
 
   if (step === "sitting") {
     const q = questions[at];
-    const currentAnswer = finderAnswers[q.id]?.value;
+    // Only this sitting's own clicks highlight a card -- a question that
+    // already has an answer on file from a past sitting starts blank, same
+    // as one that's never been touched.
+    const currentAnswer = sittingAnswers[q.id]?.value;
     const issueQuestions = questions.filter((qq) => qq.issue === q.issue);
     const posInIssue = issueQuestions.findIndex((qq) => qq.id === q.id) + 1;
     const pct = Math.round(((at + 1) / questions.length) * 100);
