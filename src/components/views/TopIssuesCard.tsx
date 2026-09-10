@@ -166,7 +166,7 @@ export function TopIssuesCard({
                     style={{
                       width: 96,
                       height: 96,
-                      borderRadius: 8,
+                      borderRadius: 24,
                       overflow: "hidden",
                       background: C.shell,
                       flex: "0 0 96px",
