@@ -8,12 +8,15 @@ import { usePrefs } from "@/lib/prefs";
 import {
   FINDER_DEPTHS,
   finderStats,
+  importanceLabel,
   scoreFinder,
+  scoreFinderDetailed,
   selectFinderQuestions,
+  type FinderIssueDetail,
   type FinderQuestion,
 } from "@/lib/issue-finder";
 import type { IssueFinderAnswer, IssueFinderDepth } from "@/lib/types";
-import { Card, Display, Kicker } from "@/components/ui";
+import { Card, Display, GhostButton, Kicker, RustButton } from "@/components/ui";
 import { TopIssuesCard } from "./TopIssuesCard";
 import { IssueFinderDepthCards } from "./IssueFinderDepthCards";
 
@@ -74,6 +77,15 @@ export default function IssueFinderView({
   const [confirmReplace, setConfirmReplace] = useState(false);
 
   const stats = useMemo(() => finderStats(topicPool, finderAnswers), [topicPool, finderAnswers]);
+  // Computed unconditionally (not inside the `results`-only branch below) so
+  // this hook runs in the same order every render regardless of `step` --
+  // only actually used once step is "results", but Rules of Hooks doesn't
+  // allow a useMemo call to be skipped on `depth`/`sitting` renders.
+  const detail = useMemo(
+    () => scoreFinderDetailed(topicPool, finderAnswers, finderBank),
+    [topicPool, finderAnswers, finderBank],
+  );
+  const detailByIssue = useMemo(() => Object.fromEntries(detail.map((d) => [d.issue, d])), [detail]);
 
   function startSitting(depth: IssueFinderDepth) {
     setQuestions(selectFinderQuestions(topicPool, finderBank, depth, finderAnswers));
@@ -204,14 +216,42 @@ export default function IssueFinderView({
   }
 
   // step === "results"
+  const top5 = draftTopics.slice(0, 5);
+  const tierCounts = top5.reduce<Record<string, number>>((acc, issue) => {
+    const label = importanceLabel(detailByIssue[issue].raw);
+    acc[label] = (acc[label] ?? 0) + 1;
+    return acc;
+  }, {});
+  const resultsDetail = Object.fromEntries(
+    draftTopics.map((issue) => [
+      issue,
+      {
+        importance: importanceLabel(detailByIssue[issue].raw),
+        why: explainRanking(detailByIssue[issue]),
+        href: "/hush-guide",
+      },
+    ]),
+  );
+
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
+      <button
+        type="button"
+        onClick={() => {
+          setStep("sitting");
+          setAt(Math.max(0, questions.length - 1));
+        }}
+        style={{ alignSelf: "flex-start", border: 0, background: "transparent", color: C.muted, fontSize: 12, cursor: "pointer", padding: 0 }}
+      >
+        ← Back to questions
+      </button>
+
       <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
         <Kicker>Suggested order</Kicker>
-        <Display size={25}>Here&apos;s what your answers suggest</Display>
+        <Display size={25}>Here are the issues that matter most to you.</Display>
         <span style={{ fontSize: 13, color: C.body, maxWidth: 580, lineHeight: 1.5 }}>
-          Ranked from your answers, most important first. Drag to reorder, add or remove issues
-          below, then save — nothing changes your actual Top Issues until you do.
+          Based on your answers, these are the issues you care about most — and why. Reorder, add,
+          or remove below, then save — nothing changes your actual Top Issues until you do.
         </span>
         {confirmReplace ? (
           <span style={{ fontSize: 12.5, color: C.rust, fontWeight: 500 }}>
@@ -220,21 +260,117 @@ export default function IssueFinderView({
         ) : null}
       </div>
 
-      <TopIssuesCard
-        topicPool={topicPool}
-        showEditLink={false}
-        draft={{
-          topics: draftTopics,
-          onChange: (next) => {
-            setConfirmReplace(false);
-            setDraftTopics(next);
-          },
-          onSave: saveResults,
-          onDiscard: () => router.push(exitHref),
-          saveLabel: confirmReplace ? "Yes, replace my ranking" : "Save my top issues",
-        }}
-      />
+      <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <TopIssuesCard
+            topicPool={topicPool}
+            showEditLink={false}
+            draft={{
+              topics: draftTopics,
+              onChange: (next) => {
+                setConfirmReplace(false);
+                setDraftTopics(next);
+              },
+              onSave: saveResults,
+              onDiscard: () => router.push(exitHref),
+              saveLabel: confirmReplace ? "Yes, replace my ranking" : "Save my top issues",
+            }}
+            resultsDetail={resultsDetail}
+          />
+        </div>
+
+        <aside style={{ width: 300, flex: "0 0 300px", display: "flex", flexDirection: "column", gap: 16 }}>
+          <Card style={{ padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
+            <Kicker>Your issue profile</Kicker>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <span style={{ fontFamily: cond, fontSize: 20 }}>
+                {top5.length} key issue{top5.length === 1 ? "" : "s"}
+              </span>
+              <span style={{ fontSize: 12, color: C.muted }}>
+                These are the issues that rose to the top based on your answers.
+              </span>
+            </div>
+            <span style={{ fontSize: 12.5, color: C.body }}>
+              {(["Very important", "Somewhat important", "Not important"] as const)
+                .filter((l) => tierCounts[l])
+                .map((l) => `${tierCounts[l]} ${l}`)
+                .join(" · ")}
+            </span>
+            <RustButton onClick={() => router.push("/your-ballot")} style={{ width: "100%" }}>
+              See these issues on your ballot →
+            </RustButton>
+            <GhostButton
+              onClick={() => {
+                setDraftTopics([]);
+                setConfirmReplace(false);
+                setStep("depth");
+              }}
+              style={{ width: "100%" }}
+            >
+              Retake the quiz
+            </GhostButton>
+          </Card>
+
+          <Card style={{ padding: 18, display: "flex", flexDirection: "column", gap: 10 }}>
+            <Kicker>What&apos;s next?</Kicker>
+            <NextActionRow href="/compare" label="See where candidates stand" desc="Compare candidate positions on your top issues." />
+            <NextActionRow href="/your-ballot" label="Explore your ballot" desc="See the races and candidates you'll actually vote on." />
+            <NextActionRow href="/hush-guide" label="Learn about each issue" desc="Read direct quotes, sources, bills and key context in HUSH. Guide." />
+          </Card>
+        </aside>
+      </div>
     </div>
+  );
+}
+
+/**
+ * The results screen's "why" line for one ranked issue -- grounded in the
+ * real question the person answered (via scoreFinderDetailed's
+ * topQuestion), not generated/invented text.
+ */
+function explainRanking(detail: FinderIssueDetail): string {
+  if (detail.n === 0) {
+    return `You haven't answered anything about ${detail.issue} yet — this is filling out the list by default.`;
+  }
+  const label = importanceLabel(detail.raw).toLowerCase();
+  if (!detail.topQuestion) {
+    return `Based on ${detail.n} answer${detail.n === 1 ? "" : "s"} so far, this came out ${label} to you overall.`;
+  }
+  const lede = detail.n === 1 ? "Your one answer" : `Across your ${detail.n} answers`;
+  return `${lede} on how important it is that ${detail.topQuestion.text} — rated ${label} — is a big part of why this ranked here.`;
+}
+
+function NextActionRow({ href, label, desc }: { href: string; label: string; desc: string }) {
+  return (
+    <Link
+      href={href}
+      className="link-quiet"
+      style={{ display: "flex", alignItems: "center", gap: 10, color: C.ink }}
+    >
+      <span
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: 7,
+          background: C.shell,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flex: "0 0 28px",
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={C.navy} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M3 8h10M9 4l4 4-4 4" />
+        </svg>
+      </span>
+      <span style={{ display: "flex", flexDirection: "column", gap: 1, flex: 1, minWidth: 0 }}>
+        <span style={{ fontSize: 13, fontWeight: 500 }}>{label}</span>
+        <span style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.3 }}>{desc}</span>
+      </span>
+      <span aria-hidden style={{ color: C.faint, fontSize: 14 }}>
+        ›
+      </span>
+    </Link>
   );
 }
 

@@ -5,7 +5,8 @@ import { useState, type DragEvent } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { rankWeights } from "@/lib/scoring";
-import { Card, Display, EmptyState, GhostButton, Kicker, RustButton } from "@/components/ui";
+import { Card, Display, EmptyState, GhostButton, IssueIcon, Kicker, Pill, RustButton } from "@/components/ui";
+import type { IssueFinderAnswer } from "@/lib/types";
 
 const MAX_TOP_ISSUES = 10;
 
@@ -30,6 +31,7 @@ export function TopIssuesCard({
   showEditLink = true,
   id,
   draft,
+  resultsDetail,
 }: {
   topicPool: string[];
   showEditLink?: boolean;
@@ -53,6 +55,15 @@ export function TopIssuesCard({
     onDiscard?: () => void;
     saveLabel?: string;
   };
+  /**
+   * Optional per-issue context for Issue Finder's results screen -- a real
+   * importance label, a grounded "why" line, and where "Explore this
+   * issue" goes. When set, each row renders the richer results treatment
+   * instead of the plain compact row. Leave unset everywhere else; drag
+   * reorder, remove, and add all keep working identically either way --
+   * this only changes what a row looks like, never what it does.
+   */
+  resultsDetail?: Record<string, { importance: IssueFinderAnswer; why: string; href: string }>;
 }) {
   const live = usePrefs();
   const topics = draft ? draft.topics : live.topics;
@@ -98,61 +109,153 @@ export function TopIssuesCard({
         <EmptyState>Add a few issues below and they&apos;ll show up here, ranked.</EmptyState>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          {ranked.map((i, idx) => (
-            <div
-              key={i.name}
-              draggable
-              onDragStart={() => setDragIndex(idx)}
-              onDragOver={(e: DragEvent) => e.preventDefault()}
-              onDrop={() => dropOnto(idx)}
-              onDragEnd={() => setDragIndex(null)}
-              title="Drag to reorder"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "7px 8px",
-                borderRadius: 8,
-                background: dragIndex === idx ? C.hover : "transparent",
-                opacity: dragIndex !== null && dragIndex !== idx ? 0.6 : 1,
-              }}
-            >
-              <span aria-hidden style={{ color: C.faint, fontSize: 13, letterSpacing: -1, cursor: "grab" }}>
-                ⠿
-              </span>
-              <span style={{ fontFamily: cond, fontSize: 14, color: C.muted, width: 16 }}>{i.rank}</span>
-              <span
+          {ranked.map((i, idx) => {
+            const rd = resultsDetail?.[i.name];
+            const dragProps = {
+              draggable: true,
+              onDragStart: () => setDragIndex(idx),
+              onDragOver: (e: DragEvent) => e.preventDefault(),
+              onDrop: () => dropOnto(idx),
+              onDragEnd: () => setDragIndex(null),
+            };
+
+            if (rd) {
+              return (
+                <div
+                  key={i.name}
+                  {...dragProps}
+                  style={{
+                    display: "flex",
+                    gap: 12,
+                    padding: "12px 10px",
+                    borderRadius: 10,
+                    border: `1px solid ${C.line}`,
+                    background: dragIndex === idx ? C.hover : C.white,
+                    opacity: dragIndex !== null && dragIndex !== idx ? 0.6 : 1,
+                  }}
+                >
+                  <span
+                    aria-hidden
+                    style={{ color: C.faint, fontSize: 13, cursor: "grab", alignSelf: "flex-start", marginTop: 4 }}
+                  >
+                    ⠿
+                  </span>
+                  <span
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: "50%",
+                      background: C.sand,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontFamily: cond,
+                      fontSize: 12,
+                      color: C.body,
+                      flex: "0 0 26px",
+                    }}
+                  >
+                    {i.rank}
+                  </span>
+                  <span
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 8,
+                      background: C.shell,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flex: "0 0 30px",
+                    }}
+                  >
+                    <IssueIcon topic={i.name} size={15} />
+                  </span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: C.ink }}>{i.name}</span>
+                      <Pill bg={C.shell} fg={C.body} style={{ fontSize: 11 }}>
+                        {rd.importance}
+                      </Pill>
+                    </div>
+                    <span style={{ fontSize: 12, color: C.body, lineHeight: 1.4 }}>{rd.why}</span>
+                    <Link href={rd.href} style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}>
+                      Explore this issue →
+                    </Link>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggle(i.name)}
+                    aria-label={`Remove ${i.name} from your top issues`}
+                    style={{
+                      border: 0,
+                      background: "transparent",
+                      color: C.faint,
+                      fontSize: 16,
+                      lineHeight: 1,
+                      padding: "2px 4px",
+                      cursor: "pointer",
+                      alignSelf: "flex-start",
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            }
+
+            return (
+              <div
+                key={i.name}
+                {...dragProps}
+                title="Drag to reorder"
                 style={{
-                  fontSize: 13,
-                  color: C.ink,
-                  width: 140,
-                  flex: "0 0 140px",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "7px 8px",
+                  borderRadius: 8,
+                  background: dragIndex === idx ? C.hover : "transparent",
+                  opacity: dragIndex !== null && dragIndex !== idx ? 0.6 : 1,
                 }}
               >
-                {i.name}
-              </span>
-              <button
-                type="button"
-                onClick={() => toggle(i.name)}
-                aria-label={`Remove ${i.name} from your top issues`}
-                style={{
-                  marginLeft: "auto",
-                  border: 0,
-                  background: "transparent",
-                  color: C.faint,
-                  fontSize: 16,
-                  lineHeight: 1,
-                  padding: "2px 4px",
-                  cursor: "pointer",
-                }}
-              >
-                ×
-              </button>
-            </div>
-          ))}
+                <span aria-hidden style={{ color: C.faint, fontSize: 13, letterSpacing: -1, cursor: "grab" }}>
+                  ⠿
+                </span>
+                <span style={{ fontFamily: cond, fontSize: 14, color: C.muted, width: 16 }}>{i.rank}</span>
+                <span
+                  style={{
+                    fontSize: 13,
+                    color: C.ink,
+                    width: 140,
+                    flex: "0 0 140px",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {i.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => toggle(i.name)}
+                  aria-label={`Remove ${i.name} from your top issues`}
+                  style={{
+                    marginLeft: "auto",
+                    border: 0,
+                    background: "transparent",
+                    color: C.faint,
+                    fontSize: 16,
+                    lineHeight: 1,
+                    padding: "2px 4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 
