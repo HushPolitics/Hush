@@ -359,7 +359,7 @@ export function IssuesStep({
       ) : null}
       {hasGuide ? (
         <Link
-          href="/profile/top-issues/start"
+          href="/profile/top-issues/issue-finder?next=/hush-guide"
           style={{ fontSize: 12, color: C.muted, textDecoration: "underline" }}
         >
           Prefer to answer a few questions instead? Try Issue Finder →
