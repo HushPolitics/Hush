@@ -18,6 +18,12 @@ const BALLOT_FILTERS: { key: BallotFilter; label: string }[] = [
 const LEVEL_FILTERS: (Level | "All")[] = ["All", "Federal", "State", "Local"];
 const PARTY_FILTERS: (Party | "All")[] = ["All", "D", "R", "I"];
 
+// Avatar / Name / Party / Office / District / On your ballot. Office and
+// District are proportional, not fixed -- a few entries run long there
+// ("Florida State College at Jacksonville" as a district), so they need
+// room to wrap onto a second line rather than getting clipped.
+const ROW_GRID = "40px 1fr 100px 1.3fr 1fr 90px";
+
 /**
  * Everyone in the system, not just who's on your ballot -- the broader
  * companion to the Feed/Guide "Your Representatives" card, which now links
@@ -143,36 +149,62 @@ export default function PoliticiansView({
         {filtered.length} {filtered.length === 1 ? "result" : "results"}
       </span>
 
+      {/* Column header -- same treatment as the promise ledger's grid head on a politician's own page */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: ROW_GRID,
+          gap: 12,
+          padding: "0 16px",
+          fontFamily: cond,
+          fontSize: 11,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: C.muted,
+        }}
+      >
+        <span />
+        <span>Name</span>
+        <span>Party</span>
+        <span>Office</span>
+        <span>District</span>
+        <span>On your ballot</span>
+      </div>
+
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {filtered.map((p) => (
-          <Link
-            key={p.id}
-            href={`/politician/${p.id}`}
-            className="card-hover"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              border: `1px solid ${C.line}`,
-              borderRadius: 10,
-              background: C.white,
-              padding: "13px 16px",
-              color: C.ink,
-            }}
-          >
-            <Avatar text={initials(p.name)} size={36} radius={9} font={14} />
-            <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+        {filtered.map((p) => {
+          const onBallot = ballotIds.has(p.id);
+          return (
+            <Link
+              key={p.id}
+              href={`/politician/${p.id}`}
+              className="card-hover"
+              style={{
+                display: "grid",
+                gridTemplateColumns: ROW_GRID,
+                gap: 12,
+                alignItems: "center",
+                border: `1px solid ${C.line}`,
+                borderRadius: 10,
+                background: C.white,
+                padding: "13px 16px",
+                color: C.ink,
+              }}
+            >
+              <Avatar text={initials(p.name)} size={36} radius={9} font={14} />
               <span style={{ fontSize: 14, fontWeight: 500 }}>{p.name}</span>
-              <span style={{ fontSize: 12, color: C.muted }}>
-                {p.office} · {p.district} · {PARTY_LABEL[p.party]}
+              <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: C.body }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: PARTY[p.party], flex: "0 0 7px" }} />
+                {PARTY_LABEL[p.party]}
               </span>
-            </div>
-            <span style={{ fontSize: 11, color: ballotIds.has(p.id) ? C.rust : C.faint, whiteSpace: "nowrap" }}>
-              {ballotIds.has(p.id) ? "On your ballot" : "Not on your ballot"}
-            </span>
-            <span style={{ width: 8, height: 8, borderRadius: 2, background: PARTY[p.party], flex: "0 0 8px" }} />
-          </Link>
-        ))}
+              <span style={{ fontSize: 13, color: C.body }}>{p.office}</span>
+              <span style={{ fontSize: 13, color: C.body }}>{p.district}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: onBallot ? C.rust : C.faint }}>
+                {onBallot ? "Yes" : "No"}
+              </span>
+            </Link>
+          );
+        })}
         {filtered.length === 0 ? <EmptyState>No one matches these filters.</EmptyState> : null}
       </div>
     </div>
