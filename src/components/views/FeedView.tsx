@@ -675,9 +675,9 @@ function TopIssuesCard({ topics, issuesEventCount }: { topics: string[]; issuesE
         </span>
       ) : (
         <>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
-            {topics.map((t) => (
-              <div key={t} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: 62 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 14, justifyContent: "center" }}>
+            {topics.slice(0, 5).map((t) => (
+              <div key={t} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
                 <span
                   style={{
                     width: 34,
@@ -692,7 +692,9 @@ function TopIssuesCard({ topics, issuesEventCount }: { topics: string[]; issuesE
                 >
                   <IssueIcon topic={t} size={17} />
                 </span>
-                <span style={{ fontSize: 11, color: C.ink, textAlign: "center", lineHeight: 1.25 }}>{t}</span>
+                <span style={{ fontSize: 11, color: C.ink, textAlign: "center", lineHeight: 1.25, whiteSpace: "nowrap" }}>
+                  {t}
+                </span>
               </div>
             ))}
           </div>
