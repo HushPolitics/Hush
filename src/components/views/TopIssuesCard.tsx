@@ -164,12 +164,12 @@ export function TopIssuesCard({
                   </span>
                   <span
                     style={{
-                      aspectRatio: "1 / 1",
-                      alignSelf: "stretch",
+                      width: 96,
+                      height: 96,
                       borderRadius: 8,
                       overflow: "hidden",
                       background: C.shell,
-                      flex: "0 0 auto",
+                      flex: "0 0 96px",
                     }}
                   >
                     <img
