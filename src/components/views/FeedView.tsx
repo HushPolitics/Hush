@@ -476,14 +476,6 @@ export default function FeedView({
     [scopedEvents, typeFilter],
   );
 
-  // Same "is this event about one of my ranked issues" check the My Issues
-  // scope filter already uses (see eventInScope in lib/feed.ts) -- computed
-  // independent of whatever scope tab is currently selected.
-  const issuesEventCount = useMemo(
-    () => allEvents.filter((e) => eventInScope(e, "issues", ballotIds, saved, topics)).length,
-    [allEvents, ballotIds, saved, topics],
-  );
-
   const followingEmpty = scope === "following" && saved.length === 0;
   const issuesEmpty = scope === "issues" && topics.length === 0;
   const days = mounted
@@ -507,7 +499,7 @@ export default function FeedView({
         }}
       >
         <ElectionCard days={days} raceCount={races.length} />
-        <TopIssuesCard topics={topics} issuesEventCount={issuesEventCount} />
+        <TopIssuesCard topics={topics} />
         <RepresentativesCard politicians={ballotPoliticians} />
       </div>
 
@@ -661,7 +653,8 @@ function ElectionCard({ days, raceCount }: { days: number | null; raceCount: num
   );
 }
 
-function TopIssuesCard({ topics, issuesEventCount }: { topics: string[]; issuesEventCount: number }) {
+function TopIssuesCard({ topics }: { topics: string[] }) {
+  const shown = topics.slice(0, 5);
   return (
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
       <Kicker>Your Top Issues</Kicker>
@@ -674,9 +667,24 @@ function TopIssuesCard({ topics, issuesEventCount }: { topics: string[]; issuesE
           to personalize your feed.
         </span>
       ) : (
-        <>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 14, justifyContent: "center" }}>
-            {topics.slice(0, 5).map((t) => (
+        // flex: 1 + a centered column here is what vertically centers the
+        // icon row in whatever height this card is stretched to (it matches
+        // ElectionCard's height as a CSS Grid row sibling). The row itself
+        // is a grid with one equal-width column per issue -- not a flex row
+        // -- so each icon sits at its column's center regardless of how
+        // long that issue's label is; a flex row's gap alone would let a
+        // long label like "Reproductive rights" push its neighbors further
+        // apart than a short one like "Guns" does.
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${shown.length}, 1fr)`,
+              alignItems: "start",
+              justifyItems: "center",
+            }}
+          >
+            {shown.map((t) => (
               <div key={t} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
                 <span
                   style={{
@@ -698,10 +706,7 @@ function TopIssuesCard({ topics, issuesEventCount }: { topics: string[]; issuesE
               </div>
             ))}
           </div>
-          <span style={{ fontSize: 12, color: C.muted }}>
-            {issuesEventCount} update{issuesEventCount === 1 ? "" : "s"} about these today
-          </span>
-        </>
+        </div>
       )}
       <Link href="/profile/top-issues" style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}>
         Manage issues →
