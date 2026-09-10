@@ -5,10 +5,15 @@ import { useState, type DragEvent } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { rankWeights } from "@/lib/scoring";
-import { Card, Display, EmptyState, GhostButton, IssueIcon, Kicker, Pill, RustButton } from "@/components/ui";
+import { Card, Display, EmptyState, GhostButton, Kicker, Pill, RustButton } from "@/components/ui";
 import type { IssueFinderAnswer } from "@/lib/types";
 
 const MAX_TOP_ISSUES = 10;
+
+/** Filename (under /public/images/issues/) for an issue's results-row photo -- just the issue name, lowercased and hyphenated. */
+function issueImageSlug(issue: string): string {
+  return issue.toLowerCase().replace(/\s+/g, "-");
+}
 
 /**
  * "Your Top Issues" — a standalone ranked-list editor (drag to reorder,
@@ -159,17 +164,20 @@ export function TopIssuesCard({
                   </span>
                   <span
                     style={{
-                      width: 30,
-                      height: 30,
+                      aspectRatio: "1 / 1",
+                      alignSelf: "stretch",
                       borderRadius: 8,
+                      overflow: "hidden",
                       background: C.shell,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flex: "0 0 30px",
+                      flex: "0 0 auto",
                     }}
                   >
-                    <IssueIcon topic={i.name} size={15} />
+                    <img
+                      src={`/images/issues/${issueImageSlug(i.name)}.jpg`}
+                      alt=""
+                      aria-hidden
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    />
                   </span>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
