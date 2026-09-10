@@ -311,30 +311,38 @@ export default function StanceCheckView({
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
       <StanceCheckHero />
 
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <Kicker>Stance Check</Kicker>
-        <Display size={25}>
-          {done ? `You've gone through your ${total} issue${total === 1 ? "" : "s"}` : `Question ${at + 1} of ${total}`}
-        </Display>
-        <button
-          type="button"
-          className="link-quiet"
-          onClick={() => setShowPicker(true)}
-          style={{
-            marginLeft: "auto",
-            border: 0,
-            background: "transparent",
-            color: C.navy,
-            fontSize: 12,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            cursor: "pointer",
-            padding: 6,
-          }}
-        >
-          Edit issues
-        </button>
-      </div>
+      {/* This header (kicker + "Question X of Y" / "Edit issues") is
+          question-screen-only now -- on the completion screen it read as a
+          third "Stance Check" label stacked right under the hero's own and
+          right above StanceSummary's "Here's where you stand." headline.
+          "Edit issues" isn't reachable directly from the results screen
+          anymore as a result; "← Back to questions" (StanceSummary, below)
+          gets you back to the question view, where this row -- and Edit
+          issues with it -- is right there again. */}
+      {done ? null : (
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+          <Kicker>Stance Check</Kicker>
+          <Display size={25}>Question {at + 1} of {total}</Display>
+          <button
+            type="button"
+            className="link-quiet"
+            onClick={() => setShowPicker(true)}
+            style={{
+              marginLeft: "auto",
+              border: 0,
+              background: "transparent",
+              color: C.navy,
+              fontSize: 12,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+              padding: 6,
+            }}
+          >
+            Edit issues
+          </button>
+        </div>
+      )}
 
       {done ? (
         <StanceSummary
