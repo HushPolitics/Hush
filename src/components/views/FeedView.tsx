@@ -654,7 +654,7 @@ function ElectionCard({ days, raceCount }: { days: number | null; raceCount: num
 }
 
 function TopIssuesCard({ topics }: { topics: string[] }) {
-  const shown = topics.slice(0, 4);
+  const shown = topics.slice(0, 3);
   return (
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
       <Kicker>Your Top Issues</Kicker>
@@ -688,17 +688,17 @@ function TopIssuesCard({ topics }: { topics: string[] }) {
               <div key={t} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
                 <span
                   style={{
-                    width: 34,
-                    height: 34,
-                    flex: "0 0 34px",
-                    borderRadius: 9,
+                    width: 44,
+                    height: 44,
+                    flex: "0 0 44px",
+                    borderRadius: 11,
                     background: C.shell,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <IssueIcon topic={t} size={17} />
+                  <IssueIcon topic={t} size={23} />
                 </span>
                 <span style={{ fontSize: 11, color: C.ink, textAlign: "center", lineHeight: 1.25, whiteSpace: "nowrap" }}>
                   {t}
