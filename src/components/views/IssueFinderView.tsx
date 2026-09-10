@@ -382,7 +382,7 @@ export default function IssueFinderView({
             </Kicker>
           </div>
 
-          <Display size={30} style={{ lineHeight: 1.3, maxWidth: 640 }}>
+          <Display size={30} style={{ lineHeight: 1.3 }}>
             How important is it to you that {q.text}?
           </Display>
 
