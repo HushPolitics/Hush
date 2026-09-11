@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useState, type KeyboardEvent, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import type { Bill } from "@/lib/types";
 import { Card, Display, EmptyState, Kicker } from "@/components/ui";
@@ -17,8 +17,9 @@ export function BillsSection({ bills }: { bills: Bill[] }) {
   return (
     <section id="bills" style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 10 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <Kicker>Legislation</Kicker>
-        <Display size={25}>Bills Being Considered</Display>
+        <Display size={20} style={{ textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.01em" }}>
+          Bills Being Considered
+        </Display>
         <span style={{ fontSize: 13, color: C.body }}>
           Understand what your elected officials are being asked to vote on.
         </span>
@@ -56,6 +57,41 @@ export function BillsSection({ bills }: { bills: Bill[] }) {
   );
 }
 
+/**
+ * Shortens a bill's full `chamber` string to what fits a small pill badge --
+ * federal bills keep which body ("U.S. House", "U.S. Senate", since that
+ * distinction matters for a federal bill's identity), while state and local
+ * chambers collapse to just the jurisdiction name ("Florida", "Jacksonville")
+ * since which body handles it is already visible in the bill number below.
+ * Presentation-only -- `bill.chamber` itself is untouched.
+ */
+function chamberPillLabel(chamber: string): string {
+  if (chamber === "U.S. House of Representatives") return "U.S. House";
+  if (chamber === "U.S. Senate") return "U.S. Senate";
+  return chamber.split(" ")[0];
+}
+
+function ChamberPill({ children }: { children: ReactNode }) {
+  return (
+    <span
+      style={{
+        fontFamily: cond,
+        fontSize: 10.5,
+        fontWeight: 600,
+        letterSpacing: "0.05em",
+        textTransform: "uppercase",
+        color: C.navy,
+        background: C.slateFill,
+        borderRadius: 4,
+        padding: "3px 8px",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 function BillCard({ bill }: { bill: Bill }) {
   const [flipped, setFlipped] = useState(false);
 
@@ -88,12 +124,12 @@ function BillCard({ bill }: { bill: Bill }) {
             cursor: "pointer",
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <span style={{ fontFamily: cond, fontSize: 13, color: C.rust, letterSpacing: "0.04em" }}>
-              {bill.number}
-            </span>
-            <span style={{ fontFamily: cond, fontSize: 19, lineHeight: 1.2 }}>{bill.title}</span>
-            <span style={{ fontSize: 12, color: C.muted }}>{bill.chamber}</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <ChamberPill>{chamberPillLabel(bill.chamber)}</ChamberPill>
+              <span style={{ fontSize: 12, color: C.muted }}>{bill.number}</span>
+            </div>
+            <span style={{ fontFamily: cond, fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>{bill.title}</span>
           </div>
 
           {bill.description ? (
@@ -104,25 +140,21 @@ function BillCard({ bill }: { bill: Bill }) {
 
           <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
             {bill.voteDate ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <span style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                  Upcoming vote
-                </span>
-                <span style={{ fontSize: 13, color: C.ink }}>
-                  {bill.voteDate}
-                  {bill.voteStage ? ` · ${bill.voteStage}` : ""}
-                </span>
-              </div>
+              <span style={{ fontSize: 12.5, color: C.muted }}>
+                Vote: {bill.voteDate}
+                {bill.voteStage ? ` · ${bill.voteStage}` : ""}
+              </span>
             ) : null}
             <span
               style={{
                 fontFamily: cond,
                 fontSize: 13,
+                fontWeight: 600,
                 letterSpacing: "0.04em",
-                color: C.navy,
+                color: C.rust,
               }}
             >
-              Tap to understand →
+              Understand this bill →
             </span>
           </div>
         </Card>
