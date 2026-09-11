@@ -54,6 +54,15 @@ export const C = {
   // ~2.3:1 against it, well under the 4.5:1 text bar.
   steel: "#4BA3E8",
   steelHover: "#63B2EC",
+  // Marketing site's bright highlighter orange -- previously only a local
+  // constant in LandingHero.tsx (its CTA buttons, and the flat rgba value
+  // behind its headline's marker-slab gradient). Promoted to a real token
+  // now that GlobalFooter.tsx needs it too, for the solid-color uses (the
+  // wordmark's period, the divider rule) -- the gradient highlight itself
+  // still uses raw rgba stops, same as LandingHero.tsx does, since a
+  // multi-stop gradient can't be expressed as one token.
+  highlighter: "#FF6D00",
+  highlighterHover: "#E65D00",
   tan: "#B5A88A",
   // Not in the brand kit and not touched by this pass -- still live (see
   // HushScoreInfo's 100/50/0 score-key legend), so it can't just be
