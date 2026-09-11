@@ -33,10 +33,7 @@ export default async function TopIssuesPage({
   return (
     <AppShell>
       <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
-        <TopIssuesCard topicPool={topicPool()} showEditLink={false} />
-        <Link href={findHref} style={{ fontSize: 12, color: C.muted, textDecoration: "underline" }}>
-          Prefer to answer a few questions instead? Try Issue Finder →
-        </Link>
+        <TopIssuesCard topicPool={topicPool()} showEditLink={false} issueFinderHref={findHref} />
         <Link href={next ?? "/feed"} style={{ fontSize: 13, color: C.navy, textDecoration: "underline" }}>
           {next ? "Continue →" : "Back to Feed"}
         </Link>
