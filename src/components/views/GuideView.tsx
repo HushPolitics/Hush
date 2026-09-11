@@ -814,7 +814,7 @@ function GuideAtAGlanceStrip({ races, polling }: { races: Race[]; polling: { nam
   const tiles: { value: string; label: string; href?: string }[] = [
     { value: days === null ? "—" : String(days), label: "days until Election Day" },
     ...KEY_DATES.map((k) => ({ value: k.value, label: k.label })),
-    { value: polling.name, label: "your polling place" },
+    { value: polling.name, label: "your polling place", href: "#voting" },
     {
       value: String(races.length),
       label: `race${races.length === 1 ? "" : "s"} on your ballot`,
@@ -860,6 +860,8 @@ function GlanceTile({
     padding: "18px 20px",
     display: "flex",
     flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
     gap: 3,
     textDecoration: "none",
     color: "inherit",
@@ -870,7 +872,13 @@ function GlanceTile({
       <span style={{ fontFamily: cond, fontSize: 25, lineHeight: 1.1, color: lead ? C.rust : C.slate }}>
         {value}
       </span>
-      <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.3 }}>{label}</span>
+      {/*
+        `capitalize` (not hardcoded per-label strings) so every label reads
+        as a title -- "Days Until Election Day", "Your Polling Place" -- for
+        this strip's own seeded labels and for KEY_DATES' labels (owned by
+        seed-data.ts, used elsewhere in their own lowercase form) alike.
+      */}
+      <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.3, textTransform: "capitalize" }}>{label}</span>
     </>
   );
   return href ? (
