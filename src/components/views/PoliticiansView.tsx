@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
+import { C, HERO_SCRIM, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { ballotPoliticianIds } from "@/lib/feed";
 import { initials } from "@/lib/scoring";
 import { Avatar, Chip, Display, EmptyState, Kicker, SearchField } from "@/components/ui";
@@ -62,7 +62,7 @@ function PoliticiansHero() {
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(to top, rgba(11,10,8,0.85), rgba(11,10,8,0.35))",
+          background: HERO_SCRIM,
         }}
       />
       <div style={{ position: "relative", padding: "22px 26px", display: "flex", flexDirection: "column", gap: 6 }}>
@@ -173,7 +173,7 @@ export default function PoliticiansView({
           aria-label="Filter by office"
           style={{
             padding: "9px 12px",
-            border: "1px solid rgba(21,21,21,0.16)",
+            border: `1px solid ${C.lineHard}`,
             borderRadius: 7,
             background: C.sandDeep,
             fontSize: 13,
