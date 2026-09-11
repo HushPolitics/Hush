@@ -3,7 +3,7 @@ import AppShell from "@/components/AppShell";
 import GuideView from "@/components/views/GuideView";
 import { guidePositions, listBills, listPoliticians, listRaces, topicPool } from "@/lib/repo";
 
-export const metadata: Metadata = { title: "HUSH Guide" };
+export const metadata: Metadata = { title: "HUSH. Guide" };
 
 export default function HushGuidePage() {
   return (
