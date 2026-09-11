@@ -71,7 +71,19 @@ function chamberPillLabel(chamber: string): string {
   return chamber.split(" ")[0];
 }
 
-function ChamberPill({ children }: { children: ReactNode }) {
+/**
+ * Federal bills get the rust accent, state/local bills get slate -- the same
+ * two-tier split the rest of the app reserves for its only two accent
+ * colors (see theme.ts). Drives the chamber pill's color and the card's top
+ * edge, so a scan down the grid shows at a glance which bills are federal.
+ */
+function chamberAccent(chamber: string): { fg: string; bg: string } {
+  return chamber.startsWith("U.S.")
+    ? { fg: C.rust, bg: C.rustFill }
+    : { fg: C.navy, bg: C.slateFill };
+}
+
+function ChamberPill({ children, accent }: { children: ReactNode; accent: { fg: string; bg: string } }) {
   return (
     <span
       style={{
@@ -80,8 +92,8 @@ function ChamberPill({ children }: { children: ReactNode }) {
         fontWeight: 600,
         letterSpacing: "0.05em",
         textTransform: "uppercase",
-        color: C.navy,
-        background: C.slateFill,
+        color: accent.fg,
+        background: accent.bg,
         borderRadius: 4,
         padding: "3px 8px",
         whiteSpace: "nowrap",
@@ -94,6 +106,7 @@ function ChamberPill({ children }: { children: ReactNode }) {
 
 function BillCard({ bill }: { bill: Bill }) {
   const [flipped, setFlipped] = useState(false);
+  const accent = chamberAccent(bill.chamber);
 
   function flip() {
     setFlipped((f) => !f);
@@ -110,7 +123,7 @@ function BillCard({ bill }: { bill: Bill }) {
     <div className="flip-card">
       <div className={`flip-card-inner${flipped ? " is-flipped" : ""}`}>
         <Card
-          className="flip-card-face card-hover"
+          className="flip-card-face card-hover lift"
           role="button"
           tabIndex={0}
           aria-label={`${bill.number}: ${bill.title}. Tap to see HUSH's plain-English explanation.`}
@@ -118,6 +131,9 @@ function BillCard({ bill }: { bill: Bill }) {
           onKeyDown={onKeyDown}
           style={{
             padding: 18,
+            borderRadius: 12,
+            borderTop: `3px solid ${accent.fg}`,
+            boxShadow: "0 1px 4px rgba(20,17,12,0.06)",
             display: "flex",
             flexDirection: "column",
             gap: 10,
@@ -126,7 +142,7 @@ function BillCard({ bill }: { bill: Bill }) {
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <ChamberPill>{chamberPillLabel(bill.chamber)}</ChamberPill>
+              <ChamberPill accent={accent}>{chamberPillLabel(bill.chamber)}</ChamberPill>
               <span style={{ fontSize: 12, color: C.muted }}>{bill.number}</span>
             </div>
             <span style={{ fontFamily: cond, fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>{bill.title}</span>
@@ -138,7 +154,16 @@ function BillCard({ bill }: { bill: Bill }) {
             </p>
           ) : null}
 
-          <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+          <div
+            style={{
+              marginTop: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              paddingTop: 10,
+              borderTop: `1px solid ${C.lineSoft}`,
+            }}
+          >
             {bill.voteDate ? (
               <span style={{ fontSize: 12.5, color: C.muted }}>
                 Vote: {bill.voteDate}
@@ -168,6 +193,9 @@ function BillCard({ bill }: { bill: Bill }) {
           onKeyDown={onKeyDown}
           style={{
             padding: 18,
+            borderRadius: 12,
+            borderTop: `3px solid ${accent.fg}`,
+            boxShadow: "0 1px 4px rgba(20,17,12,0.06)",
             display: "flex",
             flexDirection: "column",
             gap: 10,
