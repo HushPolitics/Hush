@@ -379,7 +379,7 @@ export function IssuesStep({
  * when the ballot should take priority over what's moving in the
  * legislature. Nothing else about either section changes based on this.
  */
-const GUIDE_LEAD: "bills" | "races" = "bills";
+const GUIDE_LEAD: "bills" | "races" = "races";
 
 function TileGrid({
   races,
