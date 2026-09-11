@@ -66,9 +66,9 @@ type Step = "address" | "issues" | "grid";
  * `IssuesStep` for ranking — AddressStep's onContinue instead routes out to
  * the shared "My Top Issues" editor (same drag-to-rank component
  * everywhere else), which sends the visitor back here via `?next=` once
- * they've ranked something. `IssuesStep` stays in place for the grid's
- * "Edit issues" action (topics already non-empty) and for Stance Check's own
- * gate, both unchanged.
+ * they've ranked something. The grid's "Edit issues" action now routes to
+ * that same shared editor. `IssuesStep` stays in place only for Stance
+ * Check's own gate.
  */
 export default function GuideView({
   politicians,
@@ -125,7 +125,7 @@ export default function GuideView({
           positions={positions}
           bills={bills}
           onEditAddress={() => setManualStep("address")}
-          onEditIssues={() => setManualStep("issues")}
+          onEditIssues={() => router.push("/profile/top-issues?next=/hush-guide")}
         />
       )}
     </div>
