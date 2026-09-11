@@ -16,7 +16,7 @@ import { HushScoreInfoProvider } from "./HushScoreInfo";
 // change, just one more entry.
 const NAV = [
   { href: "/feed", label: "Feed" },
-  { href: "/hush-guide", label: "HUSH Guide" },
+  { href: "/hush-guide", label: "HUSH. Guide" },
   { href: "/stance-check", label: "Stance Check" },
   { href: "/politicians", label: "Politicians" },
 ];
