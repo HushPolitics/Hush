@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
+import { C, GUIDE_SOURCE_KIND, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
 import { jumpToSection } from "@/lib/sectionNav";
 import type { FactCheck, Party, Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
-import { Card, Display, GhostButton, Kicker, Pill, RustButton } from "@/components/ui";
+import { Card, Display, GhostButton, Kicker, Pill, RustButton, SourceAttribution } from "@/components/ui";
 import { FactCheckCard } from "./FactCheckView";
 import { IssuesStep } from "./GuideView";
 
@@ -715,18 +715,13 @@ function CandidateCard({
           <p style={{ margin: 0, fontSize: 12, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
             &ldquo;{position.excerpt}&rdquo;
           </p>
-          <span style={{ fontSize: 11, color: C.muted }}>
-            {position.sourceTitle} · {position.sourceType}
-            {position.date ? ` · ${position.date}` : ""}
-          </span>
-          <a
+          <SourceAttribution
+            kind={GUIDE_SOURCE_KIND[position.sourceType]}
+            org={position.sourceTitle}
+            date={position.date}
             href={position.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ fontSize: 12, color: C.navy }}
-          >
-            View Original Source →
-          </a>
+            actionLabel="View original →"
+          />
           {check ? (
             <div style={{ paddingTop: 4 }}>
               <FactCheckCard check={check} showSources={false} />
@@ -734,7 +729,12 @@ function CandidateCard({
           ) : null}
         </>
       ) : (
-        <span style={{ fontSize: 12, color: C.muted, fontStyle: "italic" }}>No official position found</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <span style={{ fontFamily: cond, fontSize: 12, color: C.ink }}>No public position found</span>
+          <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
+            HUSH couldn&apos;t find a stated position on this issue in the sources we track.
+          </span>
+        </div>
       )}
     </div>
   );
