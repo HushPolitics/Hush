@@ -536,12 +536,8 @@ function TileGrid({
 
       <div id="races" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <Display size={20} style={{ textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.01em" }}>
-          Your Races
-        </Display>
-        <span style={{ fontSize: 13, color: C.body }}>
-          See where the candidates on your ballot stand on the issues you care about.
-        </span>
+        <Kicker>Your Races</Kicker>
+        <Display size={22}>See where candidates stand on your issues</Display>
       </div>
       {races.length === 0 ? (
         <EmptyState>No races found in the seed dataset.</EmptyState>
