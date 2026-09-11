@@ -2,6 +2,7 @@
 
 import { useState, type KeyboardEvent, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
+import { shortPhrase } from "@/lib/guide";
 import type { Bill } from "@/lib/types";
 import { Card, Display, EmptyState, Kicker } from "@/components/ui";
 
@@ -68,16 +69,12 @@ function chamberPillLabel(chamber: string): string {
 }
 
 /**
- * Federal bills get the rust accent, state/local bills get slate -- the same
- * two-tier split the rest of the app reserves for its only two accent
- * colors (see theme.ts). Drives the chamber pill's color and the card's top
- * edge, so a scan down the grid shows at a glance which bills are federal.
+ * Jurisdiction tag is always this same faded-blue treatment now -- rust is
+ * reserved for the CTA only, not for telling federal and state/local bills
+ * apart. (Previously `chamberAccent()` gave federal bills the rust accent
+ * and state/local bills slate; that split is gone.)
  */
-function chamberAccent(chamber: string): { fg: string; bg: string } {
-  return chamber.startsWith("U.S.")
-    ? { fg: C.rust, bg: C.rustFill }
-    : { fg: C.navy, bg: C.slateFill };
-}
+const JURISDICTION_ACCENT = { fg: C.navy, bg: C.slateFill };
 
 function ChamberPill({ children, accent }: { children: ReactNode; accent: { fg: string; bg: string } }) {
   return (
@@ -102,7 +99,12 @@ function ChamberPill({ children, accent }: { children: ReactNode; accent: { fg: 
 
 function BillCard({ bill }: { bill: Bill }) {
   const [flipped, setFlipped] = useState(false);
-  const accent = chamberAccent(bill.chamber);
+  // HUSH's own plain-English paraphrase, trimmed for the card front.
+  // bill.description is only "official-ish" per its own doc comment in
+  // lib/types.ts -- the guaranteed plain-English text is `explanation`.
+  // Falls back to `description` for the rare bill with no `explanation`
+  // (e.g. one flagged `explainerTooComplex`), so nothing breaks either way.
+  const shortDescription = bill.explanation ? shortPhrase(bill.explanation, 140) : bill.description;
 
   function flip() {
     setFlipped((f) => !f);
@@ -126,28 +128,22 @@ function BillCard({ bill }: { bill: Bill }) {
           onClick={flip}
           onKeyDown={onKeyDown}
           style={{
-            padding: 18,
+            padding: 14,
             borderRadius: 12,
-            borderTop: `3px solid ${accent.fg}`,
-            boxShadow: "0 1px 4px rgba(20,17,12,0.06)",
             display: "flex",
             flexDirection: "column",
-            gap: 10,
+            gap: 8,
             cursor: "pointer",
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <ChamberPill accent={accent}>{chamberPillLabel(bill.chamber)}</ChamberPill>
-              <span style={{ fontSize: 12, color: C.muted }}>{bill.number}</span>
-            </div>
-            <span style={{ fontFamily: cond, fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>{bill.title}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <ChamberPill accent={JURISDICTION_ACCENT}>{chamberPillLabel(bill.chamber)}</ChamberPill>
+            <span style={{ fontSize: 12, color: C.muted }}>{bill.number}</span>
           </div>
+          <span style={{ fontFamily: cond, fontSize: 17, fontWeight: 700, lineHeight: 1.2 }}>{bill.title}</span>
 
-          {bill.description ? (
-            <p style={{ margin: 0, fontSize: 13, color: C.body, lineHeight: 1.5 }}>
-              {bill.description}
-            </p>
+          {shortDescription ? (
+            <p style={{ margin: 0, fontSize: 12.5, color: C.body, lineHeight: 1.45 }}>{shortDescription}</p>
           ) : null}
 
           <div
@@ -155,14 +151,14 @@ function BillCard({ bill }: { bill: Bill }) {
               marginTop: "auto",
               display: "flex",
               flexDirection: "column",
-              gap: 8,
-              paddingTop: 10,
+              gap: 6,
+              paddingTop: 8,
               borderTop: `1px solid ${C.lineSoft}`,
             }}
           >
-            {bill.voteDate ? (
-              <span style={{ fontSize: 12.5, color: C.muted }}>
-                Vote: {bill.voteDate}
+            {bill.voteDate || bill.voteStage ? (
+              <span style={{ fontSize: 12, color: C.muted }}>
+                {bill.voteDate ? `Vote: ${bill.voteDate}` : "Status"}
                 {bill.voteStage ? ` · ${bill.voteStage}` : ""}
               </span>
             ) : null}
@@ -190,7 +186,7 @@ function BillCard({ bill }: { bill: Bill }) {
           style={{
             padding: 18,
             borderRadius: 12,
-            borderTop: `3px solid ${accent.fg}`,
+            borderTop: `3px solid ${JURISDICTION_ACCENT.fg}`,
             boxShadow: "0 1px 4px rgba(20,17,12,0.06)",
             display: "flex",
             flexDirection: "column",
