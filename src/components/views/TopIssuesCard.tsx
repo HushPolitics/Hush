@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type DragEvent } from "react";
+import { useState, type CSSProperties, type DragEvent } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { rankWeights } from "@/lib/scoring";
@@ -14,6 +14,21 @@ const MAX_TOP_ISSUES = 10;
 function issueImageSlug(issue: string): string {
   return issue.toLowerCase().replace(/\s+/g, "-");
 }
+
+/**
+ * Shared style for every issue-photo <img> across this file's three photo
+ * sizes (feature card, grid card, Issue Finder results row). `WebkitUserDrag`
+ * isn't part of csstype's `CSSProperties` (it doesn't track this vendor
+ * property), hence the intersection type -- see the comment above this
+ * style's first use for why the property itself is here.
+ */
+const issuePhotoImgStyle: CSSProperties & { WebkitUserDrag?: "none" } = {
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  display: "block",
+  WebkitUserDrag: "none",
+};
 
 /**
  * Short, neutral, informational one-liners for the editorial "Your Top
@@ -266,12 +281,25 @@ export function TopIssuesCard({
                       flex: "0 0 96px",
                     }}
                   >
+                    {/*
+                     * draggable={false} alone (the #38 fix) stops the HTML5
+                     * Drag and Drop API from picking this img as a drag
+                     * source, but WebKit/Blink also run a separate, older
+                     * native "drag this picture out" affordance for <img>
+                     * that draggable doesn't reach -- only `issuePhotoImgStyle`'s
+                     * WebkitUserDrag does. Without it, a click-drag that
+                     * starts on or near the photo (easy to trigger by
+                     * accident, since the whole card is itself draggable for
+                     * reordering) can still show a native drag-ghost
+                     * mislabeled with a different issue's filename. Same
+                     * fix, all three photo sizes in this file.
+                     */}
                     <img
                       src={`/images/issues/${issueImageSlug(i.name)}.jpg`}
                       alt=""
                       aria-hidden
                       draggable={false}
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      style={issuePhotoImgStyle}
                     />
                   </span>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
@@ -566,7 +594,7 @@ function IssueFeatureCard({
             alt=""
             aria-hidden
             draggable={false}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            style={issuePhotoImgStyle}
           />
         </span>
         <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
@@ -630,7 +658,7 @@ function IssueGridCard({
           alt=""
           aria-hidden
           draggable={false}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          style={issuePhotoImgStyle}
         />
       </span>
       <span
