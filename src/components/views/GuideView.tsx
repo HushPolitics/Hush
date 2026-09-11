@@ -13,7 +13,6 @@ import { useRegisterRailFooter, useRegisterSectionNav } from "@/lib/sectionNav";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, ExpandableQuote, GhostButton, Kicker, RustButton } from "@/components/ui";
 import RepresentativesCard from "@/components/RepresentativesCard";
-import PollingPlaceCard from "@/components/PollingPlaceCard";
 import { BillsSection } from "./GuideBills";
 
 /**
@@ -29,7 +28,6 @@ import { BillsSection } from "./GuideBills";
 const GUIDE_SECTIONS = [
   { id: "issues", label: "Your issues" },
   { id: "voting", label: "Voting information" },
-  { id: "polling", label: "Polling place" },
   { id: "bills", label: "Bills being considered" },
   { id: "races", label: "Your races" },
 ];
@@ -522,14 +520,6 @@ function TileGrid({
 
         <VotingInformationSection polling={polling} />
 
-        <section id="polling" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <Kicker>Polling Place</Kicker>
-            <Display size={22}>Where you vote</Display>
-          </div>
-          <PollingPlaceCard />
-        </section>
-
         {GUIDE_LEAD === "bills" ? <BillsSection bills={bills} /> : null}
 
           {/*
@@ -807,9 +797,9 @@ function useDaysToElection(): number | null {
  */
 /**
  * A scannable summary strip directly under the hero -- the same countdown,
- * key dates, and polling place already detailed further down (Your Voting
- * Plan, Polling Place), plus a race count, condensed into one row so a
- * returning visitor gets the shape of their ballot before scrolling.
+ * key dates, and polling place already detailed further down in Your Voting
+ * Plan, plus a race count, condensed into one row so a returning visitor
+ * gets the shape of their ballot before scrolling.
  * Replaces the old right-rail VotingInfoSummaryCard, which did a narrower
  * version of this same job tucked into a 280px column.
  *
@@ -897,9 +887,8 @@ function GlanceTile({
  * (no timezone math needed) titled with the polling place, location set to
  * its name plus the reader's city/state/zip so the event is still useful
  * without a precise street address. Opened in a new tab the same way
- * "Check my registration" and PollingPlaceCard's "Open in Google Maps" links
- * already are -- no ICS file, no backend, consistent with every other
- * external hand-off on this page.
+ * "Check my registration" already is -- no ICS file, no backend, consistent
+ * with every other external hand-off on this page.
  */
 function calendarHref(polling: { name: string }, cityStateZip: string): string {
   const start = "20261103";
@@ -976,61 +965,65 @@ function VotingInformationSection({ polling }: { polling: { name: string; detail
             ))}
           </div>
 
-          <RustButton
-            style={{ alignSelf: "flex-start", padding: "10px 16px", fontSize: 13 }}
-            onClick={() => window.open("https://www.vote.org/am-i-registered-to-vote/", "_blank", "noopener")}
-          >
-            Check my registration
-          </RustButton>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <RustButton
+              style={{ padding: "10px 16px", fontSize: 13 }}
+              onClick={() => window.open("https://www.vote.org/am-i-registered-to-vote/", "_blank", "noopener")}
+            >
+              Check my registration
+            </RustButton>
+            <GhostButton
+              style={{ padding: "10px 16px", fontSize: 13 }}
+              onClick={() => window.open(calendarHref(polling, cityStateZip), "_blank", "noopener")}
+            >
+              + Add to calendar
+            </GhostButton>
+          </div>
         </div>
 
         {/*
-          A compact "where you vote" companion at the timeline's far end --
-          separate from the full Polling Place section below (map + address
-          lookup), this is just enough to act on Election Day itself without
-          scrolling: save the date, then get there.
+          A compact "where you vote" companion at the timeline's far end,
+          stretched to the full height of the card (the parent Card's
+          `alignItems: "stretch"` does that automatically) now that it's the
+          column's only element -- this used to sit under a full "Polling
+          Place" section with a map and address-lookup form, but that was
+          showing the same address a third time on one page; this box plus
+          Get directions is enough to act on Election Day without it.
         */}
-        <div style={{ flex: "0 0 220px", minWidth: 200, display: "flex", flexDirection: "column", gap: 10 }}>
-          <GhostButton
-            style={{ fontSize: 12, padding: "10px 12px" }}
-            onClick={() => window.open(calendarHref(polling, cityStateZip), "_blank", "noopener")}
-          >
-            + Add to calendar
-          </GhostButton>
-          <div
+        <div
+          style={{
+            flex: "0 0 220px",
+            minWidth: 200,
+            border: `1px solid ${C.line}`,
+            borderRadius: 10,
+            background: C.shell,
+            padding: 14,
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+          }}
+        >
+          <Kicker size={10}>Where you vote</Kicker>
+          <span style={{ fontFamily: cond, fontSize: 16, lineHeight: 1.2 }}>{polling.name}</span>
+          <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>{polling.detail}</span>
+          <button
+            type="button"
+            className="link-quiet"
+            onClick={() => window.open(directionsHref(polling, cityStateZip), "_blank", "noopener")}
             style={{
-              flex: 1,
-              border: `1px solid ${C.line}`,
-              borderRadius: 10,
-              background: C.shell,
-              padding: 14,
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
+              marginTop: "auto",
+              alignSelf: "flex-start",
+              border: 0,
+              background: "transparent",
+              color: C.rust,
+              fontSize: 11.5,
+              fontWeight: 600,
+              cursor: "pointer",
+              padding: 0,
             }}
           >
-            <Kicker size={10}>Where you vote</Kicker>
-            <span style={{ fontFamily: cond, fontSize: 16, lineHeight: 1.2 }}>{polling.name}</span>
-            <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>{polling.detail}</span>
-            <button
-              type="button"
-              className="link-quiet"
-              onClick={() => window.open(directionsHref(polling, cityStateZip), "_blank", "noopener")}
-              style={{
-                marginTop: "auto",
-                alignSelf: "flex-start",
-                border: 0,
-                background: "transparent",
-                color: C.rust,
-                fontSize: 11.5,
-                fontWeight: 600,
-                cursor: "pointer",
-                padding: 0,
-              }}
-            >
-              Get directions →
-            </button>
-          </div>
+            Get directions →
+          </button>
         </div>
       </Card>
     </section>
