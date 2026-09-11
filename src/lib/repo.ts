@@ -20,6 +20,7 @@ import {
   GUIDE_POSITIONS,
   BILLS,
   STANCE_STATEMENTS,
+  STANCE_WHY_MATTERS,
   STANCE_POSITIONS,
   VOTES,
   ELECTION_UPDATES,
@@ -104,6 +105,15 @@ export function listBills(): Bill[] {
 /** Stance Check's per-issue statements: issue -> the statement text. */
 export function stanceStatements(): Record<string, string> {
   return STANCE_STATEMENTS;
+}
+
+/**
+ * Stance Check's optional per-issue "why this matters" context: issue -> a
+ * short explainer, only present for issues that have one written. Empty
+ * today -- see STANCE_WHY_MATTERS's own doc comment.
+ */
+export function stanceWhyItMatters(): Record<string, string> {
+  return STANCE_WHY_MATTERS;
 }
 
 /** Stance Check's sourced per-candidate stances: politicianId -> issue -> StanceCheckPosition. */
