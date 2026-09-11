@@ -16,6 +16,30 @@ function issueImageSlug(issue: string): string {
 }
 
 /**
+ * Short, neutral, informational one-liners for the editorial "Your Top
+ * Issues" layout (feature cards + compact grid cards) at /profile/top-issues.
+ * Deliberately non-persuasive -- what the issue covers, not a position on it.
+ * Not used by Issue Finder's results screen, which has its own grounded
+ * per-user "why" line via `resultsDetail`.
+ */
+const ISSUE_DESCRIPTIONS: Record<string, string> = {
+  Healthcare: "Coverage, prescription costs, insurance protections, and access to care.",
+  Housing: "Home prices, rent, affordability, supply, and property costs.",
+  "Voting rights": "Ballot access, election administration, voter ID, and registration rules.",
+  Climate: "Energy policy, emissions, extreme weather response, and environmental regulation.",
+  Labor: "Wages, workplace rights, unions, and job protections.",
+  Education: "School funding, curriculum, teacher policy, and student outcomes.",
+  Economy: "Jobs, inflation, wages, taxes, and the cost of living.",
+  Immigration: "Border policy, legal immigration, enforcement, and pathways to citizenship.",
+  "Criminal justice": "Policing, sentencing, incarceration, courts, and criminal justice reform.",
+  Guns: "Gun ownership, background checks, firearm restrictions, and public safety.",
+  "Reproductive rights": "Abortion access, contraception, fertility care, and reproductive healthcare.",
+  Transit: "Public transportation, roads, traffic, and transportation investment.",
+  Water: "Water quality, infrastructure, supply, and flood management.",
+  Veterans: "Veterans' healthcare, benefits, housing, employment, and military support.",
+};
+
+/**
  * "Your Top Issues" — a standalone ranked-list editor (drag to reorder,
  * remove, add up to the cap). Reached from the avatar menu's "My issues"
  * item as the full-page view at /profile/top-issues, and used in `draft`
@@ -30,6 +54,15 @@ function issueImageSlug(issue: string): string {
  * A per-row bar used to sit here (flat-colored, width from list position)
  * but was redundant with the rank number and was removed; don't reintroduce
  * one, least of all a threshold-colored bar, which would read as a score.
+ *
+ * Two visual modes, chosen automatically and never mixed:
+ *  - `resultsDetail` set (Issue Finder's results step): every row renders
+ *    the rich results treatment below (96×96 image, importance Pill, "why"
+ *    line, Explore link) exactly as before this change — untouched.
+ *  - `resultsDetail` unset (the plain /profile/top-issues page, the only
+ *    other caller): the "editorial" layout — the top two ranked issues as
+ *    large feature cards, the rest as a compact two-column grid, plus a
+ *    3-zone bottom action row (add issue / progress / Issue Finder callout).
  */
 export function TopIssuesCard({
   topicPool,
@@ -37,6 +70,7 @@ export function TopIssuesCard({
   id,
   draft,
   resultsDetail,
+  issueFinderHref,
 }: {
   topicPool: string[];
   showEditLink?: boolean;
@@ -69,6 +103,13 @@ export function TopIssuesCard({
    * this only changes what a row looks like, never what it does.
    */
   resultsDetail?: Record<string, { importance: IssueFinderAnswer; why: string; href: string }>;
+  /**
+   * Link to Issue Finder for the bottom-row callout in the editorial layout
+   * (see below). Only rendered when set; leave unset to omit the callout
+   * (e.g. from within Issue Finder's own results screen, which wouldn't
+   * link back to itself).
+   */
+  issueFinderHref?: string;
 }) {
   const live = usePrefs();
   const topics = draft ? draft.topics : live.topics;
@@ -78,6 +119,12 @@ export function TopIssuesCard({
   const ranked = rankWeights(topics);
   const atCap = topics.length >= MAX_TOP_ISSUES;
   const available = topicPool.filter((name) => !topics.includes(name));
+
+  // Editorial (feature cards + grid) layout applies only where there's no
+  // per-issue results context -- i.e. only at /profile/top-issues.
+  const editorial = !resultsDetail;
+  const featured = editorial ? ranked.slice(0, 2) : [];
+  const rest = editorial ? ranked.slice(2) : [];
 
   function toggle(name: string) {
     if (!draft) {
@@ -107,11 +154,58 @@ export function TopIssuesCard({
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <Kicker>Ranked</Kicker>
         <Display size={25}>Your Top Issues</Display>
-        <span style={{ fontSize: 13, color: C.body }}>What matters most to you.</span>
+        <span style={{ fontSize: 13, color: C.body }}>
+          {editorial
+            ? "What matters most to you. Drag to reorder, remove, or add new issues."
+            : "What matters most to you."}
+        </span>
       </div>
 
       {ranked.length === 0 ? (
         <EmptyState>Add a few issues below and they&apos;ll show up here, ranked.</EmptyState>
+      ) : editorial ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {featured.length > 0 ? (
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              {featured.map((i, idx) => (
+                <IssueFeatureCard
+                  key={i.name}
+                  name={i.name}
+                  rank={i.rank}
+                  tier={idx === 0 ? "rust" : "slate"}
+                  dimmed={dragIndex !== null && dragIndex !== idx}
+                  onDragStart={() => setDragIndex(idx)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => dropOnto(idx)}
+                  onDragEnd={() => setDragIndex(null)}
+                  onRemove={() => toggle(i.name)}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {rest.length > 0 ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 10 }}>
+              {rest.map((i, restIdx) => {
+                const idx = restIdx + 2;
+                return (
+                  <IssueGridCard
+                    key={i.name}
+                    name={i.name}
+                    rank={i.rank}
+                    active={dragIndex === idx}
+                    dimmed={dragIndex !== null && dragIndex !== idx}
+                    onDragStart={() => setDragIndex(idx)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => dropOnto(idx)}
+                    onDragEnd={() => setDragIndex(null)}
+                    onRemove={() => toggle(i.name)}
+                  />
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           {ranked.map((i, idx) => {
@@ -269,25 +363,84 @@ export function TopIssuesCard({
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <GhostButton
-            onClick={() => setAdding((a) => !a)}
-            style={{ padding: "8px 14px", fontSize: 12.5 }}
-          >
-            {adding ? "Done adding" : "+ Add an issue"}
-          </GhostButton>
-          <span style={{ fontSize: 12, color: C.muted }}>
-            {topics.length}/{MAX_TOP_ISSUES} selected
-          </span>
-          {showEditLink ? (
-            <Link
-              href="/profile/top-issues"
-              style={{ marginLeft: "auto", fontFamily: cond, fontSize: 13, color: C.navy, letterSpacing: "0.02em" }}
+        {editorial ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+            <GhostButton
+              onClick={() => setAdding((a) => !a)}
+              style={{ padding: "8px 14px", fontSize: 12.5 }}
             >
-              Edit Issues →
-            </Link>
-          ) : null}
-        </div>
+              {adding ? "Done adding" : "+ Add an issue"}
+            </GhostButton>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: "1 1 160px", minWidth: 140 }}>
+              <span style={{ fontSize: 12, color: C.muted }}>
+                {topics.length}/{MAX_TOP_ISSUES} selected
+              </span>
+              <div style={{ height: 4, borderRadius: 2, background: C.line, overflow: "hidden" }}>
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${(topics.length / MAX_TOP_ISSUES) * 100}%`,
+                    background: C.rust,
+                  }}
+                />
+              </div>
+            </div>
+
+            {issueFinderHref ? (
+              <Link
+                href={issueFinderHref}
+                style={{
+                  flex: "1 1 260px",
+                  minWidth: 240,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                  padding: "10px 14px",
+                  borderRadius: 10,
+                  background: C.slateFill,
+                  border: `1px solid ${C.slate}`,
+                  textDecoration: "none",
+                }}
+              >
+                <span style={{ fontSize: 12, fontWeight: 600, color: C.ink }}>Want help choosing your issues?</span>
+                <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.35 }}>
+                  Answer a few questions and we&apos;ll help identify your priorities.
+                </span>
+                <span style={{ fontSize: 12, color: C.rust, fontWeight: 600 }}>Try Issue Finder →</span>
+              </Link>
+            ) : null}
+
+            {showEditLink ? (
+              <Link
+                href="/profile/top-issues"
+                style={{ fontFamily: cond, fontSize: 13, color: C.navy, letterSpacing: "0.02em" }}
+              >
+                Edit Issues →
+              </Link>
+            ) : null}
+          </div>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <GhostButton
+              onClick={() => setAdding((a) => !a)}
+              style={{ padding: "8px 14px", fontSize: 12.5 }}
+            >
+              {adding ? "Done adding" : "+ Add an issue"}
+            </GhostButton>
+            <span style={{ fontSize: 12, color: C.muted }}>
+              {topics.length}/{MAX_TOP_ISSUES} selected
+            </span>
+            {showEditLink ? (
+              <Link
+                href="/profile/top-issues"
+                style={{ marginLeft: "auto", fontFamily: cond, fontSize: 13, color: C.navy, letterSpacing: "0.02em" }}
+              >
+                Edit Issues →
+              </Link>
+            ) : null}
+          </div>
+        )}
 
         {adding ? (
           available.length === 0 ? (
@@ -344,5 +497,179 @@ export function TopIssuesCard({
         </div>
       ) : null}
     </Card>
+  );
+}
+
+/** Large feature-card treatment for rank #1 and #2 in the editorial layout. */
+function IssueFeatureCard({
+  name,
+  rank,
+  tier,
+  dimmed,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  onRemove,
+}: {
+  name: string;
+  rank: number;
+  tier: "rust" | "slate";
+  dimmed: boolean;
+  onDragStart: () => void;
+  onDragOver: (e: DragEvent) => void;
+  onDrop: () => void;
+  onDragEnd: () => void;
+  onRemove: () => void;
+}) {
+  const accent = tier === "rust" ? C.rust : C.slate;
+  const fill = tier === "rust" ? C.rustFill : C.slateFill;
+
+  return (
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+      title="Drag to reorder"
+      style={{
+        flex: "1 1 280px",
+        minWidth: 260,
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+        padding: 16,
+        borderRadius: 14,
+        border: `1px solid ${accent}`,
+        background: fill,
+        opacity: dimmed ? 0.6 : 1,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+        <span aria-hidden style={{ color: C.faint, fontSize: 13, cursor: "grab" }}>
+          ⠿
+        </span>
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Remove ${name} from your top issues`}
+          style={{ border: 0, background: "transparent", color: C.faint, fontSize: 16, lineHeight: 1, padding: "2px 4px", cursor: "pointer" }}
+        >
+          ×
+        </button>
+      </div>
+      <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+        <span style={{ width: 120, height: 120, borderRadius: 18, overflow: "hidden", background: C.shell, flex: "0 0 120px" }}>
+          <img
+            src={`/images/issues/${issueImageSlug(name)}.jpg`}
+            alt=""
+            aria-hidden
+            draggable={false}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        </span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+          <span style={{ fontFamily: cond, fontSize: 40, lineHeight: 1, color: accent }}>
+            {String(rank).padStart(2, "0")}
+          </span>
+          <span style={{ fontSize: 16, fontWeight: 600, color: C.ink }}>{name}</span>
+          <span style={{ fontSize: 12.5, color: C.body, lineHeight: 1.45 }}>
+            {ISSUE_DESCRIPTIONS[name] ?? ""}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Compact horizontal-card treatment for ranks #3-#10 in the editorial layout. */
+function IssueGridCard({
+  name,
+  rank,
+  active,
+  dimmed,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  onRemove,
+}: {
+  name: string;
+  rank: number;
+  active: boolean;
+  dimmed: boolean;
+  onDragStart: () => void;
+  onDragOver: (e: DragEvent) => void;
+  onDrop: () => void;
+  onDragEnd: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+      title="Drag to reorder"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "10px 12px",
+        borderRadius: 10,
+        border: `1px solid ${C.line}`,
+        background: active ? C.hover : C.white,
+        opacity: dimmed ? 0.6 : 1,
+      }}
+    >
+      <span style={{ width: 56, height: 56, borderRadius: 12, overflow: "hidden", background: C.shell, flex: "0 0 56px" }}>
+        <img
+          src={`/images/issues/${issueImageSlug(name)}.jpg`}
+          alt=""
+          aria-hidden
+          draggable={false}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+      </span>
+      <span
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: "50%",
+          background: C.slateFill,
+          color: C.slate,
+          fontFamily: cond,
+          fontSize: 11,
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flex: "0 0 22px",
+        }}
+      >
+        {rank}
+      </span>
+      <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+        <span style={{ fontSize: 13, fontWeight: 500, color: C.ink }}>{name}</span>
+        <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.35 }}>
+          {ISSUE_DESCRIPTIONS[name] ?? ""}
+        </span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "0 0 auto", color: C.faint }}>
+        <span aria-hidden style={{ fontSize: 13, cursor: "grab" }}>
+          ⠿
+        </span>
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Remove ${name} from your top issues`}
+          style={{ border: 0, background: "transparent", color: C.faint, fontSize: 16, lineHeight: 1, padding: "2px 4px", cursor: "pointer" }}
+        >
+          ×
+        </button>
+      </div>
+    </div>
   );
 }
