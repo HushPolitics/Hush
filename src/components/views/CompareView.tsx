@@ -103,7 +103,7 @@ export default function CompareView({
             style={{
               flex: 1,
               padding: "11px 14px",
-              border: "1px solid rgba(21,21,21,0.2)",
+              border: `1px solid ${C.lineHard}`,
               borderRadius: 8,
               background: C.white,
               fontFamily: cond,
@@ -227,7 +227,7 @@ export default function CompareView({
               style={{
                 marginLeft: "auto",
                 padding: "10px 15px",
-                border: "1px dashed rgba(21,21,21,0.3)",
+                border: `1px dashed ${C.lineHard}`,
                 borderRadius: 8,
                 background: "transparent",
                 fontSize: 13,
@@ -260,7 +260,7 @@ export default function CompareView({
                 style={{
                   background: C.sand,
                   borderBottom: `1px solid ${C.line}`,
-                  borderLeft: "1px solid rgba(21,21,21,0.08)",
+                  borderLeft: `1px solid ${C.lineSoft}`,
                   padding: 12,
                   display: "flex",
                   flexDirection: "column",
@@ -302,7 +302,7 @@ export default function CompareView({
                   }}
                   aria-label={`Comparison slot ${i + 1}`}
                   style={{
-                    border: "1px solid rgba(21,21,21,0.18)",
+                    border: `1px solid ${C.lineHard}`,
                     borderRadius: 6,
                     background: C.white,
                     padding: "5px 6px",
@@ -384,7 +384,7 @@ function Row({
               fontSize: 10,
               letterSpacing: "0.02em",
               whiteSpace: "nowrap",
-              background: "rgba(156,63,50,0.10)",
+              background: C.rustFill,
               color: C.rust,
             }}
           >
@@ -425,7 +425,7 @@ function Row({
             style={{
               padding: "11px 12px",
               borderBottom: `1px solid ${C.lineSoft}`,
-              borderLeft: "1px solid rgba(21,21,21,0.08)",
+              borderLeft: `1px solid ${C.lineSoft}`,
               display: "flex",
               flexDirection: "column",
               gap: 4,

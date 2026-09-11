@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
+import { C, HERO_SCRIM, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
 import { jumpToSection } from "@/lib/sectionNav";
@@ -66,10 +66,10 @@ function AnswerChip({ on, onClick, children }: {
         cursor: "pointer",
         background: on ? C.navy : C.white,
         color: on ? C.cream : C.ink,
-        borderLeft: `1px solid ${on ? C.navy : "rgba(21,21,21,0.16)"}`,
-        borderRight: `1px solid ${on ? C.navy : "rgba(21,21,21,0.16)"}`,
-        borderBottom: `1px solid ${on ? C.navy : "rgba(21,21,21,0.16)"}`,
-        borderTop: `3px solid ${on ? C.rust : "rgba(21,21,21,0.16)"}`,
+        borderLeft: `1px solid ${on ? C.navy : C.lineHard}`,
+        borderRight: `1px solid ${on ? C.navy : C.lineHard}`,
+        borderBottom: `1px solid ${on ? C.navy : C.lineHard}`,
+        borderTop: `3px solid ${on ? C.rust : C.lineHard}`,
       }}
     >
       {children}
@@ -466,7 +466,7 @@ function StanceCheckHero() {
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(to top, rgba(11,10,8,0.85), rgba(11,10,8,0.35))",
+          background: HERO_SCRIM,
         }}
       />
       <div style={{ position: "relative", padding: "22px 26px", display: "flex", flexDirection: "column", gap: 6 }}>

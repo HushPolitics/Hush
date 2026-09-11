@@ -169,7 +169,18 @@ export const VERDICT_STYLE: Record<string, { bg: string; fg: string; dot: string
 export function chip(on: boolean) {
   return on
     ? { background: C.ink, color: C.sand, border: `1px solid ${C.ink}` }
-    : { background: "transparent", color: C.body, border: "1px solid rgba(21,21,21,0.18)" };
+    : { background: "transparent", color: C.body, border: `1px solid ${C.lineHard}` };
 }
 
 export const cond = "var(--font-condensed), sans-serif";
+
+/**
+ * Shared hero-image scrim gradient -- the dark-to-transparent wash behind
+ * every page hero's white overlay text (Feed, HUSH Guide, Stance Check,
+ * Politicians Directory). Was a hand-typed `rgba(11,10,8,…)` pair
+ * copy-pasted identically into all four views; `rgba(11,10,8,1)` is exactly
+ * `C.inkSoft`, so this builds the same two stops from the real token
+ * instead of a duplicated raw triple.
+ */
+const inkSoftRgb = "11,10,8"; // C.inkSoft (#0B0A08) as an rgb() triple, for the alpha stops below
+export const HERO_SCRIM = `linear-gradient(to top, rgba(${inkSoftRgb},0.85), rgba(${inkSoftRgb},0.35))`;
