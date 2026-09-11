@@ -131,7 +131,7 @@ export function Chip({ on, onClick, children, dot, activeBg = C.navy, activeFg =
         cursor: "pointer",
         background: on ? activeBg : "transparent",
         color: on ? activeFg : C.body,
-        border: `1px solid ${on ? activeBg : "rgba(21,21,21,0.18)"}`,
+        border: `1px solid ${on ? activeBg : C.lineHard}`,
       }}
     >
       {dot ? (
@@ -209,7 +209,7 @@ export function EmptyState({ children }: { children: ReactNode }) {
     <div
       style={{
         padding: 24,
-        border: "1px dashed rgba(21,21,21,0.2)",
+        border: `1px dashed ${C.lineHard}`,
         borderRadius: 10,
         fontSize: 13,
         color: C.muted,
@@ -294,7 +294,7 @@ export function GhostButton({ children, onClick, style }: {
       style={{
         padding: 12,
         borderRadius: 7,
-        border: "1px solid rgba(21,21,21,0.2)",
+        border: `1px solid ${C.lineHard}`,
         background: "transparent",
         fontFamily: cond,
         fontSize: 14,
@@ -325,7 +325,7 @@ export function SearchField({ value, onChange, placeholder, style, className }: 
         alignItems: "center",
         gap: 9,
         padding: "0 12px",
-        border: "1px solid rgba(21,21,21,0.16)",
+        border: `1px solid ${C.lineHard}`,
         borderRadius: 7,
         background: C.sandDeep,
         ...style,
