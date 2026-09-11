@@ -438,10 +438,9 @@ function TileGrid({
 
       <div
         className="stack-row"
-        style={{ display: "flex", gap: 20, alignItems: "flex-start" }}
+        style={{ display: "flex", gap: 20, alignItems: "stretch" }}
       >
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
-          <Card id="issues" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+        <Card id="issues" style={{ flex: 2, minWidth: 0, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
               <Kicker>Your priorities</Kicker>
               <span style={{ fontSize: 11, color: C.muted }}>
@@ -516,17 +515,22 @@ function TileGrid({
             </div>
           </Card>
 
-          <VotingInformationSection />
+          <div style={{ flex: 1, minWidth: 240 }}>
+            <RepresentativesCard politicians={ballotPoliticians} />
+          </div>
+        </div>
 
-          <section id="polling" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <Kicker>Polling Place</Kicker>
-              <Display size={22}>Where you vote</Display>
-            </div>
-            <PollingPlaceCard />
-          </section>
+        <VotingInformationSection polling={polling} />
 
-          {GUIDE_LEAD === "bills" ? <BillsSection bills={bills} /> : null}
+        <section id="polling" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <Kicker>Polling Place</Kicker>
+            <Display size={22}>Where you vote</Display>
+          </div>
+          <PollingPlaceCard />
+        </section>
+
+        {GUIDE_LEAD === "bills" ? <BillsSection bills={bills} /> : null}
 
           {/*
         RACES has 6 entries seeded (U.S. House, U.S. Senate, Mayor, State
@@ -666,24 +670,9 @@ function TileGrid({
           })}
         </div>
       )}
-          </div>
-
-          {GUIDE_LEAD === "races" ? <BillsSection bills={bills} /> : null}
-        </div>
-
-        <aside
-          style={{
-            width: 280,
-            flex: "0 0 280px",
-            minWidth: 260,
-            display: "flex",
-            flexDirection: "column",
-            gap: 14,
-          }}
-        >
-          <RepresentativesCard politicians={ballotPoliticians} />
-        </aside>
       </div>
+
+      {GUIDE_LEAD === "races" ? <BillsSection bills={bills} /> : null}
     </>
   );
 }
@@ -823,19 +812,44 @@ function useDaysToElection(): number | null {
  * returning visitor gets the shape of their ballot before scrolling.
  * Replaces the old right-rail VotingInfoSummaryCard, which did a narrower
  * version of this same job tucked into a 280px column.
+ *
+ * Rendered as one continuous ribbon -- a header rule, then a divider-ruled
+ * row of stat columns on `auto-fit` so the columns always stretch to fill
+ * the card's full width (never a ragged, partially-empty last row the way
+ * wrapped chip tiles could) -- rather than a loose wrap of individually
+ * boxed chips.
  */
 function GuideAtAGlanceStrip({ races, polling }: { races: Race[]; polling: { name: string; detail: string } }) {
   const days = useDaysToElection();
+  const tiles: { value: string; label: string; href?: string }[] = [
+    { value: days === null ? "—" : String(days), label: "days until Election Day" },
+    ...KEY_DATES.map((k) => ({ value: k.value, label: k.label })),
+    { value: polling.name, label: "your polling place" },
+    {
+      value: String(races.length),
+      label: `race${races.length === 1 ? "" : "s"} on your ballot`,
+      href: "#races",
+    },
+  ];
   return (
-    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
-      <Kicker>Your guide at a glance</Kicker>
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <GlanceTile value={days === null ? "—" : String(days)} label="days until Election Day" />
-        {KEY_DATES.map((k) => (
-          <GlanceTile key={k.label} value={k.value} label={k.label} small />
+    <Card style={{ padding: 0, overflow: "hidden" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: 10,
+          padding: "13px 20px",
+          background: C.shell,
+          borderBottom: `1px solid ${C.line}`,
+        }}
+      >
+        <Kicker>Your guide at a glance</Kicker>
+        <span style={{ height: 1, flex: 1, background: C.line }} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
+        {tiles.map((t, idx) => (
+          <GlanceTile key={t.label} value={t.value} label={t.label} href={t.href} lead={idx === 0} />
         ))}
-        <GlanceTile value={polling.name} label="Your polling place" sub="See details below" small />
-        <GlanceTile value={String(races.length)} label={`race${races.length === 1 ? "" : "s"} on your ballot`} href="#races" />
       </div>
     </Card>
   );
@@ -844,99 +858,180 @@ function GuideAtAGlanceStrip({ races, polling }: { races: Race[]; polling: { nam
 function GlanceTile({
   value,
   label,
-  sub,
-  small,
   href,
+  lead,
 }: {
   value: string;
   label: string;
-  sub?: string;
-  small?: boolean;
   href?: string;
+  lead?: boolean;
 }) {
   const style: CSSProperties = {
-    flex: "1 1 150px",
-    minWidth: 140,
-    boxSizing: "border-box",
-    background: C.shell,
-    borderRadius: 9,
-    padding: "12px 14px",
+    padding: "18px 20px",
     display: "flex",
     flexDirection: "column",
-    gap: 2,
+    gap: 3,
     textDecoration: "none",
     color: "inherit",
+    borderLeft: lead ? "none" : `1px solid ${C.line}`,
   };
   const inner = (
     <>
-      <span style={{ fontFamily: cond, fontSize: small ? 16 : 22, color: C.slate }}>{value}</span>
+      <span style={{ fontFamily: cond, fontSize: 25, lineHeight: 1.1, color: lead ? C.rust : C.slate }}>
+        {value}
+      </span>
       <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.3 }}>{label}</span>
-      {sub ? <span style={{ fontSize: 10.5, color: C.muted }}>{sub}</span> : null}
     </>
   );
   return href ? (
-    <a href={href} style={style}>{inner}</a>
+    <a href={href} className="link-quiet" style={style}>
+      {inner}
+    </a>
   ) : (
     <div style={style}>{inner}</div>
   );
 }
 
-function VotingInformationSection() {
+/**
+ * A Google Calendar "quick add" link for Election Day -- an all-day event
+ * (no timezone math needed) titled with the polling place, location set to
+ * its name plus the reader's city/state/zip so the event is still useful
+ * without a precise street address. Opened in a new tab the same way
+ * "Check my registration" and PollingPlaceCard's "Open in Google Maps" links
+ * already are -- no ICS file, no backend, consistent with every other
+ * external hand-off on this page.
+ */
+function calendarHref(polling: { name: string }, cityStateZip: string): string {
+  const start = "20261103";
+  const end = "20261104"; // Google's all-day `dates` end date is exclusive.
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: "Election Day - Vote",
+    dates: `${start}/${end}`,
+    details: `Polling place: ${polling.name}`,
+    location: `${polling.name}, ${cityStateZip}`.trim(),
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function directionsHref(polling: { name: string }, cityStateZip: string): string {
+  const destination = `${polling.name}, ${cityStateZip}`.trim();
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+}
+
+function VotingInformationSection({ polling }: { polling: { name: string; detail: string } }) {
   const days = useDaysToElection();
+  const { city, state, zip } = usePrefs();
+  const cityStateZip = [city, state, zip].filter(Boolean).join(" ");
   // Real chronological order for the timeline below -- KEY_DATES itself
   // stays in its existing "Register / Early voting / Mail ballot" order
   // (used elsewhere in the app), this just walks through it plus Election
   // Day at the end, where it actually falls.
-  const timelinePoints: { label: string; value: string; today?: boolean }[] = [
-    ...KEY_DATES,
-    { label: "Election Day", value: "Nov 3", today: true },
-  ];
+  const timelinePoints: { label: string; value: string }[] = [...KEY_DATES, { label: "Election Day", value: "Nov 3" }];
   return (
     <section id="voting" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <Kicker>Your Voting Plan</Kicker>
         <Display size={22}>Key dates so you're ready</Display>
       </div>
-      <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 18 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-          <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1, color: C.slate }}>
-            {days === null ? "—" : days}
-          </span>
-          <span style={{ fontSize: 13, color: C.body }}>days until Election Day</span>
+      <Card className="stack-row" style={{ padding: 20, display: "flex", gap: 24, alignItems: "stretch" }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 18 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+            <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1, color: C.slate }}>
+              {days === null ? "—" : days}
+            </span>
+            <span style={{ fontSize: 13, color: C.body }}>days until Election Day</span>
+          </div>
+
+          <div style={{ position: "relative", display: "flex", justifyContent: "space-between", gap: 8 }}>
+            <span
+              aria-hidden
+              style={{ position: "absolute", top: 5, left: 6, right: 6, height: 2, background: C.line }}
+            />
+            {/*
+              Dots alternate rust/faded-blue purely by position -- a two-tone
+              cadence along the line rather than one color singling out
+              "today" the way this timeline used to (only Election Day was
+              rust). Election Day still reads as the finish line: it's the
+              last stop after the line ends.
+            */}
+            {timelinePoints.map((k, idx) => (
+              <div
+                key={k.label}
+                style={{ position: "relative", display: "flex", flexDirection: "column", gap: 6, flex: 1, maxWidth: 150 }}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    width: 11,
+                    height: 11,
+                    borderRadius: "50%",
+                    background: idx % 2 === 0 ? C.rust : C.slate,
+                    border: `2px solid ${C.white}`,
+                  }}
+                />
+                <span style={{ fontFamily: cond, fontSize: 14 }}>{k.value}</span>
+                <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.3 }}>{k.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <RustButton
+            style={{ alignSelf: "flex-start", padding: "10px 16px", fontSize: 13 }}
+            onClick={() => window.open("https://www.vote.org/am-i-registered-to-vote/", "_blank", "noopener")}
+          >
+            Check my registration
+          </RustButton>
         </div>
 
-        <div style={{ position: "relative", display: "flex", justifyContent: "space-between", gap: 8 }}>
-          <span
-            aria-hidden
-            style={{ position: "absolute", top: 5, left: 6, right: 6, height: 2, background: C.line }}
-          />
-          {timelinePoints.map((k) => (
-            <div
-              key={k.label}
-              style={{ position: "relative", display: "flex", flexDirection: "column", gap: 6, flex: 1, maxWidth: 150 }}
+        {/*
+          A compact "where you vote" companion at the timeline's far end --
+          separate from the full Polling Place section below (map + address
+          lookup), this is just enough to act on Election Day itself without
+          scrolling: save the date, then get there.
+        */}
+        <div style={{ flex: "0 0 220px", minWidth: 200, display: "flex", flexDirection: "column", gap: 10 }}>
+          <GhostButton
+            style={{ fontSize: 12, padding: "10px 12px" }}
+            onClick={() => window.open(calendarHref(polling, cityStateZip), "_blank", "noopener")}
+          >
+            + Add to calendar
+          </GhostButton>
+          <div
+            style={{
+              flex: 1,
+              border: `1px solid ${C.line}`,
+              borderRadius: 10,
+              background: C.shell,
+              padding: 14,
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+            }}
+          >
+            <Kicker size={10}>Where you vote</Kicker>
+            <span style={{ fontFamily: cond, fontSize: 16, lineHeight: 1.2 }}>{polling.name}</span>
+            <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>{polling.detail}</span>
+            <button
+              type="button"
+              className="link-quiet"
+              onClick={() => window.open(directionsHref(polling, cityStateZip), "_blank", "noopener")}
+              style={{
+                marginTop: "auto",
+                alignSelf: "flex-start",
+                border: 0,
+                background: "transparent",
+                color: C.rust,
+                fontSize: 11.5,
+                fontWeight: 600,
+                cursor: "pointer",
+                padding: 0,
+              }}
             >
-              <span
-                aria-hidden
-                style={{
-                  width: 11,
-                  height: 11,
-                  borderRadius: "50%",
-                  background: k.today ? C.rust : C.slate,
-                  border: `2px solid ${C.white}`,
-                }}
-              />
-              <span style={{ fontFamily: cond, fontSize: 14 }}>{k.value}</span>
-              <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.3 }}>{k.label}</span>
-            </div>
-          ))}
+              Get directions →
+            </button>
+          </div>
         </div>
-
-        <RustButton
-          style={{ alignSelf: "flex-start", padding: "10px 16px", fontSize: 13 }}
-          onClick={() => window.open("https://www.vote.org/am-i-registered-to-vote/", "_blank", "noopener")}
-        >
-          Check my registration
-        </RustButton>
       </Card>
     </section>
   );
