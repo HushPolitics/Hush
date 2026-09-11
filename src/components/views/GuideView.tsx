@@ -17,8 +17,9 @@ import { BillsSection } from "./GuideBills";
 
 /**
  * HUSH Guide's section-nav list, in the sidebar contextual-nav brief's
- * specified order — always this order regardless of whether `GUIDE_LEAD`
- * puts Bills before or after the races grid in the DOM below.
+ * specified order. Kept in sync by hand with `GUIDE_LEAD` below -- races
+ * lead here to match `GUIDE_LEAD = "races"`'s DOM order; if that flag is
+ * flipped back to "bills", swap these two entries back as well.
  *
  * "Your address" isn't in this list -- app-layout-v2 phase 2 moved it out
  * of the jump list entirely and into the rail's footer (see
@@ -28,8 +29,8 @@ import { BillsSection } from "./GuideBills";
 const GUIDE_SECTIONS = [
   { id: "issues", label: "Your issues" },
   { id: "voting", label: "Voting information" },
-  { id: "bills", label: "Bills being considered" },
   { id: "races", label: "Your races" },
+  { id: "bills", label: "Bills being considered" },
 ];
 
 const fieldStyle = {
@@ -377,7 +378,9 @@ export function IssuesStep({
  * the page has) or the race grid (the ballot itself). Legislation leads by
  * default; flip this to "races" for the final weeks before an election,
  * when the ballot should take priority over what's moving in the
- * legislature. Nothing else about either section changes based on this.
+ * legislature. This controls the DOM order in the main column only --
+ * `GUIDE_SECTIONS` above holds the matching sidebar order by hand, so
+ * flip both together.
  */
 const GUIDE_LEAD: "bills" | "races" = "races";
 
