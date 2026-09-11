@@ -17,12 +17,8 @@ export function BillsSection({ bills }: { bills: Bill[] }) {
   return (
     <section id="bills" style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 10 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <Display size={20} style={{ textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.01em" }}>
-          Bills Being Considered
-        </Display>
-        <span style={{ fontSize: 13, color: C.body }}>
-          Understand what your elected officials are being asked to vote on.
-        </span>
+        <Kicker>Bills Being Considered</Kicker>
+        <Display size={22}>Understand what your elected officials are voting on</Display>
       </div>
 
       <Card style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
