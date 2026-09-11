@@ -13,7 +13,6 @@ import { useRegisterRailFooter, useRegisterSectionNav } from "@/lib/sectionNav";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, ExpandableQuote, GhostButton, Kicker, RustButton } from "@/components/ui";
 import RepresentativesCard from "@/components/RepresentativesCard";
-import PollingPlaceCard from "@/components/PollingPlaceCard";
 import { BillsSection } from "./GuideBills";
 
 /**
@@ -29,7 +28,6 @@ import { BillsSection } from "./GuideBills";
 const GUIDE_SECTIONS = [
   { id: "issues", label: "Your issues" },
   { id: "voting", label: "Voting information" },
-  { id: "polling", label: "Polling place" },
   { id: "bills", label: "Bills being considered" },
   { id: "races", label: "Your races" },
 ];
@@ -399,7 +397,7 @@ function TileGrid({
   onEditIssues: () => void;
 }) {
   const router = useRouter();
-  const { streetAddress, city, state, zip, topics } = usePrefs();
+  const { streetAddress, city, state, zip, topics, polling } = usePrefs();
   const knownIds = new Set(politicians.map((p) => p.id));
   const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
   const ballotPoliticians = useMemo(
@@ -434,93 +432,95 @@ function TileGrid({
     <>
       <GuideHero />
 
+      <GuideAtAGlanceStrip races={races} polling={polling} />
+
       <div
         className="stack-row"
-        style={{ display: "flex", gap: 20, alignItems: "flex-start" }}
+        style={{ display: "flex", gap: 20, alignItems: "stretch" }}
       >
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
-          <Card
-            id="issues"
-            style={{
-              padding: "14px 16px",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
-              <span style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                Your {topics.length} issue{topics.length === 1 ? "" : "s"}, ranked
+        <Card id="issues" style={{ flex: 2, minWidth: 0, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+              <Kicker>Your priorities</Kicker>
+              <span style={{ fontSize: 11, color: C.muted }}>
+                {topics.length} issue{topics.length === 1 ? "" : "s"}, ranked
               </span>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {topics.map((i, idx) => (
-                  <span
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 5,
-                      fontSize: 11,
-                      padding: "3px 8px",
-                      borderRadius: 12,
-                      background: C.shell,
-                      color: C.body,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <span style={{ fontFamily: cond, color: C.faint }}>{idx + 1}</span>
-                    {i}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
               {/*
                 Both edits happen in place -- this swaps `manualStep` rather
-                than navigating, so the grid is still one page. "Try Issue
-                Finder" is new: it used to be reachable only after clicking
-                Edit issues into IssuesStep below; per the top-bar brief it
-                needs to be visible here directly, not one click deeper.
+                than navigating, so the grid is still one page.
               */}
-              <Link
-                href="/profile/top-issues/issue-finder?next=/hush-guide"
-                className="link-quiet"
-                style={{ color: C.muted, fontSize: 12 }}
-              >
-                Try Issue Finder →
-              </Link>
-              <button
-                type="button"
-                className="link-quiet"
-                onClick={onEditIssues}
-                style={{
-                  border: 0,
-                  background: "transparent",
-                  color: C.navy,
-                  fontSize: 12,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  cursor: "pointer",
-                  padding: 6,
-                }}
-              >
-                Edit issues
-              </button>
+              <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                <Link
+                  href="/profile/top-issues/issue-finder?next=/hush-guide"
+                  className="link-quiet"
+                  style={{ color: C.muted, fontSize: 12 }}
+                >
+                  Try Issue Finder →
+                </Link>
+                <button
+                  type="button"
+                  className="link-quiet"
+                  onClick={onEditIssues}
+                  style={{
+                    border: 0,
+                    background: "transparent",
+                    color: C.navy,
+                    fontSize: 12,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    cursor: "pointer",
+                    padding: 6,
+                  }}
+                >
+                  Edit issues
+                </button>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: 8 }}>
+              {topics.map((name, idx) => (
+                <div
+                  key={name}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 9,
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    background: idx === 0 ? C.shell : "transparent",
+                    border: `1px solid ${idx === 0 ? C.rust : C.line}`,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: "50%",
+                      flex: "0 0 22px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontFamily: cond,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      background: idx === 0 ? C.rust : C.slateFill,
+                      color: idx === 0 ? C.white : C.slate,
+                    }}
+                  >
+                    {idx + 1}
+                  </span>
+                  <span style={{ fontSize: 12.5, fontWeight: 500, color: C.ink }}>{name}</span>
+                </div>
+              ))}
             </div>
           </Card>
 
-          <VotingInformationSection />
+          <div style={{ flex: 1, minWidth: 240 }}>
+            <RepresentativesCard politicians={ballotPoliticians} />
+          </div>
+        </div>
 
-          <section id="polling" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <Kicker>Polling Place</Kicker>
-              <Display size={22}>Where you vote</Display>
-            </div>
-            <PollingPlaceCard />
-          </section>
+        <VotingInformationSection polling={polling} />
 
-          {GUIDE_LEAD === "bills" ? <BillsSection bills={bills} /> : null}
+        {GUIDE_LEAD === "bills" ? <BillsSection bills={bills} /> : null}
 
           {/*
         RACES has 6 entries seeded (U.S. House, U.S. Senate, Mayor, State
@@ -535,6 +535,14 @@ function TileGrid({
       */}
 
       <div id="races" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <Display size={20} style={{ textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.01em" }}>
+          Your Races
+        </Display>
+        <span style={{ fontSize: 13, color: C.body }}>
+          See where the candidates on your ballot stand on the issues you care about.
+        </span>
+      </div>
       {races.length === 0 ? (
         <EmptyState>No races found in the seed dataset.</EmptyState>
       ) : (
@@ -582,7 +590,7 @@ function TileGrid({
                         const nameEl = knownIds.has(c.politicianId) ? (
                           <Link
                             href={`/politician/${c.politicianId}`}
-                            style={{ fontSize: 13, color: C.navy, fontWeight: 600 }}
+                            style={{ fontSize: 13, color: C.ink, fontWeight: 600 }}
                           >
                             {stripPartySuffix(c.name)}
                           </Link>
@@ -660,25 +668,9 @@ function TileGrid({
           })}
         </div>
       )}
-          </div>
-
-          {GUIDE_LEAD === "races" ? <BillsSection bills={bills} /> : null}
-        </div>
-
-        <aside
-          style={{
-            width: 280,
-            flex: "0 0 280px",
-            minWidth: 260,
-            display: "flex",
-            flexDirection: "column",
-            gap: 14,
-          }}
-        >
-          <RepresentativesCard politicians={ballotPoliticians} />
-          <VotingInfoSummaryCard />
-        </aside>
       </div>
+
+      {GUIDE_LEAD === "races" ? <BillsSection bills={bills} /> : null}
     </>
   );
 }
@@ -811,68 +803,245 @@ function useDaysToElection(): number | null {
  * (that banner itself is no longer used on this page -- see GuideHero --
  * so the countdown lives in exactly one place here, not two).
  */
-function VotingInformationSection() {
+/**
+ * A scannable summary strip directly under the hero -- the same countdown,
+ * key dates, and polling place already detailed further down in Your Voting
+ * Plan, plus a race count, condensed into one row so a returning visitor
+ * gets the shape of their ballot before scrolling.
+ * Replaces the old right-rail VotingInfoSummaryCard, which did a narrower
+ * version of this same job tucked into a 280px column.
+ *
+ * Rendered as one continuous ribbon -- a header rule, then a divider-ruled
+ * row of stat columns on `auto-fit` so the columns always stretch to fill
+ * the card's full width (never a ragged, partially-empty last row the way
+ * wrapped chip tiles could) -- rather than a loose wrap of individually
+ * boxed chips.
+ */
+function GuideAtAGlanceStrip({ races, polling }: { races: Race[]; polling: { name: string; detail: string } }) {
   const days = useDaysToElection();
+  const tiles: { value: string; label: string; href?: string }[] = [
+    { value: days === null ? "—" : String(days), label: "days until Election Day" },
+    ...KEY_DATES.map((k) => ({ value: k.value, label: k.label })),
+    { value: polling.name, label: "your polling place", href: "#voting" },
+    {
+      value: String(races.length),
+      label: `race${races.length === 1 ? "" : "s"} on your ballot`,
+      href: "#races",
+    },
+  ];
   return (
-    <section id="voting" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <Kicker>Voting Information</Kicker>
-        <Display size={22}>Key dates for this election</Display>
+    <Card style={{ padding: 0, overflow: "hidden" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: 10,
+          padding: "13px 20px",
+          background: C.shell,
+          borderBottom: `1px solid ${C.line}`,
+        }}
+      >
+        <Kicker>Your guide at a glance</Kicker>
+        <span style={{ height: 1, flex: 1, background: C.line }} />
       </div>
-      <Card style={{ padding: 18, display: "flex", flexDirection: "column", gap: 16 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-          <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1, color: C.slate }}>
-            {days === null ? "—" : days}
-          </span>
-          <span style={{ fontSize: 13, color: C.body }}>days until Election Day</span>
-        </div>
-        <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
-          {KEY_DATES.map((k) => (
-            <div key={k.label} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                {k.label}
-              </span>
-              <span style={{ fontFamily: cond, fontSize: 17, color: C.ink }}>{k.value}</span>
-            </div>
-          ))}
-        </div>
-        <RustButton
-          style={{ alignSelf: "flex-start", padding: "10px 16px", fontSize: 13 }}
-          onClick={() => window.open("https://www.vote.org/am-i-registered-to-vote/", "_blank", "noopener")}
-        >
-          Check my registration
-        </RustButton>
-      </Card>
-    </section>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
+        {tiles.map((t, idx) => (
+          <GlanceTile key={t.label} value={t.value} label={t.label} href={t.href} lead={idx === 0} />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function GlanceTile({
+  value,
+  label,
+  href,
+  lead,
+}: {
+  value: string;
+  label: string;
+  href?: string;
+  lead?: boolean;
+}) {
+  const style: CSSProperties = {
+    padding: "18px 20px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    gap: 3,
+    textDecoration: "none",
+    color: "inherit",
+    borderLeft: lead ? "none" : `1px solid ${C.line}`,
+  };
+  const inner = (
+    <>
+      <span style={{ fontFamily: cond, fontSize: 25, lineHeight: 1.1, color: lead ? C.rust : C.slate }}>
+        {value}
+      </span>
+      {/*
+        `capitalize` (not hardcoded per-label strings) so every label reads
+        as a title -- "Days Until Election Day", "Your Polling Place" -- for
+        this strip's own seeded labels and for KEY_DATES' labels (owned by
+        seed-data.ts, used elsewhere in their own lowercase form) alike.
+      */}
+      <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.3, textTransform: "capitalize" }}>{label}</span>
+    </>
+  );
+  return href ? (
+    <a href={href} className="link-quiet" style={style}>
+      {inner}
+    </a>
+  ) : (
+    <div style={style}>{inner}</div>
   );
 }
 
 /**
- * Right column's compact companion to the full Voting Information section
- * -- countdown, the nearest key date, and the polling place name, all
- * linking down to id="voting" for the rest. Page-local (unlike
- * `RepresentativesCard`, this isn't reused anywhere else yet).
+ * A Google Calendar "quick add" link for Election Day -- an all-day event
+ * (no timezone math needed) titled with the polling place, location set to
+ * its name plus the reader's city/state/zip so the event is still useful
+ * without a precise street address. Opened in a new tab the same way
+ * "Check my registration" already is -- no ICS file, no backend, consistent
+ * with every other external hand-off on this page.
  */
-function VotingInfoSummaryCard() {
+function calendarHref(polling: { name: string }, cityStateZip: string): string {
+  const start = "20261103";
+  const end = "20261104"; // Google's all-day `dates` end date is exclusive.
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: "Election Day - Vote",
+    dates: `${start}/${end}`,
+    details: `Polling place: ${polling.name}`,
+    location: `${polling.name}, ${cityStateZip}`.trim(),
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function directionsHref(polling: { name: string }, cityStateZip: string): string {
+  const destination = `${polling.name}, ${cityStateZip}`.trim();
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+}
+
+function VotingInformationSection({ polling }: { polling: { name: string; detail: string } }) {
   const days = useDaysToElection();
-  const { polling } = usePrefs();
-  const nextDate = KEY_DATES[0];
+  const { city, state, zip } = usePrefs();
+  const cityStateZip = [city, state, zip].filter(Boolean).join(" ");
+  // Real chronological order for the timeline below -- KEY_DATES itself
+  // stays in its existing "Register / Early voting / Mail ballot" order
+  // (used elsewhere in the app), this just walks through it plus Election
+  // Day at the end, where it actually falls.
+  const timelinePoints: { label: string; value: string }[] = [...KEY_DATES, { label: "Election Day", value: "Nov 3" }];
   return (
-    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
-      <Kicker>Voting Information</Kicker>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-        <span style={{ fontFamily: cond, fontSize: 26, lineHeight: 1, color: C.slate }}>
-          {days === null ? "—" : days}
-        </span>
-        <span style={{ fontSize: 12, color: C.body }}>days left</span>
+    <section id="voting" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <Kicker>Your Voting Plan</Kicker>
+        <Display size={22}>Key dates so you're ready</Display>
       </div>
-      <span style={{ fontSize: 12, color: C.muted }}>
-        {nextDate.label}: {nextDate.value}
-      </span>
-      <span style={{ fontSize: 12, color: C.muted }}>Polling place: {polling.name}</span>
-      <a href="#voting" style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}>
-        Full details →
-      </a>
-    </Card>
+      <Card className="stack-row" style={{ padding: 20, display: "flex", gap: 24, alignItems: "stretch" }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 18 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+            <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1, color: C.slate }}>
+              {days === null ? "—" : days}
+            </span>
+            <span style={{ fontSize: 13, color: C.body }}>days until Election Day</span>
+          </div>
+
+          <div style={{ position: "relative", display: "flex", justifyContent: "space-between", gap: 8 }}>
+            <span
+              aria-hidden
+              style={{ position: "absolute", top: 5, left: 6, right: 6, height: 2, background: C.line }}
+            />
+            {/*
+              Dots alternate rust/faded-blue purely by position -- a two-tone
+              cadence along the line rather than one color singling out
+              "today" the way this timeline used to (only Election Day was
+              rust). Election Day still reads as the finish line: it's the
+              last stop after the line ends.
+            */}
+            {timelinePoints.map((k, idx) => (
+              <div
+                key={k.label}
+                style={{ position: "relative", display: "flex", flexDirection: "column", gap: 6, flex: 1, maxWidth: 150 }}
+              >
+                <span
+                  aria-hidden
+                  style={{
+                    width: 11,
+                    height: 11,
+                    borderRadius: "50%",
+                    background: idx % 2 === 0 ? C.rust : C.slate,
+                    border: `2px solid ${C.white}`,
+                  }}
+                />
+                <span style={{ fontFamily: cond, fontSize: 14 }}>{k.value}</span>
+                <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.3 }}>{k.label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <RustButton
+              style={{ padding: "10px 16px", fontSize: 13 }}
+              onClick={() => window.open("https://www.vote.org/am-i-registered-to-vote/", "_blank", "noopener")}
+            >
+              Check my registration
+            </RustButton>
+            <GhostButton
+              style={{ padding: "10px 16px", fontSize: 13 }}
+              onClick={() => window.open(calendarHref(polling, cityStateZip), "_blank", "noopener")}
+            >
+              + Add to calendar
+            </GhostButton>
+          </div>
+        </div>
+
+        {/*
+          A compact "where you vote" companion at the timeline's far end,
+          stretched to the full height of the card (the parent Card's
+          `alignItems: "stretch"` does that automatically) now that it's the
+          column's only element -- this used to sit under a full "Polling
+          Place" section with a map and address-lookup form, but that was
+          showing the same address a third time on one page; this box plus
+          Get directions is enough to act on Election Day without it.
+        */}
+        <div
+          style={{
+            flex: "0 0 220px",
+            minWidth: 200,
+            border: `1px solid ${C.line}`,
+            borderRadius: 10,
+            background: C.shell,
+            padding: 14,
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+          }}
+        >
+          <Kicker size={10}>Where you vote</Kicker>
+          <span style={{ fontFamily: cond, fontSize: 16, lineHeight: 1.2 }}>{polling.name}</span>
+          <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>{polling.detail}</span>
+          <button
+            type="button"
+            className="link-quiet"
+            onClick={() => window.open(directionsHref(polling, cityStateZip), "_blank", "noopener")}
+            style={{
+              marginTop: "auto",
+              alignSelf: "flex-start",
+              border: 0,
+              background: "transparent",
+              color: C.rust,
+              fontSize: 11.5,
+              fontWeight: 600,
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            Get directions →
+          </button>
+        </div>
+      </Card>
+    </section>
   );
 }
