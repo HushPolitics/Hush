@@ -399,7 +399,7 @@ function TileGrid({
   onEditIssues: () => void;
 }) {
   const router = useRouter();
-  const { streetAddress, city, state, zip, topics } = usePrefs();
+  const { streetAddress, city, state, zip, topics, polling } = usePrefs();
   const knownIds = new Set(politicians.map((p) => p.id));
   const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
   const ballotPoliticians = useMemo(
@@ -434,79 +434,85 @@ function TileGrid({
     <>
       <GuideHero />
 
+      <GuideAtAGlanceStrip races={races} polling={polling} />
+
       <div
         className="stack-row"
         style={{ display: "flex", gap: 20, alignItems: "flex-start" }}
       >
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
-          <Card
-            id="issues"
-            style={{
-              padding: "14px 16px",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
-              <span style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                Your {topics.length} issue{topics.length === 1 ? "" : "s"}, ranked
+          <Card id="issues" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+              <Kicker>Your priorities</Kicker>
+              <span style={{ fontSize: 11, color: C.muted }}>
+                {topics.length} issue{topics.length === 1 ? "" : "s"}, ranked
               </span>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {topics.map((i, idx) => (
-                  <span
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 5,
-                      fontSize: 11,
-                      padding: "3px 8px",
-                      borderRadius: 12,
-                      background: C.shell,
-                      color: C.body,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <span style={{ fontFamily: cond, color: C.faint }}>{idx + 1}</span>
-                    {i}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
               {/*
                 Both edits happen in place -- this swaps `manualStep` rather
-                than navigating, so the grid is still one page. "Try Issue
-                Finder" is new: it used to be reachable only after clicking
-                Edit issues into IssuesStep below; per the top-bar brief it
-                needs to be visible here directly, not one click deeper.
+                than navigating, so the grid is still one page.
               */}
-              <Link
-                href="/profile/top-issues/issue-finder?next=/hush-guide"
-                className="link-quiet"
-                style={{ color: C.muted, fontSize: 12 }}
-              >
-                Try Issue Finder →
-              </Link>
-              <button
-                type="button"
-                className="link-quiet"
-                onClick={onEditIssues}
-                style={{
-                  border: 0,
-                  background: "transparent",
-                  color: C.navy,
-                  fontSize: 12,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  cursor: "pointer",
-                  padding: 6,
-                }}
-              >
-                Edit issues
-              </button>
+              <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                <Link
+                  href="/profile/top-issues/issue-finder?next=/hush-guide"
+                  className="link-quiet"
+                  style={{ color: C.muted, fontSize: 12 }}
+                >
+                  Try Issue Finder →
+                </Link>
+                <button
+                  type="button"
+                  className="link-quiet"
+                  onClick={onEditIssues}
+                  style={{
+                    border: 0,
+                    background: "transparent",
+                    color: C.navy,
+                    fontSize: 12,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    cursor: "pointer",
+                    padding: 6,
+                  }}
+                >
+                  Edit issues
+                </button>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: 8 }}>
+              {topics.map((name, idx) => (
+                <div
+                  key={name}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 9,
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    background: idx === 0 ? C.shell : "transparent",
+                    border: `1px solid ${idx === 0 ? C.rust : C.line}`,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: "50%",
+                      flex: "0 0 22px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontFamily: cond,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      background: idx === 0 ? C.rust : C.slateFill,
+                      color: idx === 0 ? C.white : C.slate,
+                    }}
+                  >
+                    {idx + 1}
+                  </span>
+                  <span style={{ fontSize: 12.5, fontWeight: 500, color: C.ink }}>{name}</span>
+                </div>
+              ))}
             </div>
           </Card>
 
@@ -676,7 +682,6 @@ function TileGrid({
           }}
         >
           <RepresentativesCard politicians={ballotPoliticians} />
-          <VotingInfoSummaryCard />
         </aside>
       </div>
     </>
@@ -811,31 +816,121 @@ function useDaysToElection(): number | null {
  * (that banner itself is no longer used on this page -- see GuideHero --
  * so the countdown lives in exactly one place here, not two).
  */
+/**
+ * A scannable summary strip directly under the hero -- the same countdown,
+ * key dates, and polling place already detailed further down (Your Voting
+ * Plan, Polling Place), plus a race count, condensed into one row so a
+ * returning visitor gets the shape of their ballot before scrolling.
+ * Replaces the old right-rail VotingInfoSummaryCard, which did a narrower
+ * version of this same job tucked into a 280px column.
+ */
+function GuideAtAGlanceStrip({ races, polling }: { races: Race[]; polling: { name: string; detail: string } }) {
+  const days = useDaysToElection();
+  return (
+    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
+      <Kicker>Your guide at a glance</Kicker>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <GlanceTile value={days === null ? "—" : String(days)} label="days until Election Day" />
+        {KEY_DATES.map((k) => (
+          <GlanceTile key={k.label} value={k.value} label={k.label} small />
+        ))}
+        <GlanceTile value={polling.name} label="Your polling place" sub="See details below" small />
+        <GlanceTile value={String(races.length)} label={`race${races.length === 1 ? "" : "s"} on your ballot`} href="#races" />
+      </div>
+    </Card>
+  );
+}
+
+function GlanceTile({
+  value,
+  label,
+  sub,
+  small,
+  href,
+}: {
+  value: string;
+  label: string;
+  sub?: string;
+  small?: boolean;
+  href?: string;
+}) {
+  const style: CSSProperties = {
+    flex: "1 1 150px",
+    minWidth: 140,
+    boxSizing: "border-box",
+    background: C.shell,
+    borderRadius: 9,
+    padding: "12px 14px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    textDecoration: "none",
+    color: "inherit",
+  };
+  const inner = (
+    <>
+      <span style={{ fontFamily: cond, fontSize: small ? 16 : 22, color: C.slate }}>{value}</span>
+      <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.3 }}>{label}</span>
+      {sub ? <span style={{ fontSize: 10.5, color: C.muted }}>{sub}</span> : null}
+    </>
+  );
+  return href ? (
+    <a href={href} style={style}>{inner}</a>
+  ) : (
+    <div style={style}>{inner}</div>
+  );
+}
+
 function VotingInformationSection() {
   const days = useDaysToElection();
+  // Real chronological order for the timeline below -- KEY_DATES itself
+  // stays in its existing "Register / Early voting / Mail ballot" order
+  // (used elsewhere in the app), this just walks through it plus Election
+  // Day at the end, where it actually falls.
+  const timelinePoints: { label: string; value: string; today?: boolean }[] = [
+    ...KEY_DATES,
+    { label: "Election Day", value: "Nov 3", today: true },
+  ];
   return (
     <section id="voting" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <Kicker>Voting Information</Kicker>
-        <Display size={22}>Key dates for this election</Display>
+        <Kicker>Your Voting Plan</Kicker>
+        <Display size={22}>Key dates so you're ready</Display>
       </div>
-      <Card style={{ padding: 18, display: "flex", flexDirection: "column", gap: 16 }}>
+      <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 18 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
           <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1, color: C.slate }}>
             {days === null ? "—" : days}
           </span>
           <span style={{ fontSize: 13, color: C.body }}>days until Election Day</span>
         </div>
-        <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
-          {KEY_DATES.map((k) => (
-            <div key={k.label} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                {k.label}
-              </span>
-              <span style={{ fontFamily: cond, fontSize: 17, color: C.ink }}>{k.value}</span>
+
+        <div style={{ position: "relative", display: "flex", justifyContent: "space-between", gap: 8 }}>
+          <span
+            aria-hidden
+            style={{ position: "absolute", top: 5, left: 6, right: 6, height: 2, background: C.line }}
+          />
+          {timelinePoints.map((k) => (
+            <div
+              key={k.label}
+              style={{ position: "relative", display: "flex", flexDirection: "column", gap: 6, flex: 1, maxWidth: 150 }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  width: 11,
+                  height: 11,
+                  borderRadius: "50%",
+                  background: k.today ? C.rust : C.slate,
+                  border: `2px solid ${C.white}`,
+                }}
+              />
+              <span style={{ fontFamily: cond, fontSize: 14 }}>{k.value}</span>
+              <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.3 }}>{k.label}</span>
             </div>
           ))}
         </div>
+
         <RustButton
           style={{ alignSelf: "flex-start", padding: "10px 16px", fontSize: 13 }}
           onClick={() => window.open("https://www.vote.org/am-i-registered-to-vote/", "_blank", "noopener")}
@@ -844,35 +939,5 @@ function VotingInformationSection() {
         </RustButton>
       </Card>
     </section>
-  );
-}
-
-/**
- * Right column's compact companion to the full Voting Information section
- * -- countdown, the nearest key date, and the polling place name, all
- * linking down to id="voting" for the rest. Page-local (unlike
- * `RepresentativesCard`, this isn't reused anywhere else yet).
- */
-function VotingInfoSummaryCard() {
-  const days = useDaysToElection();
-  const { polling } = usePrefs();
-  const nextDate = KEY_DATES[0];
-  return (
-    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
-      <Kicker>Voting Information</Kicker>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-        <span style={{ fontFamily: cond, fontSize: 26, lineHeight: 1, color: C.slate }}>
-          {days === null ? "—" : days}
-        </span>
-        <span style={{ fontSize: 12, color: C.body }}>days left</span>
-      </div>
-      <span style={{ fontSize: 12, color: C.muted }}>
-        {nextDate.label}: {nextDate.value}
-      </span>
-      <span style={{ fontSize: 12, color: C.muted }}>Polling place: {polling.name}</span>
-      <a href="#voting" style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}>
-        Full details →
-      </a>
-    </Card>
   );
 }
