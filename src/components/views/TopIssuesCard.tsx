@@ -266,12 +266,31 @@ export function TopIssuesCard({
                       flex: "0 0 96px",
                     }}
                   >
+                    {/*
+                     * draggable={false} alone (the #38 fix) stops the HTML5
+                     * Drag and Drop API from picking this img as a drag
+                     * source, but WebKit/Blink also run a separate, older
+                     * native "drag this picture out" affordance for <img>
+                     * that draggable doesn't reach -- only the CSS property
+                     * below does. Without it, a click-drag that starts on or
+                     * near the photo (easy to trigger by accident, since the
+                     * whole card is itself draggable for reordering) can
+                     * still show a native drag-ghost mislabeled with a
+                     * different issue's filename. Same fix, all three photo
+                     * sizes in this file.
+                     */}
                     <img
                       src={`/images/issues/${issueImageSlug(i.name)}.jpg`}
                       alt=""
                       aria-hidden
                       draggable={false}
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: "block",
+                        WebkitUserDrag: "none",
+                      }}
                     />
                   </span>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
@@ -566,7 +585,13 @@ function IssueFeatureCard({
             alt=""
             aria-hidden
             draggable={false}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+              WebkitUserDrag: "none",
+            }}
           />
         </span>
         <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
@@ -630,7 +655,13 @@ function IssueGridCard({
           alt=""
           aria-hidden
           draggable={false}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+            WebkitUserDrag: "none",
+          }}
         />
       </span>
       <span
