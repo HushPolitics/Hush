@@ -19,20 +19,20 @@ import { C, cond } from "@/lib/theme";
  */
 export default function GlobalFooter() {
   return (
-    <footer style={{ width: "100%", background: C.ink, padding: "26px 28px" }}>
-      <div className="stack-row" style={{ display: "flex", alignItems: "center", gap: 28 }}>
+    <footer style={{ width: "100%", background: C.ink, padding: "18px 28px" }}>
+      <div className="stack-row" style={{ display: "flex", alignItems: "center", gap: 24 }}>
         {/* HUSH. wordmark */}
         <span style={{ display: "flex", alignItems: "baseline", flex: "0 0 auto" }}>
-          <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 20, letterSpacing: "0.2em", color: C.onDark }}>
+          <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 15, letterSpacing: "0.18em", color: C.onDark }}>
             HUSH
           </span>
-          <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 20, color: C.highlighter }}>.</span>
+          <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 15, color: C.highlighter }}>.</span>
         </span>
 
         {/* Statement -- one flowing line; wraps naturally rather than being
             forced with nowrap, so it never overflows at an in-between
             desktop width. */}
-        <p style={{ margin: 0, flex: 1, minWidth: 0, fontFamily: cond, fontWeight: 400, fontSize: 20, lineHeight: 1.3, color: C.onDark }}>
+        <p style={{ margin: 0, flex: 1, minWidth: 0, fontFamily: cond, fontWeight: 400, fontSize: 15, lineHeight: 1.4, color: C.onDark }}>
           Don&apos;t let anyone tell you how to vote.{" "}
           <span
             style={{
@@ -42,7 +42,7 @@ export default function GlobalFooter() {
               clipPath:
                 "polygon(0.6% 8%,2.2% 2%,48% 0.3%,96.8% 2.4%,99.6% 9%,100% 86%,97.4% 98%,44% 100%,2% 97.4%,0.2% 88%)",
               transform: "rotate(-0.55deg)",
-              padding: "2px 10px 5px",
+              padding: "1px 8px 3px",
               color: "#000000",
               fontWeight: 700,
             }}
@@ -52,10 +52,10 @@ export default function GlobalFooter() {
         </p>
 
         {/* Right, anchored: a straight orange rule, then the tagline. */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flex: "0 0 auto" }}>
-          <span aria-hidden style={{ width: 32, height: 2, background: C.highlighter, flex: "0 0 32px" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "0 0 auto" }}>
+          <span aria-hidden style={{ width: 28, height: 2, background: C.highlighter, flex: "0 0 28px" }} />
           <span
-            style={{ fontFamily: cond, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: C.tan, whiteSpace: "nowrap" }}
+            style={{ fontFamily: cond, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: C.tan, whiteSpace: "nowrap" }}
           >
             Facts. Sources. Your Decision.
           </span>
