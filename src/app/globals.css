@@ -163,16 +163,24 @@ input::placeholder {
 }
 
 /* HUSH Guide's "Bills Being Considered" flip tiles. `.flip-card` establishes
-   the 3D context and a fixed height tall enough for the back face (the
-   longer side — explanation + two lists + source block); the front face's
-   own content is shorter and top-aligned inside it. `.is-flipped` rotates
-   the inner wrapper; both faces are `backface-visibility: hidden` so only
-   one is ever legible, and the back is pre-rotated 180deg so it reads
-   right-way-round once the flip completes. Works identically on tap and
-   click since the flip is triggered by a button's onClick, not :hover. */
+   the 3D context and a fixed height sized for the (now trimmed) front
+   face's content; the back face is the longer side (explanation + two
+   lists + source block) and scrolls internally via its own
+   overflow-y: auto rather than forcing every card to the tallest possible
+   height. `.is-flipped` rotates the inner wrapper; both faces are
+   `backface-visibility: hidden` so only one is ever legible, and the back
+   is pre-rotated 180deg so it reads right-way-round once the flip
+   completes. Works identically on tap and click since the flip is
+   triggered by a button's onClick, not :hover. */
 .flip-card {
   perspective: 1400px;
-  height: 460px;
+  /* Was 460px, sized for the longer back face (explanation + two lists +
+     source block). The front face is now a short trimmed blurb, not the
+     full official description, so it no longer needs anywhere near that
+     much room -- .flip-card-face keeps its own overflow-y: auto, so a
+     long bill still scrolls internally rather than forcing every card to
+     the tallest possible height. */
+  height: 260px;
 }
 .flip-card-inner {
   position: relative;

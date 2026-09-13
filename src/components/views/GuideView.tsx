@@ -579,9 +579,7 @@ function TileGrid({
                 <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
                 {top ? (
                   <>
-                    <span style={{ fontSize: 11, color: C.rust, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                      Your #{top.rank} issue: {top.issue}
-                    </span>
+                    <Kicker size={11}>Your #{top.rank} issue: {top.issue}</Kicker>
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                       {race.candidates.map((c) => {
