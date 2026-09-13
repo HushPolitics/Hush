@@ -722,10 +722,13 @@ function PoliticianRow({ politician, anchor }: { politician: Politician; anchor?
 function ScoreEventCard({ event }: { event: ScoreFeedEvent }) {
   return (
     <EventCard event={event}>
-      <PoliticianRow politician={event.politician} anchor="score" />
-      <span style={{ fontFamily: cond, fontSize: 20, color: C.ink }}>
-        {event.from} → {event.to}
+      {/* WHAT: canonical headline, same helper + sizing as every other card */}
+      <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
+        {eventHeadline(event)}
       </span>
+      {/* WHO */}
+      <PoliticianRow politician={event.politician} anchor="score" />
+      {/* WHY */}
       <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{event.reason}</span>
     </EventCard>
   );
@@ -735,13 +738,17 @@ function PromiseEventCard({ event }: { event: PromiseFeedEvent }) {
   const s = STATUS_STYLE[event.status];
   return (
     <EventCard event={event}>
-      <PoliticianRow politician={event.politician} anchor="ledger" />
+      {/* WHAT */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <Pill bg={s.bg} fg={s.fg}>
           {event.status}
         </Pill>
-        <span style={{ fontSize: 14, lineHeight: 1.5 }}>{event.text}</span>
+        <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
+          {eventHeadline(event)}
+        </span>
       </div>
+      {/* WHO */}
+      <PoliticianRow politician={event.politician} anchor="ledger" />
     </EventCard>
   );
 }
@@ -761,11 +768,18 @@ function PositionEventCard({ event }: { event: PositionFeedEvent }) {
   const sub = event.kind === "guide" ? "HUSH Guide position" : `Stance Check · ${event.stance}`;
   return (
     <EventCard event={event}>
+      {/* WHAT */}
+      <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
+        {eventHeadline(event)}
+      </span>
+      {/* WHO */}
       <PoliticianRow politician={event.politician} anchor="positions" />
+      {/* WHY */}
       <span style={{ fontSize: 12, color: C.muted }}>
         {sub} · {event.issue}
       </span>
       <ExpandableQuote text={event.excerpt} style={{ fontSize: 14 }} />
+      {/* SOURCE */}
       <a
         href={event.sourceUrl}
         target="_blank"
@@ -782,16 +796,27 @@ function VoteEventCard({ event }: { event: VoteFeedEvent }) {
   const v = event.vote;
   return (
     <EventCard event={event}>
-      <PoliticianRow politician={event.politician} />
+      {/* WHAT: canonical headline, same helper + sizing as every other card */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <Pill bg={C.shell} fg={C.ink}>
-          {v.vote}
-        </Pill>
-        <span style={{ fontFamily: cond, fontSize: 14, color: C.ink }}>{v.billNumber}</span>
-        <span style={{ fontSize: 13, color: C.body }}>{v.billTitle}</span>
+        <Pill bg={C.shell} fg={C.ink}>{v.vote}</Pill>
+        <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
+          {eventHeadline(event)}
+        </span>
       </div>
+      {/* WHO / WHAT IT INVOLVES */}
+      <PoliticianRow politician={event.politician} />
+      {/* WHY IT MATTERS / SHORT CONTEXT */}
       <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{v.note}</span>
       <span style={{ fontSize: 11, color: C.muted }}>{v.chamber}</span>
+      {/* SOURCE -- was missing entirely; VoteRecord already carries this */}
+      <a
+        href={v.sourceUrl}
+        target="_blank"
+        rel="noreferrer"
+        style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}
+      >
+        {v.sourceName}
+      </a>
     </EventCard>
   );
 }
@@ -800,12 +825,14 @@ function BillEventCard({ event }: { event: BillFeedEvent }) {
   const b = event.bill;
   return (
     <EventCard event={event}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>{b.number}</span>
-        <span style={{ fontSize: 13, color: C.body }}>{b.title}</span>
-      </div>
+      {/* WHAT: canonical headline, same size as every other card. The bill
+          number moves down into the metadata line below rather than being
+          dropped -- eventHeadline() for a bill is just its title. */}
+      <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
+        {eventHeadline(event)}
+      </span>
       <span style={{ fontSize: 12, color: C.muted }}>
-        {b.chamber}
+        {b.number} · {b.chamber}
         {b.voteStage ? ` · ${b.voteStage}` : ""}
       </span>
       {b.description ? <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{b.description}</span> : null}
@@ -820,7 +847,10 @@ function ElectionUpdateEventCard({ event }: { event: ElectionUpdateFeedEvent }) 
   const u = event.update;
   return (
     <EventCard event={event}>
-      <span style={{ fontFamily: cond, fontSize: 16, color: C.ink }}>{u.headline}</span>
+      {/* WHAT: canonical headline, same size as every other card (was 16px) */}
+      <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
+        {eventHeadline(event)}
+      </span>
       <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{u.detail}</span>
       <a
         href={u.sourceUrl}
@@ -838,9 +868,15 @@ function ArticleEventCard({ event }: { event: ArticleFeedEvent }) {
   const a = event.article;
   return (
     <EventCard event={event}>
+      {/* WHAT */}
+      <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
+        {eventHeadline(event)}
+      </span>
+      {/* WHO */}
       <PoliticianRow politician={event.politician} />
-      <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>{a.headline}</span>
+      {/* WHY */}
       <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{a.dek}</span>
+      {/* SOURCE */}
       <a
         href={a.sourceUrl}
         target="_blank"
