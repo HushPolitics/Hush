@@ -130,6 +130,8 @@ function BillCard({ bill }: { bill: Bill }) {
           style={{
             padding: 14,
             borderRadius: 12,
+            borderTop: `3px solid ${JURISDICTION_ACCENT.fg}`,
+            boxShadow: "0 1px 4px rgba(20,17,12,0.06)",
             display: "flex",
             flexDirection: "column",
             gap: 8,
