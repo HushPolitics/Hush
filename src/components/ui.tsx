@@ -142,6 +142,72 @@ export function Chip({ on, onClick, children, dot, activeBg = C.navy, activeFg =
   );
 }
 
+/**
+ * Restrained source-attribution block for any sourced political claim --
+ * a position, vote, statement, or bill. One shared visual treatment for
+ * every place HUSH cites where information came from, replacing the ad
+ * hoc "sourced from X" markup each view built independently.
+ *
+ * Accent is two-toned, not per-kind: a `kind` naming an official/
+ * government record leans the same restrained rust HUSH already uses
+ * for emphasis; everything else leans the same faded slate HUSH already
+ * uses for informational content. Neither color stands in for
+ * true/false or good/bad, matching the VERDICT_STYLE/TAG_STYLE/
+ * STATUS_STYLE convention already in theme.ts.
+ */
+export function SourceAttribution({
+  kind,
+  org,
+  date,
+  href,
+  actionLabel = "View original →",
+  style,
+}: {
+  /** e.g. "Primary source", "Official record", "Official website" -- freeform. */
+  kind: string;
+  org: string;
+  date?: string;
+  href: string;
+  actionLabel?: string;
+  style?: CSSProperties;
+}) {
+  const isOfficial = /official/i.test(kind);
+  const fg = isOfficial ? C.rust : C.slate;
+  const bg = isOfficial ? C.rustFill : C.slateFill;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 5, ...style }}>
+      <span
+        style={{
+          display: "inline-block",
+          width: "fit-content",
+          padding: "2px 7px",
+          borderRadius: 4,
+          background: bg,
+          color: fg,
+          fontFamily: cond,
+          fontSize: 10.5,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+        }}
+      >
+        {kind}
+      </span>
+      <span style={{ fontSize: 12, color: C.muted }}>
+        {org}
+        {date ? ` · ${date}` : ""}
+      </span>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ fontSize: 12, color: C.navy, width: "fit-content" }}
+      >
+        {actionLabel}
+      </a>
+    </div>
+  );
+}
+
 /** Square-cornered avatar carrying a politician's initials. */
 export function Avatar({ text, size = 28, bg = C.shell, fg = C.body, radius, font }: {
   text: string;

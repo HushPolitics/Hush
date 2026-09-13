@@ -3,6 +3,8 @@
  * Ported verbatim from the Claude Design canvas so the build stays pixel-faithful.
  */
 
+import type { GuideSourceType } from "./types";
+
 export const C = {
   // Brand-kit token swap (brand-tokens-v1) -- same roles as before, new hex
   // values pulled from the brand kit. See individual notes below for the
@@ -173,3 +175,20 @@ export function chip(on: boolean) {
 }
 
 export const cond = "var(--font-condensed), sans-serif";
+
+/**
+ * Maps HUSH Guide's granular source-provenance enum down to the
+ * three-word editorial vocabulary SourceAttribution's `kind` prop
+ * expects. "Official government site" is the only GuideSourceType that
+ * names an actual government-run source, so it's the only one that reads
+ * as "Official website" rather than "Primary source" -- a candidate's own
+ * campaign material, wherever it's published, is still primary-source,
+ * not independently verified the way an official record is.
+ */
+export const GUIDE_SOURCE_KIND: Record<GuideSourceType, string> = {
+  "Campaign site": "Primary source",
+  "Official government site": "Official website",
+  "Official platform document": "Primary source",
+  "Official press release": "Primary source",
+  "Official social media": "Primary source",
+};
