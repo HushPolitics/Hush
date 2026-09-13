@@ -231,6 +231,7 @@ export default function StanceCheckView({
   races,
   topicPool,
   statements,
+  whyItMatters,
   positions,
   checks,
 }: {
@@ -238,6 +239,11 @@ export default function StanceCheckView({
   races: Race[];
   topicPool: string[];
   statements: Record<string, string>;
+  /** Optional per-issue "why this matters" context, keyed the same as
+   * `statements` -- absent or missing an issue's key is normal (see
+   * STANCE_WHY_MATTERS's own doc comment), and the block simply doesn't
+   * render for that question. */
+  whyItMatters?: Record<string, string>;
   positions: Record<string, Record<string, StanceCheckPosition>>;
   /** Published fact-checks, so a candidate's quote in the reveal can carry
    * its verdict when one exists for that exact quote — see CandidateCard. */
@@ -322,7 +328,9 @@ export default function StanceCheckView({
       {done ? null : (
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
           <Kicker>Stance Check</Kicker>
-          <Display size={25}>Question {at + 1} of {total}</Display>
+          <span style={{ fontSize: 12.5, color: C.muted, letterSpacing: "0.02em" }}>
+            Question {at + 1} of {total}
+          </span>
           <button
             type="button"
             className="link-quiet"
@@ -384,10 +392,22 @@ export default function StanceCheckView({
               >
                 <Kicker color={C.muted}>{issue}</Kicker>
               </div>
-              <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
-                <Display size={22} style={{ lineHeight: 1.3 }}>
+              <div style={{ padding: "26px 24px 22px", display: "flex", flexDirection: "column", gap: 18 }}>
+                {/* 22 -> 26px is +18%, inside the requested 15-20% range, and
+                    now clearly the largest text on the question screen */}
+                <Display size={26} style={{ lineHeight: 1.3 }}>
                   {statements[issue!]}
                 </Display>
+
+                {whyItMatters?.[issue!] ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <Kicker style={{ fontSize: 11 }}>Why this matters</Kicker>
+                    <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
+                      {whyItMatters[issue!]}
+                    </span>
+                  </div>
+                ) : null}
+
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                   <AnswerChip on={answer === "Disagree"} onClick={() => pickAnswer("Disagree")}>
                     Disagree
