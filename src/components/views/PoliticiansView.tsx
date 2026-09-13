@@ -134,11 +134,20 @@ export default function PoliticiansView({
         <SearchField value={q} onChange={setQ} placeholder="Search name or office…" style={{ width: 240 }} />
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {BALLOT_FILTERS.map((f) => (
-            <Chip key={f.key} on={ballotFilter === f.key} onClick={() => setBallotFilter(f.key)}>
+            <Chip
+              key={f.key}
+              on={ballotFilter === f.key}
+              onClick={() => setBallotFilter(f.key)}
+              activeBg={C.rust}
+              activeFg={C.cream}
+            >
               {f.label}
             </Chip>
           ))}
         </div>
+        {/* Divider: separates the two primary actions (search, on my
+            ballot) from the secondary refinement filters that follow */}
+        <div aria-hidden style={{ width: 1, alignSelf: "stretch", background: C.line }} />
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {LEVEL_FILTERS.map((lvl) => (
             <Chip

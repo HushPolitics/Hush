@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { C, HERO_SCRIM, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
+import { C, GUIDE_SOURCE_KIND, HERO_SCRIM, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
 import { jumpToSection } from "@/lib/sectionNav";
 import type { FactCheck, Party, Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
-import { Card, Display, GhostButton, Kicker, Pill, RustButton } from "@/components/ui";
+import { Card, Display, GhostButton, Kicker, Pill, RustButton, SourceAttribution } from "@/components/ui";
 import { FactCheckCard } from "./FactCheckView";
 import { IssuesStep } from "./GuideView";
 
@@ -231,6 +231,7 @@ export default function StanceCheckView({
   races,
   topicPool,
   statements,
+  whyItMatters,
   positions,
   checks,
 }: {
@@ -238,6 +239,11 @@ export default function StanceCheckView({
   races: Race[];
   topicPool: string[];
   statements: Record<string, string>;
+  /** Optional per-issue "why this matters" context, keyed the same as
+   * `statements` -- absent or missing an issue's key is normal (see
+   * STANCE_WHY_MATTERS's own doc comment), and the block simply doesn't
+   * render for that question. */
+  whyItMatters?: Record<string, string>;
   positions: Record<string, Record<string, StanceCheckPosition>>;
   /** Published fact-checks, so a candidate's quote in the reveal can carry
    * its verdict when one exists for that exact quote — see CandidateCard. */
@@ -322,7 +328,9 @@ export default function StanceCheckView({
       {done ? null : (
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
           <Kicker>Stance Check</Kicker>
-          <Display size={25}>Question {at + 1} of {total}</Display>
+          <span style={{ fontSize: 12.5, color: C.muted, letterSpacing: "0.02em" }}>
+            Question {at + 1} of {total}
+          </span>
           <button
             type="button"
             className="link-quiet"
@@ -384,10 +392,22 @@ export default function StanceCheckView({
               >
                 <Kicker color={C.muted}>{issue}</Kicker>
               </div>
-              <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
-                <Display size={22} style={{ lineHeight: 1.3 }}>
+              <div style={{ padding: "26px 24px 22px", display: "flex", flexDirection: "column", gap: 18 }}>
+                {/* 22 -> 26px is +18%, inside the requested 15-20% range, and
+                    now clearly the largest text on the question screen */}
+                <Display size={26} style={{ lineHeight: 1.3 }}>
                   {statements[issue!]}
                 </Display>
+
+                {whyItMatters?.[issue!] ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <Kicker style={{ fontSize: 11 }}>Why this matters</Kicker>
+                    <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
+                      {whyItMatters[issue!]}
+                    </span>
+                  </div>
+                ) : null}
+
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                   <AnswerChip on={answer === "Disagree"} onClick={() => pickAnswer("Disagree")}>
                     Disagree
@@ -715,18 +735,13 @@ function CandidateCard({
           <p style={{ margin: 0, fontSize: 12, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
             &ldquo;{position.excerpt}&rdquo;
           </p>
-          <span style={{ fontSize: 11, color: C.muted }}>
-            {position.sourceTitle} · {position.sourceType}
-            {position.date ? ` · ${position.date}` : ""}
-          </span>
-          <a
+          <SourceAttribution
+            kind={GUIDE_SOURCE_KIND[position.sourceType]}
+            org={position.sourceTitle}
+            date={position.date}
             href={position.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ fontSize: 12, color: C.navy }}
-          >
-            View Original Source →
-          </a>
+            actionLabel="View original →"
+          />
           {check ? (
             <div style={{ paddingTop: 4 }}>
               <FactCheckCard check={check} showSources={false} />
@@ -734,7 +749,12 @@ function CandidateCard({
           ) : null}
         </>
       ) : (
-        <span style={{ fontSize: 12, color: C.muted, fontStyle: "italic" }}>No official position found</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <span style={{ fontFamily: cond, fontSize: 12, color: C.ink }}>No public position found</span>
+          <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
+            HUSH couldn&apos;t find a stated position on this issue in the sources we track.
+          </span>
+        </div>
       )}
     </div>
   );

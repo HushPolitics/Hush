@@ -3333,6 +3333,15 @@ export const STANCE_STATEMENTS: Record<string, string> = {
 };
 
 /**
+ * Optional one- or two-sentence context for why a `STANCE_STATEMENTS` claim
+ * is a live debate -- rendered under the question, above the answer chips,
+ * only for an issue that has an entry here. Empty today: no explainer copy
+ * has been written yet, so nothing renders until entries are added, same
+ * convention as a candidate with no key in `STANCE_POSITIONS`.
+ */
+export const STANCE_WHY_MATTERS: Record<string, string> = {};
+
+/**
  * Sourced per-candidate stances toward each `STANCE_STATEMENTS` claim, for
  * Stance Check. Keyed by politicianId then issue, same nesting as
  * `GUIDE_POSITIONS` and the same convention: a candidate not on the user's

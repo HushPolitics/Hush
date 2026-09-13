@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { C, PARTY_LABEL, STATUS_STYLE, cond, progressColor, trustBand } from "@/lib/theme";
+import { C, GUIDE_SOURCE_KIND, PARTY_LABEL, STATUS_STYLE, cond, progressColor, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { TRUST_WEIGHTS, promiseSplit } from "@/lib/scoring";
 import { useRegisterSectionNav } from "@/lib/sectionNav";
 import type { FactCheck, IssuePosition, Politician, PromiseStatus } from "@/lib/types";
-import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill } from "@/components/ui";
+import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, SourceAttribution } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 import { FactCheckCard } from "./FactCheckView";
 
@@ -431,23 +431,23 @@ export default function PoliticianView({
                         <p style={{ margin: 0, fontSize: 13, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
                           &ldquo;{pos.excerpt}&rdquo;
                         </p>
-                        <span style={{ fontSize: 11, color: C.muted }}>
-                          {pos.sourceTitle} · {pos.sourceType}
-                          {pos.date ? ` · ${pos.date}` : ""}
-                        </span>
-                        <a
+                        <SourceAttribution
+                          kind={GUIDE_SOURCE_KIND[pos.sourceType]}
+                          org={pos.sourceTitle}
+                          date={pos.date}
                           href={pos.sourceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ fontSize: 12, color: C.navy, width: "fit-content" }}
-                        >
-                          View original source →
-                        </a>
+                          actionLabel="View original →"
+                        />
                       </div>
                     ) : (
-                      <span style={{ fontSize: 13, color: C.muted, fontStyle: "italic" }}>
-                        No position found
-                      </span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <span style={{ fontFamily: cond, fontSize: 13, color: C.ink }}>
+                          No public position found
+                        </span>
+                        <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.4 }}>
+                          HUSH couldn&apos;t find a stated position on this issue in the sources we track.
+                        </span>
+                      </div>
                     )}
                   </div>
                 );
