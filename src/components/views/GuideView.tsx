@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
-import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
+import { C, HERO_SCRIM, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
@@ -35,7 +35,7 @@ const GUIDE_SECTIONS = [
 
 const fieldStyle = {
   padding: "11px 14px",
-  border: "1px solid rgba(21,21,21,0.2)",
+  border: `1px solid ${C.lineHard}`,
   borderRadius: 8,
   background: C.sandDeep,
   fontSize: 14,
@@ -711,7 +711,7 @@ function GuideHero() {
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(to top, rgba(11,10,8,0.85), rgba(11,10,8,0.35))",
+          background: HERO_SCRIM,
         }}
       />
       <div

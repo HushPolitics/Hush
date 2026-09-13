@@ -55,6 +55,10 @@ function showsRail(pathname: string) {
 // truth so the rail's width is a one-line revert.
 const RAIL_WIDTH = 200;
 
+/** Shared drop-shadow for the nav and avatar dropdown menus -- identical
+ *  literal was duplicated in both places. */
+const MENU_SHADOW = "0 8px 24px rgba(21,21,21,0.14)";
+
 // The top bar's responsive collapse order (app-layout-v2 amendment) is pure
 // CSS, keyed off the class names below -- same architecture as the rail's
 // own 1100px cutoff. Widest to narrowest: the tagline (`.topbar-tagline` +
@@ -205,7 +209,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             aria-expanded={navMenuOpen}
             aria-label="Open navigation menu"
             style={{
-              border: "1px solid rgba(21,21,21,0.16)",
+              border: `1px solid ${C.line}`,
               borderRadius: 7,
               background: "transparent",
               width: 34,
@@ -239,7 +243,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   border: `1px solid ${C.line}`,
                   borderRadius: 10,
                   background: C.white,
-                  boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
+                  boxShadow: MENU_SHADOW,
                 }}
               >
                 {NAV.map((item) => {
@@ -284,7 +288,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setSearchOpen(true)}
             aria-label="Open search"
             style={{
-              border: "1px solid rgba(21,21,21,0.16)",
+              border: `1px solid ${C.line}`,
               borderRadius: 7,
               background: "transparent",
               width: 34,
@@ -323,8 +327,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
               height: 32,
               borderRadius: 8,
               border: 0,
-              background: "#4A6675",
-              color: "#FFFFFF",
+              background: C.navy,
+              color: C.white,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -359,7 +363,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   border: `1px solid ${C.line}`,
                   borderRadius: 10,
                   background: C.white,
-                  boxShadow: "0 8px 24px rgba(21,21,21,0.14)",
+                  boxShadow: MENU_SHADOW,
                 }}
               >
                 {avatarMenu.map((item) => (

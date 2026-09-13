@@ -290,7 +290,7 @@ export default function PoliticianView({
                 gridTemplateColumns: LEDGER_GRID,
                 gap: 12,
                 padding: "10px 18px",
-                borderBottom: "1px solid rgba(21,21,21,0.1)",
+                borderBottom: `1px solid ${C.line}`,
                 fontFamily: cond,
                 fontSize: 11,
                 letterSpacing: "0.14em",

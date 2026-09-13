@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
-import { C, STATUS_STYLE, cond } from "@/lib/theme";
+import { C, HERO_SCRIM, STATUS_STYLE, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
@@ -449,7 +449,7 @@ function FeedHero() {
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(to top, rgba(11,10,8,0.85), rgba(11,10,8,0.35))",
+          background: HERO_SCRIM,
         }}
       />
       <div style={{ position: "relative", padding: "22px 26px", display: "flex", flexDirection: "column", gap: 6 }}>
