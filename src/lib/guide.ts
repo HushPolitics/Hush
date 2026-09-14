@@ -1,4 +1,4 @@
-import type { IssuePosition, Race } from "./types";
+import type { IssuePosition, Level, Race } from "./types";
 
 /**
  * Splits a `Race.title` like "U.S. House · FL-04" into office + district.
@@ -9,6 +9,31 @@ import type { IssuePosition, Race } from "./types";
 export function parseRaceTitle(title: string): { office: string; district?: string } {
   const [office, district] = title.split(" · ");
   return district ? { office, district } : { office };
+}
+
+/**
+ * Race.meta is a seeded string like "Nov 3 · federal" -- there's no
+ * standalone Level field on Race itself (only BallotItem, a different type
+ * used on the Ballot page, carries one). This reads the same level back out
+ * of meta rather than duplicating it as a second field that could drift out
+ * of sync with the string version everywhere else already reads.
+ */
+export function raceLevel(meta: string): Level | undefined {
+  const part = meta.split("·")[1]?.trim().toLowerCase();
+  if (part === "federal") return "Federal";
+  if (part === "state") return "State";
+  if (part === "local") return "Local";
+  return undefined;
+}
+
+/**
+ * "Federal • State • Local" -- but only the levels actually present among
+ * `races`, in that canonical order, so a smaller or differently-composed
+ * ballot doesn't claim a level it doesn't have.
+ */
+export function raceLevelSummary(races: Race[]): string {
+  const present = new Set(races.map((r) => raceLevel(r.meta)).filter(Boolean));
+  return (["Federal", "State", "Local"] as Level[]).filter((l) => present.has(l)).join(" • ");
 }
 
 /**
