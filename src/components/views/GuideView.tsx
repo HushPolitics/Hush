@@ -8,7 +8,13 @@ import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
 import { ballotPoliticianIds } from "@/lib/feed";
-import { issueCoverage, parseRaceTitle, stripPartySuffix, topRankedIssueForRace } from "@/lib/guide";
+import {
+  issueCoverage,
+  parseRaceTitle,
+  raceLevelSummary,
+  stripPartySuffix,
+  topRankedIssueForRace,
+} from "@/lib/guide";
 import { useRegisterRailFooter, useRegisterSectionNav } from "@/lib/sectionNav";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, ExpandableQuote, GhostButton, Kicker, RustButton } from "@/components/ui";
@@ -435,7 +441,7 @@ function TileGrid({
     <>
       <GuideHero />
 
-      <GuideAtAGlanceStrip races={races} polling={polling} />
+      <GuideAtAGlanceStrip races={races} polling={polling} onEditAddress={onEditAddress} />
 
       <div
         className="stack-row"
@@ -814,85 +820,269 @@ function useDaysToElection(): number | null {
  * wrapped chip tiles could) -- rather than a loose wrap of individually
  * boxed chips.
  */
-function GuideAtAGlanceStrip({ races, polling }: { races: Race[]; polling: { name: string; detail: string } }) {
+function GuideAtAGlanceStrip({
+  races,
+  polling,
+  onEditAddress,
+}: {
+  races: Race[];
+  polling: { name: string; detail: string };
+  onEditAddress: () => void;
+}) {
   const days = useDaysToElection();
-  const tiles: { value: string; label: string; href?: string }[] = [
-    { value: days === null ? "—" : String(days), label: "days until Election Day" },
-    ...KEY_DATES.map((k) => ({ value: k.value, label: k.label })),
-    { value: polling.name, label: "your polling place", href: "#voting" },
-    {
-      value: String(races.length),
-      label: `race${races.length === 1 ? "" : "s"} on your ballot`,
-      href: "#races",
-    },
-  ];
+  const { city, state, zip } = usePrefs();
+  const cityStateZip = [city, state, zip].filter(Boolean).join(", ").replace(/, ([A-Z]{2}), /, ", $1 ");
+  const electionDate = new Date(ELECTION_ISO).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  // "303 N Laura St - 0.6 mi - Open 7am-7pm on election day" -> address +
+  // distance. Same "split a seeded delimiter-joined string" pattern as
+  // parseRaceTitle in guide.ts; hours (the third segment) isn't used here.
+  const [pollingAddress, pollingDistance] = polling.detail.split(" - ");
+
   return (
     <Card style={{ padding: 0, overflow: "hidden" }}>
+      {/* Header */}
       <div
         style={{
           display: "flex",
-          alignItems: "baseline",
-          gap: 10,
-          padding: "13px 20px",
-          background: C.shell,
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          gap: 16,
+          flexWrap: "wrap",
+          padding: "16px 20px",
           borderBottom: `1px solid ${C.line}`,
         }}
       >
-        <Kicker>Your guide at a glance</Kicker>
-        <span style={{ height: 1, flex: 1, background: C.line }} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <Display size={22}>Your Guide at a Glance</Display>
+          <span style={{ fontSize: 12.5, color: C.muted }}>
+            Key dates, your polling place, and what&apos;s on your ballot.
+          </span>
+        </div>
+        {cityStateZip ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12.5 }}>
+            <span style={{ color: C.body }}>{cityStateZip}</span>
+            <button
+              type="button"
+              onClick={onEditAddress}
+              className="link-quiet"
+              style={{ border: 0, background: "transparent", color: C.rust, cursor: "pointer", padding: 0, fontSize: 12.5 }}
+            >
+              Change →
+            </button>
+          </div>
+        ) : null}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}>
-        {tiles.map((t, idx) => (
-          <GlanceTile key={t.label} value={t.value} label={t.label} href={t.href} lead={idx === 0} />
-        ))}
+
+      {/* Body: election-day panel · key dates · action cards */}
+      <div className="stack-row" style={{ display: "flex", alignItems: "stretch" }}>
+        {/* Election Day panel */}
+        <div
+          style={{
+            flex: "0 0 220px",
+            background: C.ink,
+            color: C.onDark,
+            padding: "20px 22px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <span style={{ fontFamily: cond, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: C.tan }}>
+            Election Day
+          </span>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ fontFamily: cond, fontSize: 52, lineHeight: 1, color: C.highlighter }}>
+              {days === null ? "—" : days}
+            </span>
+            <span style={{ fontSize: 13, color: C.onDark }}>Days to go</span>
+          </div>
+          <span style={{ height: 1, background: "rgba(244,239,228,0.16)" }} />
+          <span style={{ fontSize: 12, color: C.onDark, lineHeight: 1.4 }}>{electionDate}</span>
+        </div>
+
+        {/* Key dates */}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", borderLeft: `1px solid ${C.line}` }} className="stack-row">
+          {KEY_DATES.map((k) => (
+            <div
+              key={k.label}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                padding: "14px 20px",
+                borderBottom: `1px solid ${C.lineSoft}`,
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  flex: "0 0 32px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: C.slateFill,
+                }}
+              >
+                <GlanceIcon kind={k.label} size={16} color={C.slate} />
+              </span>
+              <div style={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
+                <span style={{ fontFamily: cond, fontSize: 12.5, letterSpacing: "0.04em", textTransform: "uppercase", color: C.ink }}>
+                  {k.label === "Register by" ? "Voter registration deadline" : k.label}
+                </span>
+                <span style={{ fontSize: 12, color: C.muted }}>{k.detail}</span>
+              </div>
+              <span style={{ marginLeft: "auto", fontFamily: cond, fontSize: 15, color: C.ink, whiteSpace: "nowrap" }}>
+                {k.value}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Polling place + ballot cards */}
+        <div style={{ flex: "0 0 260px", display: "flex", flexDirection: "column", borderLeft: `1px solid ${C.line}` }}>
+          <a
+            href="#voting"
+            className="link-quiet"
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "16px 18px",
+              background: C.slateFill,
+              borderBottom: `1px solid ${C.line}`,
+              textDecoration: "none",
+            }}
+          >
+            <GlanceIcon kind="Polling place" size={20} color={C.slate} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
+              <span style={{ fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: C.slate }}>
+                Your polling place
+              </span>
+              <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>{polling.name}</span>
+              <span style={{ fontSize: 11.5, color: C.muted }}>{pollingAddress}</span>
+              {pollingDistance ? (
+                <span style={{ fontSize: 11.5, color: C.muted }}>{pollingDistance} away</span>
+              ) : null}
+            </div>
+            <span style={{ marginLeft: "auto", color: C.slate }} aria-hidden>→</span>
+          </a>
+          <a
+            href="#races"
+            className="link-quiet"
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "16px 18px",
+              background: C.rustFill,
+              textDecoration: "none",
+            }}
+          >
+            <GlanceIcon kind="Ballot" size={20} color={C.rust} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
+              <span style={{ fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: C.rust }}>
+                Your ballot
+              </span>
+              <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>
+                {races.length} Race{races.length === 1 ? "" : "s"} on Your Ballot
+              </span>
+              <span style={{ fontSize: 11.5, color: C.muted }}>{raceLevelSummary(races)}</span>
+            </div>
+            <span style={{ marginLeft: "auto", color: C.rust }} aria-hidden>→</span>
+          </a>
+        </div>
+      </div>
+
+      {/* Closing signature -- copy is a placeholder, see the note above */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          padding: "12px 20px",
+          borderTop: `1px solid ${C.line}`,
+          background: C.shell,
+        }}
+      >
+        <span style={{ fontSize: 13, fontStyle: "italic", color: C.body }}>
+          &ldquo;An informed voter is a more powerful voter.&rdquo;
+        </span>
+        <span style={{ height: 1, flex: 1, background: C.line }} />
+        <span style={{ fontFamily: cond, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: C.tan, whiteSpace: "nowrap" }}>
+          Facts. Sources. Your Decision.
+        </span>
       </div>
     </Card>
   );
 }
 
-function GlanceTile({
-  value,
-  label,
-  href,
-  lead,
-}: {
-  value: string;
-  label: string;
-  href?: string;
-  lead?: boolean;
-}) {
-  const style: CSSProperties = {
-    padding: "18px 20px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    textAlign: "center",
-    gap: 3,
-    textDecoration: "none",
-    color: "inherit",
-    borderLeft: lead ? "none" : `1px solid ${C.line}`,
+/**
+ * Small hand-drawn line icons for this strip only -- same stroke language
+ * as ui.tsx's IssueIcon (16-unit viewBox, 1.4 stroke, round caps) but keyed
+ * to concepts this strip needs (registration, early voting, mail ballot,
+ * polling place, ballot) rather than the 14 issue topics IssueIcon covers,
+ * so it's kept local instead of growing that switch with unrelated cases.
+ */
+function GlanceIcon({ kind, size = 16, color = C.ink }: { kind: string; size?: number; color?: string }) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 16 16",
+    fill: "none",
+    stroke: color,
+    strokeWidth: 1.4,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
   };
-  const inner = (
-    <>
-      <span style={{ fontFamily: cond, fontSize: 25, lineHeight: 1.1, color: lead ? C.rust : C.slate }}>
-        {value}
-      </span>
-      {/*
-        `capitalize` (not hardcoded per-label strings) so every label reads
-        as a title -- "Days Until Election Day", "Your Polling Place" -- for
-        this strip's own seeded labels and for KEY_DATES' labels (owned by
-        seed-data.ts, used elsewhere in their own lowercase form) alike.
-      */}
-      <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.3, textTransform: "capitalize" }}>{label}</span>
-    </>
-  );
-  return href ? (
-    <a href={href} className="link-quiet" style={style}>
-      {inner}
-    </a>
-  ) : (
-    <div style={style}>{inner}</div>
-  );
+  switch (kind) {
+    case "Register by":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M4 2.5h6l2 2.2V13.5H4V2.5Z" />
+          <path d="M6 7h4M6 9.5h4M6 12h2.5" />
+        </svg>
+      );
+    case "Early voting":
+      return (
+        <svg {...common} aria-hidden>
+          <rect x="2.5" y="3.5" width="11" height="10" rx="1.2" />
+          <path d="M2.5 6.5h11M5.2 2v3M10.8 2v3" />
+        </svg>
+      );
+    case "Mail ballot request":
+      return (
+        <svg {...common} aria-hidden>
+          <rect x="2" y="4" width="12" height="8.5" rx="1" />
+          <path d="M2.4 4.5 8 9l5.6-4.5" />
+        </svg>
+      );
+    case "Polling place":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M8 2c-2.2 0-4 1.7-4 4 0 3 4 8 4 8s4-5 4-8c0-2.3-1.8-4-4-4Z" />
+          <circle cx="8" cy="6" r="1.4" />
+        </svg>
+      );
+    case "Ballot":
+      return (
+        <svg {...common} aria-hidden>
+          <rect x="3" y="2.5" width="10" height="11" rx="1" />
+          <path d="M5.5 6h5M5.5 8.5h5M5.5 11h3" />
+        </svg>
+      );
+    default:
+      return null;
+  }
 }
 
 /**

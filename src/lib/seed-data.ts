@@ -4431,10 +4431,10 @@ export const BALLOT: BallotItem[] = [
 export const ELECTION_ISO = "2026-11-03T19:00:00-06:00";
 
 export const KEY_DATES = [
-  { label: "Register by", value: "Oct 5" },
-  { label: "Early voting", value: "Oct 19 - 30" },
-  { label: "Mail ballot request", value: "Oct 23" },
-];
+  { label: "Register by", value: "Oct 5", detail: "Be sure you're registered to vote." },
+  { label: "Early voting", value: "Oct 19 - 30", detail: "Vote early, in person, ahead of Election Day." },
+  { label: "Mail ballot request", value: "Oct 23", detail: "Request by this date to vote by mail." },
+] satisfies { label: string; value: string; detail: string }[];
 
 /** Default district context shown in the sidebar until a real lookup runs. */
 export const DEFAULT_DISTRICT = {
