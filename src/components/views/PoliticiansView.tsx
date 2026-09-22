@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { C, HERO_SCRIM, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
+import { C, HERO_SCRIM, PARTY, PARTY_LABEL } from "@/lib/theme";
 import { ballotPoliticianIds } from "@/lib/feed";
 import { initials } from "@/lib/scoring";
 import { Avatar, Chip, Display, EmptyState, Kicker, SearchField } from "@/components/ui";
@@ -201,7 +201,7 @@ export default function PoliticiansView({
 
       <span
         style={{
-          fontFamily: cond,
+          fontWeight: 600,
           fontSize: 12,
           letterSpacing: "0.06em",
           textTransform: "uppercase",
@@ -218,7 +218,7 @@ export default function PoliticiansView({
           gridTemplateColumns: ROW_GRID,
           gap: 12,
           padding: "0 16px",
-          fontFamily: cond,
+          fontWeight: 600,
           fontSize: 11,
           letterSpacing: "0.14em",
           textTransform: "uppercase",
