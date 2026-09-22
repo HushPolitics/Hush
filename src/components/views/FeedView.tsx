@@ -492,13 +492,13 @@ function ElectionCard({ days, raceCount }: { days: number | null; raceCount: num
         {registerBy ? (
           <span style={{ fontSize: 13, color: C.body }}>
             <span style={{ color: C.muted }}>{registerBy.label}:</span>{" "}
-            <span style={{ fontFamily: cond, color: C.ink }}>{registerBy.value}</span>
+            <span style={{ color: C.ink }}>{registerBy.value}</span>
           </span>
         ) : null}
         {earlyVoting ? (
           <span style={{ fontSize: 13, color: C.body }}>
             <span style={{ color: C.muted }}>{earlyVoting.label}:</span>{" "}
-            <span style={{ fontFamily: cond, color: C.ink }}>{earlyVoting.value}</span>
+            <span style={{ color: C.ink }}>{earlyVoting.value}</span>
           </span>
         ) : null}
       </div>
@@ -631,7 +631,7 @@ function TodayStrip({ events }: { events: FeedEvent[] }) {
                 <Pill
                   bg={TYPE_FILL[e.type] ?? C.shell}
                   fg={TYPE_COLOR[e.type] ?? C.muted}
-                  style={{ fontFamily: cond, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", padding: "2px 8px" }}
+                  style={{ fontWeight: 600, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", padding: "2px 8px" }}
                 >
                   {typeLabel(e.type)}
                 </Pill>
@@ -692,7 +692,7 @@ function EventCard({ event, children }: { event: FeedEvent; children: ReactNode 
         <TypeIcon type={event.type} color={TYPE_COLOR[event.type] ?? C.ink} />
         <span
           style={{
-            fontFamily: cond,
+            fontWeight: 600,
             fontSize: 12.5,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
