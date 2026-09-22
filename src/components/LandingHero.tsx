@@ -25,7 +25,7 @@ const landingBtnStyle: CSSProperties = {
   borderRadius: 8,
   background: "#FF6D00",
   color: "#000000",
-  fontFamily: cond,
+  fontWeight: 600,
   fontSize: 15,
   letterSpacing: "0.08em",
   textTransform: "uppercase",
@@ -40,8 +40,8 @@ export default function LandingHero() {
   const uiPreviewRef = useRef<HTMLAnchorElement>(null);
   const homePreviewRef = useRef<HTMLAnchorElement>(null);
 
-  // Measured from whichever label is actually longest at render time — never
-  // a guessed pixel value — so this keeps working if any label changes.
+  // Measured from whichever label is actually longest at render time —
+  // never a guessed pixel value — so this keeps working if any label changes.
   const [btnWidth, setBtnWidth] = useState<number | null>(null);
 
   useLayoutEffect(() => {
@@ -182,7 +182,7 @@ export default function LandingHero() {
         <p
           style={{
             margin: 0,
-            fontFamily: cond,
+            fontWeight: 600,
             fontSize: 17,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
