@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { C, cond } from "@/lib/theme";
+import { C } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { createClient } from "@/lib/supabase/client";
 
@@ -38,14 +38,14 @@ export default function PersonalizeBanner() {
         flex: "0 0 auto",
       }}
     >
-      <span style={{ fontFamily: cond, fontSize: 13, letterSpacing: "0.04em", color: C.body }}>
+      <span style={{ fontSize: 13, letterSpacing: "0.04em", color: C.body }}>
         Finish personalizing your HUSH — add your address and rank what matters to you.
       </span>
       <Link
         href="/signup"
         style={{
           marginLeft: "auto",
-          fontFamily: cond,
+          fontWeight: 600,
           fontSize: 12,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
