@@ -158,7 +158,24 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 22, letterSpacing: "0.2em" }}>
               HUSH
             </span>
-            <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 22, color: C.rust }}>.</span>
+            {/*
+              Signature period (brand-tokens-v2 Phase 4): the guideline's
+              finalized mark is a literal square block standing in for the
+              period, not a typographic dot -- sized in em so it scales with
+              the wordmark's own font-size instead of a fixed pixel value
+              re-tuned everywhere. aria-hidden since it's decorative; the
+              visible "HUSH" text already covers what a screen reader needs.
+            */}
+            <span
+              aria-hidden
+              style={{
+                display: "inline-block",
+                width: "0.35em",
+                height: "0.35em",
+                marginLeft: "0.08em",
+                background: C.rust,
+              }}
+            />
           </span>
           <span aria-hidden style={{ width: 22, height: 2, background: C.rust }} />
         </Link>

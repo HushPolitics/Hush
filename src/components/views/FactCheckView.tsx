@@ -73,10 +73,58 @@ export function FactCheckCard({
         <span style={{ marginLeft: "auto", fontSize: 12, color: C.muted }}>{check.date}</span>
       </div>
 
-      <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, textWrap: "pretty" }}>
-        “{check.claim}”
-      </p>
-      <span style={{ fontSize: 12, color: C.body, lineHeight: 1.5 }}>{check.finding}</span>
+      {/*
+        Signature device (brand-tokens-v2 Phase 4, guideline Section 06):
+        "Redact & Highlight" -- the claim reads as struck-down, the finding
+        underneath as the sourced record. Only for Misleading/False: a True
+        verdict has nothing to redact, striking it through would visually
+        claim it was debunked when it wasn't. The guideline's own demo sets
+        the claim's text color equal to its background for a true redaction
+        (on-brand for a static marketing graphic) -- this card exists to
+        show people exactly what was claimed, so the in-app version keeps
+        the claim legible with a strikethrough instead. Not using
+        IBM Plex Mono here despite the guideline's demo: that font is scoped
+        to sourcing/citations only, and a claim or finding is substantive
+        content, not a citation string.
+      */}
+      {check.verdict === "Misleading" || check.verdict === "False" ? (
+        <>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, textWrap: "pretty" }}>
+            <span
+              style={{
+                textDecoration: "line-through",
+                textDecorationThickness: 2,
+                textDecorationColor: C.ink,
+                color: C.muted,
+              }}
+            >
+              “{check.claim}”
+            </span>
+          </p>
+          <span
+            style={{
+              display: "inline-block",
+              width: "fit-content",
+              background: C.rust,
+              color: C.ink,
+              fontWeight: 600,
+              padding: "2px 6px",
+              borderRadius: 2,
+              fontSize: 12,
+              lineHeight: 1.5,
+            }}
+          >
+            {check.finding}
+          </span>
+        </>
+      ) : (
+        <>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, textWrap: "pretty" }}>
+            “{check.claim}”
+          </p>
+          <span style={{ fontSize: 12, color: C.body, lineHeight: 1.5 }}>{check.finding}</span>
+        </>
+      )}
 
       {showSources ? (
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
