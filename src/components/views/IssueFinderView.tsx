@@ -297,7 +297,7 @@ export default function IssueFinderView({
           Rank them yourself instead
         </Link>
 
-        <Link href={exitHref} onClick={clearSession} style={{ fontSize: 13, color: C.navy, textDecoration: "underline" }}>
+        <Link href={exitHref} onClick={clearSession} style={{ fontSize: 13, color: C.rust, textDecoration: "underline" }}>
           {next ? "Back" : "Back to Feed"}
         </Link>
       </div>
@@ -397,7 +397,7 @@ export default function IssueFinderView({
               style={{
                 border: 0,
                 background: "transparent",
-                color: C.navy,
+                color: C.rust,
                 fontSize: 12,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
@@ -468,7 +468,7 @@ export default function IssueFinderView({
               <button
                 type="button"
                 onClick={goPrevious}
-                style={{ border: 0, background: "transparent", color: C.navy, cursor: "pointer", padding: 0 }}
+                style={{ border: 0, background: "transparent", color: C.rust, cursor: "pointer", padding: 0 }}
               >
                 ← Previous
               </button>
@@ -491,7 +491,7 @@ export default function IssueFinderView({
               marginTop: 6,
               padding: "18px 22px",
               borderRadius: 12,
-              background: C.slate,
+              background: C.ink,
             }}
           >
             <span aria-hidden style={{ fontSize: 16 }}>💡</span>
@@ -655,7 +655,7 @@ function NextActionRow({ href, label, desc }: { href: string; label: string; des
           flex: "0 0 28px",
         }}
       >
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={C.navy} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke={C.ink} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M3 8h10M9 4l4 4-4 4" />
         </svg>
       </span>
