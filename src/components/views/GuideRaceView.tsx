@@ -56,7 +56,7 @@ export default function GuideRaceView({
           alignSelf: "flex-start",
           border: 0,
           background: "transparent",
-          color: C.navy,
+          color: C.rust,
           fontSize: 13,
           cursor: "pointer",
           padding: 0,
@@ -82,7 +82,7 @@ export default function GuideRaceView({
                 padding: "6px 12px",
                 borderRadius: 20,
                 border: `1px solid ${C.line}`,
-                color: C.navy,
+                color: C.rust,
                 background: C.white,
               }}
             >
@@ -192,7 +192,7 @@ function CandidatePositionCard({
               href={position.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ fontSize: 12, color: C.navy, marginTop: 2 }}
+              style={{ fontSize: 12, color: C.rust, marginTop: 2 }}
             >
               View Original Source →
             </a>
