@@ -5,9 +5,12 @@
 :root {
   /* Brand-kit token swap (brand-tokens-v2) -- keep in sync with the C
      object in src/lib/theme.ts, which these mirror. Several hover states
-     below (.btn-ink:hover, .link-quiet:hover) read var(--navy) directly
+     below (.btn-ink:hover, .link-quiet:hover) read var(--rust) directly
      rather than going through theme.ts, so this block has to move
-     whenever that one does. */
+     whenever that one does. Phase 2 retired blue/navy from these two
+     hover states; --navy itself is still defined above for the
+     politician-profile + party-dot exception, just no longer referenced
+     here. */
   --ink: #1c1917;
   --body: #1c1917;
   --muted: #8a8578;
@@ -135,7 +138,7 @@ input::placeholder {
 }
 
 .btn-ink:hover {
-  background: var(--navy) !important;
+  background: var(--rust) !important;
 }
 
 .btn-ghost:hover {
@@ -148,7 +151,7 @@ input::placeholder {
 }
 
 .link-quiet:hover {
-  color: var(--navy) !important;
+  color: var(--rust) !important;
 }
 
 .tab:hover {
