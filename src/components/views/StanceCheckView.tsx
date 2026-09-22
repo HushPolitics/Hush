@@ -331,29 +331,37 @@ export default function StanceCheckView({
           gets you back to the question view, where this row -- and Edit
           issues with it -- is right there again. */}
       {done ? null : (
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-          <Kicker>Stance Check</Kicker>
-          <span style={{ fontSize: 12.5, color: C.muted, letterSpacing: "0.02em" }}>
-            Question {at + 1} of {total}
-          </span>
-          <button
-            type="button"
-            className="link-quiet"
-            onClick={() => setShowPicker(true)}
-            style={{
-              marginLeft: "auto",
-              border: 0,
-              background: "transparent",
-              color: C.rust,
-              fontSize: 12,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-              padding: 6,
-            }}
-          >
-            Edit issues
-          </button>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <Display size={25}>Where you and your ballot agree</Display>
+            <span style={{ fontSize: 13, color: C.body, maxWidth: 640, lineHeight: 1.5 }}>
+              One statement per issue — see which candidates on your ballot agree or disagree with
+              you.
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12.5, color: C.muted, letterSpacing: "0.02em" }}>
+              Question {at + 1} of {total}
+            </span>
+            <button
+              type="button"
+              className="link-quiet"
+              onClick={() => setShowPicker(true)}
+              style={{
+                marginLeft: "auto",
+                border: 0,
+                background: "transparent",
+                color: C.rust,
+                fontSize: 12,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                cursor: "pointer",
+                padding: 6,
+              }}
+            >
+              Edit issues
+            </button>
+          </div>
         </div>
       )}
 
