@@ -45,7 +45,7 @@ export default async function Gate({
       >
         <span
           style={{
-            fontFamily: cond,
+            fontWeight: 600,
             fontSize: 11,
             letterSpacing: "0.14em",
             textTransform: "uppercase",
@@ -74,7 +74,7 @@ export default async function Gate({
               borderRadius: 8,
               background: C.rust,
               color: C.sand,
-              fontFamily: cond,
+              fontWeight: 600,
               fontSize: 15,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
@@ -90,7 +90,7 @@ export default async function Gate({
                 borderRadius: 8,
                 border: "1px solid rgba(21,21,21,0.2)",
                 color: C.ink,
-                fontFamily: cond,
+                fontWeight: 600,
                 fontSize: 15,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
