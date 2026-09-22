@@ -92,7 +92,7 @@ export default function LoginForm() {
   }
 
   if (forgotStatus === "sent") {
-    return <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.navy }}>{forgotMessage}</p>;
+    return <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.ink }}>{forgotMessage}</p>;
   }
 
   if (mode === "otp") {
@@ -185,7 +185,7 @@ function OtpForm({ onBack }: { onBack: () => void }) {
 
   if (status === "sent") {
     return (
-      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.navy }}>{message}</p>
+      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.ink }}>{message}</p>
     );
   }
 
