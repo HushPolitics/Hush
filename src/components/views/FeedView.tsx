@@ -343,9 +343,12 @@ export default function FeedView({
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
       <FeedHero />
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <Kicker>Feed</Kicker>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <Display size={25}>What&apos;s happened · {events.length}</Display>
+        <span style={{ fontSize: 13, color: C.body, maxWidth: 640, lineHeight: 1.5 }}>
+          Votes, bills, and fact checks as they happen — filter by type, or narrow to My Ballot, My
+          Issues, or Following below.
+        </span>
       </div>
 
       <div
