@@ -332,7 +332,7 @@ export function IssuesStep({
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>
+        <span style={{ fontSize: 15, color: C.ink }}>
           {topics.length}/{MAX_GUIDE_ISSUES} selected
         </span>
       </div>
@@ -892,7 +892,7 @@ function GuideAtAGlanceStrip({
             gap: 10,
           }}
         >
-          <span style={{ fontFamily: cond, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: C.tan }}>
+          <span style={{ fontWeight: 600, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: C.tan }}>
             Election Day
           </span>
           <div style={{ display: "flex", flexDirection: "column" }}>
@@ -934,12 +934,12 @@ function GuideAtAGlanceStrip({
                 <GlanceIcon kind={k.label} size={16} color={C.ink} />
               </span>
               <div style={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
-                <span style={{ fontFamily: cond, fontSize: 12.5, letterSpacing: "0.04em", textTransform: "uppercase", color: C.ink }}>
+                <span style={{ fontWeight: 600, fontSize: 12.5, letterSpacing: "0.04em", textTransform: "uppercase", color: C.ink }}>
                   {k.label === "Register by" ? "Voter registration deadline" : k.label}
                 </span>
                 <span style={{ fontSize: 12, color: C.muted }}>{k.detail}</span>
               </div>
-              <span style={{ marginLeft: "auto", fontFamily: cond, fontSize: 15, color: C.ink, whiteSpace: "nowrap" }}>
+              <span style={{ marginLeft: "auto", fontSize: 15, color: C.ink, whiteSpace: "nowrap" }}>
                 {k.value}
               </span>
             </div>
@@ -967,7 +967,7 @@ function GuideAtAGlanceStrip({
               <span style={{ fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: C.ink }}>
                 Your polling place
               </span>
-              <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>{polling.name}</span>
+              <span style={{ fontSize: 15, color: C.ink }}>{polling.name}</span>
               <span style={{ fontSize: 11.5, color: C.muted }}>{pollingAddress}</span>
               {pollingDistance ? (
                 <span style={{ fontSize: 11.5, color: C.muted }}>{pollingDistance} away</span>
@@ -993,7 +993,7 @@ function GuideAtAGlanceStrip({
               <span style={{ fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: C.rust }}>
                 Your ballot
               </span>
-              <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>
+              <span style={{ fontSize: 15, color: C.ink }}>
                 {races.length} Race{races.length === 1 ? "" : "s"} on Your Ballot
               </span>
               <span style={{ fontSize: 11.5, color: C.muted }}>{raceLevelSummary(races)}</span>
@@ -1018,7 +1018,7 @@ function GuideAtAGlanceStrip({
           &ldquo;An informed voter is a more powerful voter.&rdquo;
         </span>
         <span style={{ height: 1, flex: 1, background: C.line }} />
-        <span style={{ fontFamily: cond, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: C.tan, whiteSpace: "nowrap" }}>
+        <span style={{ fontWeight: 600, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: C.tan, whiteSpace: "nowrap" }}>
           Facts. Sources. Your Decision.
         </span>
       </div>
@@ -1163,7 +1163,7 @@ function VotingInformationSection({ polling }: { polling: { name: string; detail
                     border: `2px solid ${C.white}`,
                   }}
                 />
-                <span style={{ fontFamily: cond, fontSize: 14 }}>{k.value}</span>
+                <span style={{ fontSize: 14 }}>{k.value}</span>
                 <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.3 }}>{k.label}</span>
               </div>
             ))}
@@ -1208,7 +1208,7 @@ function VotingInformationSection({ polling }: { polling: { name: string; detail
           }}
         >
           <Kicker size={10}>Where you vote</Kicker>
-          <span style={{ fontFamily: cond, fontSize: 16, lineHeight: 1.2 }}>{polling.name}</span>
+          <span style={{ fontSize: 16, lineHeight: 1.2 }}>{polling.name}</span>
           <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>{polling.detail}</span>
           <button
             type="button"
