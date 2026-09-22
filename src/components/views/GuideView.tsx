@@ -472,7 +472,7 @@ function TileGrid({
                   style={{
                     border: 0,
                     background: "transparent",
-                    color: C.navy,
+                    color: C.rust,
                     fontSize: 12,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
@@ -510,8 +510,8 @@ function TileGrid({
                       fontFamily: cond,
                       fontSize: 11,
                       fontWeight: 600,
-                      background: idx === 0 ? C.rust : C.slateFill,
-                      color: idx === 0 ? C.white : C.slate,
+                      background: idx === 0 ? C.rust : C.shell,
+                      color: idx === 0 ? C.white : C.ink,
                     }}
                   >
                     {idx + 1}
@@ -573,7 +573,7 @@ function TileGrid({
                     minHeight: 62,
                     boxSizing: "border-box",
                     padding: "10px 16px",
-                    background: C.slateFill,
+                    background: C.shell,
                     borderBottom: `1px solid ${C.line}`,
                   }}
                 >
@@ -627,7 +627,7 @@ function TileGrid({
                                   href={pos.sourceUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  style={{ color: C.navy }}
+                                  style={{ color: C.rust }}
                                 >
                                   Source
                                 </a>
@@ -635,7 +635,7 @@ function TileGrid({
                                 {knownIds.has(c.politicianId) ? (
                                   <>
                                     <span>·</span>
-                                    <Link href={`/politician/${c.politicianId}#positions`} style={{ color: C.navy }}>
+                                    <Link href={`/politician/${c.politicianId}#positions`} style={{ color: C.rust }}>
                                       Full quote →
                                     </Link>
                                   </>
@@ -780,7 +780,7 @@ function AddressRailFooter({
           alignSelf: "flex-start",
           border: 0,
           background: "transparent",
-          color: C.navy,
+          color: C.rust,
           fontSize: 11,
           letterSpacing: "0.06em",
           textTransform: "uppercase",
@@ -928,10 +928,10 @@ function GuideAtAGlanceStrip({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  background: C.slateFill,
+                  background: C.shell,
                 }}
               >
-                <GlanceIcon kind={k.label} size={16} color={C.slate} />
+                <GlanceIcon kind={k.label} size={16} color={C.ink} />
               </span>
               <div style={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
                 <span style={{ fontFamily: cond, fontSize: 12.5, letterSpacing: "0.04em", textTransform: "uppercase", color: C.ink }}>
@@ -957,14 +957,14 @@ function GuideAtAGlanceStrip({
               alignItems: "center",
               gap: 12,
               padding: "16px 18px",
-              background: C.slateFill,
+              background: C.shell,
               borderBottom: `1px solid ${C.line}`,
               textDecoration: "none",
             }}
           >
-            <GlanceIcon kind="Polling place" size={20} color={C.slate} />
+            <GlanceIcon kind="Polling place" size={20} color={C.ink} />
             <div style={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
-              <span style={{ fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: C.slate }}>
+              <span style={{ fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: C.ink }}>
                 Your polling place
               </span>
               <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>{polling.name}</span>
@@ -973,7 +973,7 @@ function GuideAtAGlanceStrip({
                 <span style={{ fontSize: 11.5, color: C.muted }}>{pollingDistance} away</span>
               ) : null}
             </div>
-            <span style={{ marginLeft: "auto", color: C.slate }} aria-hidden>→</span>
+            <span style={{ marginLeft: "auto", color: C.ink }} aria-hidden>→</span>
           </a>
           <a
             href="#races"
@@ -1129,7 +1129,7 @@ function VotingInformationSection({ polling }: { polling: { name: string; detail
       <Card className="stack-row" style={{ padding: 20, display: "flex", gap: 24, alignItems: "stretch" }}>
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 18 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1, color: C.slate }}>
+            <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1, color: C.ink }}>
               {days === null ? "—" : days}
             </span>
             <span style={{ fontSize: 13, color: C.body }}>days until Election Day</span>
@@ -1141,11 +1141,12 @@ function VotingInformationSection({ polling }: { polling: { name: string; detail
               style={{ position: "absolute", top: 5, left: 6, right: 6, height: 2, background: C.line }}
             />
             {/*
-              Dots alternate rust/faded-blue purely by position -- a two-tone
+              Dots alternate rust/ink purely by position -- a two-tone
               cadence along the line rather than one color singling out
               "today" the way this timeline used to (only Election Day was
               rust). Election Day still reads as the finish line: it's the
-              last stop after the line ends.
+              last stop after the line ends. (Was rust/faded-blue before
+              brand-tokens-v2 Phase 2 retired blue from general UI.)
             */}
             {timelinePoints.map((k, idx) => (
               <div
@@ -1158,7 +1159,7 @@ function VotingInformationSection({ polling }: { polling: { name: string; detail
                     width: 11,
                     height: 11,
                     borderRadius: "50%",
-                    background: idx % 2 === 0 ? C.rust : C.slate,
+                    background: idx % 2 === 0 ? C.rust : C.ink,
                     border: `2px solid ${C.white}`,
                   }}
                 />
