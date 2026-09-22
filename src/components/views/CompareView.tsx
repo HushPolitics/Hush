@@ -453,7 +453,7 @@ function Row({
                   </a>
                   {position?.date ? <span style={{ fontSize: 11, color: C.muted }}>{position.date}</span> : null}
                   {position ? (
-                    <Link href={`/politician/${id}#positions`} style={{ fontSize: 11, color: C.navy }}>
+                    <Link href={`/politician/${id}#positions`} style={{ fontSize: 11, color: C.rust }}>
                       Full quote →
                     </Link>
                   ) : null}

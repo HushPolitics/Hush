@@ -426,8 +426,8 @@ export function TopIssuesCard({
                   gap: 4,
                   padding: "10px 14px",
                   borderRadius: 10,
-                  background: C.slateFill,
-                  border: `1px solid ${C.slate}`,
+                  background: C.shell,
+                  border: `1px solid ${C.line}`,
                   textDecoration: "none",
                 }}
               >
@@ -442,7 +442,7 @@ export function TopIssuesCard({
             {showEditLink ? (
               <Link
                 href="/profile/top-issues"
-                style={{ fontFamily: cond, fontSize: 13, color: C.navy, letterSpacing: "0.02em" }}
+                style={{ fontFamily: cond, fontSize: 13, color: C.rust, letterSpacing: "0.02em" }}
               >
                 Edit Issues →
               </Link>
@@ -462,7 +462,7 @@ export function TopIssuesCard({
             {showEditLink ? (
               <Link
                 href="/profile/top-issues"
-                style={{ marginLeft: "auto", fontFamily: cond, fontSize: 13, color: C.navy, letterSpacing: "0.02em" }}
+                style={{ marginLeft: "auto", fontFamily: cond, fontSize: 13, color: C.rust, letterSpacing: "0.02em" }}
               >
                 Edit Issues →
               </Link>
@@ -550,8 +550,8 @@ function IssueFeatureCard({
   onDragEnd: () => void;
   onRemove: () => void;
 }) {
-  const accent = tier === "rust" ? C.rust : C.slate;
-  const fill = tier === "rust" ? C.rustFill : C.slateFill;
+  const accent = tier === "rust" ? C.rust : C.ink;
+  const fill = tier === "rust" ? C.rustFill : C.shell;
 
   return (
     <div
@@ -666,8 +666,8 @@ function IssueGridCard({
           width: 22,
           height: 22,
           borderRadius: "50%",
-          background: C.slateFill,
-          color: C.slate,
+          background: C.shell,
+          color: C.ink,
           fontFamily: cond,
           fontSize: 11,
           fontWeight: 600,

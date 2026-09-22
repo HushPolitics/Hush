@@ -264,7 +264,7 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
 
           <span style={{ fontSize: 12, color: C.muted }}>
             Already have an account?{" "}
-            <Link href="/login" style={{ color: C.navy }}>
+            <Link href="/login" style={{ color: C.rust }}>
               Log in
             </Link>
           </span>
@@ -381,7 +381,7 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
                   >
                     {i.name}
                   </span>
-                  <Bar pct={Math.min(100, i.pct)} color={C.navy} />
+                  <Bar pct={Math.min(100, i.pct)} color={C.rust} />
                   <button
                     type="button"
                     className="link-quiet"
@@ -470,7 +470,7 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
 
           {finished ? (
             <>
-              <span style={{ fontSize: 13, color: C.navy, lineHeight: 1.5 }}>{finishMessage}</span>
+              <span style={{ fontSize: 13, color: C.ink, lineHeight: 1.5 }}>{finishMessage}</span>
               <RustButton onClick={() => router.push("/feed")}>Continue to HUSH</RustButton>
             </>
           ) : (

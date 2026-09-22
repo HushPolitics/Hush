@@ -59,25 +59,28 @@ const TYPE_RAIL_WIDTH = 210;
 
 /**
  * Category color per event type -- rust for the legislative record (what
- * officials actually did), faded blue for sourced/evidentiary material
- * (anything traced to a document), faded green for civic logistics (dates
- * and deadlines, not a record or a source). `score` and `promise` are
- * deliberately absent -- those stay neutral, same as STATUS_STYLE.
+ * officials actually did), everything else neutral. Blue previously marked
+ * sourced/evidentiary material (fact-checks, positions, articles) as its
+ * own category; retired per the brand-tokens-v2 blue-retirement call, so
+ * that distinction is gone -- those three types are now ink/shell like any
+ * other non-primary content, told apart by icon and label, not color.
+ * Green still marks civic logistics. `score` and `promise` are deliberately
+ * absent -- those stay neutral, same as STATUS_STYLE.
  */
 const TYPE_COLOR: Partial<Record<FeedEvent["type"], string>> = {
   vote: C.rust,
   bill: C.rust,
-  factcheck: C.slate,
-  position: C.slate,
-  article: C.slate,
+  factcheck: C.ink,
+  position: C.ink,
+  article: C.ink,
   electionUpdate: C.independent,
 };
 const TYPE_FILL: Partial<Record<FeedEvent["type"], string>> = {
   vote: C.rustFill,
   bill: C.rustFill,
-  factcheck: C.slateFill,
-  position: C.slateFill,
-  article: C.slateFill,
+  factcheck: C.shell,
+  position: C.shell,
+  article: C.shell,
   electionUpdate: C.independentFill,
 };
 
@@ -145,15 +148,16 @@ function eventText(e: FeedEvent): string {
 }
 
 /**
- * Flat single-stroke navy line glyphs, one per Feed event type -- no per-
+ * Flat single-stroke ink line glyphs, one per Feed event type -- no per-
  * category color, per the standing rule. Deliberately plain geometric
  * shapes rather than a pulled-in icon library: nothing else in this
- * codebase renders an icon, so there was no existing set to match.
+ * codebase renders an icon, so there was no existing set to match. (Was
+ * navy before brand-tokens-v2 Phase 2 retired blue from general UI.)
  */
 function TypeIcon({
   type,
   size = 15,
-  color = C.slate,
+  color = C.ink,
 }: {
   type: TypeFilter;
   size?: number;
@@ -475,7 +479,7 @@ function ElectionCard({ days, raceCount }: { days: number | null; raceCount: num
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
       <Kicker>Your Election</Kicker>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-        <span style={{ fontFamily: cond, fontSize: 34, lineHeight: 1, color: C.slate }}>
+        <span style={{ fontFamily: cond, fontSize: 34, lineHeight: 1, color: C.ink }}>
           {days === null ? "—" : days}
         </span>
         <span style={{ fontSize: 14, color: C.body }}>days until Election Day</span>
@@ -623,7 +627,7 @@ function TodayStrip({ events }: { events: FeedEvent[] }) {
           return (
             <Card key={e.id} style={{ flex: "0 0 220px", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <TypeIcon type={e.type} size={13} color={TYPE_COLOR[e.type] ?? C.slate} />
+                <TypeIcon type={e.type} size={13} color={TYPE_COLOR[e.type] ?? C.ink} />
                 <Pill
                   bg={TYPE_FILL[e.type] ?? C.shell}
                   fg={TYPE_COLOR[e.type] ?? C.muted}
@@ -664,7 +668,7 @@ function FeedEventCard({ event }: { event: FeedEvent }) {
 }
 
 /**
- * Shared card shell -- the flat tinted header panel (navy glyph + condensed
+ * Shared card shell -- the flat tinted header panel (ink glyph + condensed
  * type label + date) app-layout-v2 calls for, wrapping whatever body the
  * specific event type renders below it. FactCheckEventCard is the one
  * exception (see its own doc comment): it keeps delegating to the shared
@@ -681,11 +685,11 @@ function EventCard({ event, children }: { event: FeedEvent; children: ReactNode 
           alignItems: "center",
           gap: 9,
           padding: "8px 14px",
-          background: C.slateFill,
+          background: C.shell,
           borderBottom: `1px solid ${C.line}`,
         }}
       >
-        <TypeIcon type={event.type} color={TYPE_COLOR[event.type] ?? C.slate} />
+        <TypeIcon type={event.type} color={TYPE_COLOR[event.type] ?? C.ink} />
         <span
           style={{
             fontFamily: cond,

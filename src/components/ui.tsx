@@ -100,14 +100,18 @@ export function Pill({ children, bg, fg, style }: {
 }
 
 /**
- * Filter chip. `on` drives the selected treatment -- navy/cream by default,
- * matching the selected-answer treatment AnswerChip (Stance Check) already
- * uses. `activeBg`/`activeFg` are there so one call site can override the
- * color for a specific reason (see PoliticiansView's party-filter row,
- * which keeps the old ink/sand treatment so a selected "Democrat" chip
- * doesn't render in the same navy as its own party dot).
+ * Filter chip. `on` drives the selected treatment -- ink/cream by default
+ * (brand-tokens-v2 Phase 2: was navy/cream, matching AnswerChip's old navy
+ * fill, before blue was retired from general UI -- AnswerChip is now its
+ * own solid rust fill instead, specifically so a picked Stance Check answer
+ * still reads louder than this default). `activeBg`/`activeFg` are there so
+ * one call site can override the color for a specific reason (see
+ * PoliticiansView's party-filter row, which keeps the old ink/sand
+ * treatment so a selected "Democrat" chip doesn't render in the same navy
+ * as its own party dot -- that override is redundant now that ink is the
+ * default too, but harmless to leave in place).
  */
-export function Chip({ on, onClick, children, dot, activeBg = C.navy, activeFg = C.cream }: {
+export function Chip({ on, onClick, children, dot, activeBg = C.ink, activeFg = C.cream }: {
   on: boolean;
   onClick: () => void;
   children: ReactNode;
@@ -172,8 +176,8 @@ export function SourceAttribution({
   style?: CSSProperties;
 }) {
   const isOfficial = /official/i.test(kind);
-  const fg = isOfficial ? C.rust : C.slate;
-  const bg = isOfficial ? C.rustFill : C.slateFill;
+  const fg = isOfficial ? C.rust : C.ink;
+  const bg = isOfficial ? C.rustFill : C.shell;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 5, ...style }}>
       <span
@@ -200,7 +204,7 @@ export function SourceAttribution({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        style={{ fontSize: 12, color: C.navy, width: "fit-content" }}
+        style={{ fontSize: 12, color: C.rust, width: "fit-content" }}
       >
         {actionLabel}
       </a>
@@ -456,7 +460,7 @@ export function ExpandableQuote({ text, maxLen = 92, style }: {
             font: "inherit",
             fontStyle: "normal",
             fontSize: 11,
-            color: C.navy,
+            color: C.rust,
             cursor: "pointer",
             textDecoration: "underline",
             whiteSpace: "nowrap",

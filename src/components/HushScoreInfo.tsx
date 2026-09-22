@@ -178,7 +178,7 @@ function HushScoreInfoModal({
 
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span style={{ fontSize: 13, color: C.body }}>
-            <span style={{ fontFamily: cond, fontSize: 15, color: C.navy }}>100</span>
+            <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>100</span>
             {" — Aligned with what they said."}
           </span>
           <span style={{ fontSize: 13, color: C.body }}>

@@ -34,7 +34,7 @@ export default async function TopIssuesPage({
     <AppShell>
       <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
         <TopIssuesCard topicPool={topicPool()} showEditLink={false} issueFinderHref={findHref} />
-        <Link href={next ?? "/feed"} style={{ fontSize: 13, color: C.navy, textDecoration: "underline" }}>
+        <Link href={next ?? "/feed"} style={{ fontSize: 13, color: C.rust, textDecoration: "underline" }}>
           {next ? "Continue →" : "Back to Feed"}
         </Link>
       </div>

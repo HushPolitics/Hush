@@ -394,7 +394,7 @@ export default function PoliticianView({
           {topics.length === 0 ? (
             <EmptyState>
               You haven&apos;t ranked any issues yet.{" "}
-              <Link href={`/profile/top-issues/start?next=${encodeURIComponent(pathname)}`} style={{ color: C.navy }}>
+              <Link href={`/profile/top-issues/start?next=${encodeURIComponent(pathname)}`} style={{ color: C.rust }}>
                 Pick your top issues
               </Link>{" "}
               to see {p.name.split(" ").slice(-1)[0]}&apos;s positions on what matters to you.
@@ -603,7 +603,7 @@ export default function PoliticianView({
                   }}
                 >
                   <span
-                    style={{ width: 11, height: 11, borderRadius: "50%", background: C.navy, flex: "0 0 11px" }}
+                    style={{ width: 11, height: 11, borderRadius: "50%", background: C.ink, flex: "0 0 11px" }}
                   />
                   {i < p.career.length - 1 ? (
                     <span style={{ flex: 1, width: 2, background: C.shell }} />

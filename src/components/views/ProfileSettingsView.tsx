@@ -48,7 +48,7 @@ function SectionHeader({ kicker, title, subtitle }: { kicker: string; title: str
 function StatusLine({ status, message }: { status: "idle" | "saving" | "saved" | "error"; message: string }) {
   if (status === "idle" || !message) return null;
   return (
-    <span style={{ fontSize: 12, color: status === "error" ? C.rust : C.navy, lineHeight: 1.5 }}>{message}</span>
+    <span style={{ fontSize: 12, color: status === "error" ? C.rust : C.ink, lineHeight: 1.5 }}>{message}</span>
   );
 }
 
@@ -404,7 +404,7 @@ function PrefRow({
         </span>
         <span style={{ fontSize: 13, color: C.ink }}>{value}</span>
       </div>
-      <Link href={href} style={{ fontFamily: cond, fontSize: 13, color: C.navy, whiteSpace: "nowrap" }}>
+      <Link href={href} style={{ fontFamily: cond, fontSize: 13, color: C.rust, whiteSpace: "nowrap" }}>
         {cta}
       </Link>
     </div>
@@ -495,7 +495,7 @@ function PrivacySection() {
         </PrivacyItem>
         <PrivacyItem>You can update or clear any of this any time from this page or the account menu.</PrivacyItem>
       </ul>
-      <Link href="/privacy" style={{ fontFamily: cond, fontSize: 13, color: C.navy }}>
+      <Link href="/privacy" style={{ fontFamily: cond, fontSize: 13, color: C.rust }}>
         Read the full privacy policy →
       </Link>
     </Card>
