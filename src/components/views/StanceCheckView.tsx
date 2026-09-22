@@ -40,11 +40,16 @@ const RESULT_STYLE: Record<Bucket, { bg: string; fg: string; dot: string }> = {
  * (smaller, lower-contrast, visually subordinate) is gone, since a picker
  * shouldn't visually pre-judge which of the three answers is the normal
  * one before the reader picks. No icon on the button either -- the earlier
- * ring/dot is gone too. Selection is carried entirely by a navy fill, a
- * cream label, and a rust rule along the top edge, identical for whichever
- * of the three is picked; this is still deliberately not the shared `Chip`
- * from ui.tsx, whose selected state (solid ink fill) doesn't carry a rule
- * accent and reads as a generic filter toggle rather than a picked answer.
+ * ring/dot is gone too. Selection is carried entirely by a solid rust fill
+ * and a cream label, identical for whichever of the three is picked; this
+ * is still deliberately not the shared `Chip` from ui.tsx, whose selected
+ * state (solid ink fill) reads as a generic filter toggle rather than a
+ * picked answer. (Brand-tokens-v2 Phase 2: was a navy fill + separate 3px
+ * rust top rule before blue was retired from general UI -- now that the
+ * whole button is rust, a rust rule on top of it would be invisible, so
+ * it's dropped rather than kept redundant. This is also what keeps a
+ * picked answer visually louder than Chip's own now-also-ink selected
+ * state.)
  */
 function AnswerChip({ on, onClick, children }: {
   on: boolean;
@@ -64,12 +69,9 @@ function AnswerChip({ on, onClick, children }: {
         fontWeight: on ? 600 : 500,
         textAlign: "center",
         cursor: "pointer",
-        background: on ? C.navy : C.white,
+        background: on ? C.rust : C.white,
         color: on ? C.cream : C.ink,
-        borderLeft: `1px solid ${on ? C.navy : C.lineHard}`,
-        borderRight: `1px solid ${on ? C.navy : C.lineHard}`,
-        borderBottom: `1px solid ${on ? C.navy : C.lineHard}`,
-        borderTop: `3px solid ${on ? C.rust : C.lineHard}`,
+        border: `1px solid ${on ? C.rust : C.lineHard}`,
       }}
     >
       {children}
@@ -82,22 +84,25 @@ type RailStatus = "done" | "current" | "upcoming";
 /**
  * Flat, single-stroke status glyphs for the progress rail below -- the same
  * no-filled-shapes convention as the rest of the app's icons. "Done" and
- * "current" both draw in navy; "upcoming" draws in the same muted tone "No
+ * "current" both draw in ink; "upcoming" draws in the same muted tone "No
  * record" gets elsewhere -- not-yet-reached is a state of the reader's own
- * progress, not a judgment, so it doesn't get the navy treatment.
+ * progress, not a judgment, so it doesn't get the emphasized treatment.
+ * (Was navy before brand-tokens-v2 Phase 2 retired blue from general UI --
+ * navy here just meant "reached/active" vs. muted for "not yet," never a
+ * verdict, so it moves to ink like every other non-judgment marker.)
  */
 function RailIcon({ status }: { status: RailStatus }) {
   if (status === "done") {
     return (
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden style={{ flex: "0 0 14px" }}>
-        <path d="M3 7.2 L6 10.2 L11 4" stroke={C.navy} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M3 7.2 L6 10.2 L11 4" stroke={C.ink} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }
   if (status === "current") {
     return (
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden style={{ flex: "0 0 14px" }}>
-        <circle cx="7" cy="7" r="5.4" stroke={C.navy} strokeWidth="1.6" />
+        <circle cx="7" cy="7" r="5.4" stroke={C.ink} strokeWidth="1.6" />
       </svg>
     );
   }
@@ -339,7 +344,7 @@ export default function StanceCheckView({
               marginLeft: "auto",
               border: 0,
               background: "transparent",
-              color: C.navy,
+              color: C.rust,
               fontSize: 12,
               letterSpacing: "0.06em",
               textTransform: "uppercase",
@@ -386,7 +391,7 @@ export default function StanceCheckView({
               <div
                 style={{
                   padding: "10px 16px",
-                  background: C.slateFill,
+                  background: C.shell,
                   borderBottom: `1px solid ${C.line}`,
                 }}
               >
@@ -809,7 +814,7 @@ function NextActionRow({
         }}
       >
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
-          <path d="M4 2.5L11 8L4 13.5" stroke={C.navy} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M4 2.5L11 8L4 13.5" stroke={C.ink} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
       <span style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
@@ -981,7 +986,7 @@ function StanceSummary({
                   <Kicker size={11}>Your strongest surprise</Kicker>
                   <span style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.5 }}>
                     On <strong>{surprise.issue}</strong>, you matched {PARTY_LABEL[surprise.candidacy.party]}{" "}
-                    <Link href={`/politician/${surprise.candidacy.politicianId}`} style={{ color: C.navy }}>
+                    <Link href={`/politician/${surprise.candidacy.politicianId}`} style={{ color: C.rust }}>
                       {stripPartySuffix(surprise.candidacy.name)}
                     </Link>{" "}
                     — the party you matched with least overall.
