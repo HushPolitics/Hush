@@ -106,7 +106,6 @@ export default function CompareView({
               border: `1px solid ${C.lineHard}`,
               borderRadius: 8,
               background: C.white,
-              fontFamily: cond,
               fontSize: 19,
               letterSpacing: "0.1em",
               outline: "none",
@@ -306,7 +305,6 @@ export default function CompareView({
                     borderRadius: 6,
                     background: C.white,
                     padding: "5px 6px",
-                    fontFamily: cond,
                     fontSize: 15,
                     color: C.ink,
                   }}
@@ -368,7 +366,7 @@ function Row({
       >
         <span
           style={{
-            fontFamily: cond,
+            fontWeight: 600,
             fontSize: 14,
             letterSpacing: "0.04em",
             textTransform: "uppercase",
