@@ -3,22 +3,22 @@
 /* Hush design tokens. The canvas design is light-only by intent: it is a
    reading surface for public records, and the cream ground is load-bearing. */
 :root {
-  /* Brand-kit token swap (brand-tokens-v1) -- keep in sync with the C object
-     in src/lib/theme.ts, which these mirror. Several hover states below
-     (.btn-ink:hover, .link-quiet:hover) read var(--navy) directly rather
-     than going through theme.ts, so this block has to move whenever that
-     one does. */
-  --ink: #14110c;
-  --body: #3d3629;
-  --muted: #8c8477;
-  --cream: #fffdf9;
-  --sand: #efe8da;
-  --sand-deep: #f4efe4;
-  --shell: #efe8da;
-  --rust: #9c3f32;
-  --navy: #2f4a6b;
-  --tan: #b5a88a;
-  --line: rgba(20, 17, 12, 0.12);
+  /* Brand-kit token swap (brand-tokens-v2) -- keep in sync with the C
+     object in src/lib/theme.ts, which these mirror. Several hover states
+     below (.btn-ink:hover, .link-quiet:hover) read var(--navy) directly
+     rather than going through theme.ts, so this block has to move
+     whenever that one does. */
+  --ink: #1c1917;
+  --body: #1c1917;
+  --muted: #8a8578;
+  --cream: #f7f3ec;
+  --sand: #e2ded8;
+  --sand-deep: #e9e5de;
+  --shell: #e2ded8;
+  --rust: #e4572e;
+  --navy: #7b93b0;
+  --tan: #a9a296;
+  --line: rgba(28, 25, 23, 0.12);
   color-scheme: light;
 }
 
@@ -60,7 +60,7 @@ select {
 }
 
 input::placeholder {
-  color: #aaa293;
+  color: #a9a296;
 }
 
 /* Scroll container used by the app shell's main pane. */
@@ -86,7 +86,7 @@ input::placeholder {
 }
 
 .row-hover:hover {
-  background: var(--hover, #f4efe4);
+  background: var(--hover, #e9e5de);
 }
 
 .card-hover:hover {
@@ -99,19 +99,23 @@ input::placeholder {
 }
 
 .btn-rust:hover {
-  background: #b44a3b !important;
+  background: #b0524a !important;
 }
 
-/* Landing page CTA buttons only (LandingHero.tsx) -- bright highlighter
-   orange, the same peak color as the headline's marker-slab device, not the
-   shared `.btn-rust` class used everywhere else in the app. Darkened on
-   hover rather than lightened -- the base color is already near-maximum
-   brightness/saturation, so lightening it further would blow out instead of
-   reading as a hover state. Black text (set inline in LandingHero.tsx)
-   stays black on hover too: #E65D00 vs black still clears ~5.9:1, comfortably
-   above the 4.5:1 text bar. */
+/* Landing page CTA buttons only (LandingHero.tsx) -- previously the bright
+   highlighter orange; `highlighter`/`highlighterHover` are now deprecated
+   aliases for `rust`/`rustHover` (brand-tokens-v2), so this hover state
+   uses the literal new rustHover ("Muted Red") value to stay in sync with
+   what C.highlighterHover now resolves to.
+   IMPORTANT -- contrast changed with this color: black text (set inline in
+   LandingHero.tsx per this comment) only clears ~4.15:1 against #B0524A,
+   which FAILS the 4.5:1 AA text bar (the old #E65D00 cleared ~5.9:1, which
+   is why black text was chosen originally). White text clears ~5.06:1 and
+   passes. LandingHero.tsx's inline black-on-hover style needs to change to
+   white -- flagged here, not fixed in this pass since it's a component-level
+   style, not a token value; see brand-tokens-v2 Phase 1 doc. */
 .btn-highlighter:hover {
-  background: #e65d00 !important;
+  background: #b0524a !important;
 }
 
 /* Landing page CTA: it's an <a>, and the global `a:hover` rule above adds an

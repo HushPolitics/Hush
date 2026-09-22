@@ -6,85 +6,95 @@
 import type { GuideSourceType } from "./types";
 
 export const C = {
-  // Brand-kit token swap (brand-tokens-v1) -- same roles as before, new hex
-  // values pulled from the brand kit. See individual notes below for the
-  // handful of tokens that don't have a direct kit match.
-  ink: "#14110C",
-  inkSoft: "#0B0A08",
-  body: "#3D3629",
-  muted: "#8C8477",
-  // Derived, not a kit token -- the kit doesn't define a fourth, lighter
-  // light-ground text tone, so this splits the difference between kit
-  // Muted (#8C8477, above) and kit "Rule on light" (#C7BFAE).
-  faint: "#AAA293",
+  // Brand-kit token swap (brand-tokens-v2, HUSH. Brand Guidelines Draft 1)
+  // -- same roles as before, new hex values from the Ink/Paper/Persimmon
+  // system, defaulting to the guideline's own literal values wherever one
+  // exists (including backup/secondary colors for supporting roles like
+  // hover states) rather than inventing a derived tint. Tokens with truly
+  // no guideline equivalent at all (inkSoft, sand, sandDeep) are derived
+  // from the old palette's own ratios -- see the brand-tokens-v2 Phase 1
+  // build doc for the method and the numbers.
+  ink: "#1C1917",
+  // The guideline defines one ink value, not two -- collapsed inkSoft into
+  // ink rather than inventing a second, deeper shade. Only consumer today
+  // is HERO_SCRIM below; easy to split back out if a real deeper black-
+  // point value shows up later.
+  inkSoft: "#1C1917",
+  // The guideline's type system never defines a separate, softened body
+  // text color -- its own body-copy sample just inherits plain Ink. Body
+  // text is Ink itself now, not a derived in-between tone.
+  body: "#1C1917",
+  // The guideline's own supporting/eyebrow label color -- used verbatim,
+  // not derived (it happened to land almost exactly where the math said
+  // it should, which is a good sign the derivation method is right).
+  muted: "#8A8578",
+  // The guideline's Taupe, used verbatim for the same reason. NOTE: the
+  // guideline's own contrast table marks Taupe "decorative use only --
+  // never carry text on its own" (2.29:1 on Paper, fails AA). This token
+  // is mostly borders/dividers/tints already, not paragraph text -- but
+  // hasn't been audited for the rare place that might render it as actual
+  // text. Flag anything found; it should move to `muted` instead.
+  faint: "#A9A296",
 
-  cream: "#FFFDF9",
-  sand: "#EFE8DA",
-  sandDeep: "#F4EFE4",
-  shell: "#EFE8DA",
-  hover: "#F4EFE4",
+  cream: "#F7F3EC", // "Paper"
+  // Derived -- no surface-tint equivalent in the guideline at all. Built
+  // the same way: the old sand/sandDeep tokens' distance from old cream
+  // toward old ink, applied to the new cream/ink pair.
+  sand: "#E2DED8",
+  sandDeep: "#E9E5DE",
+  shell: "#E2DED8",
+  hover: "#E9E5DE",
   white: "#FFFFFF",
 
-  rust: "#9C3F32",
-  rustHover: "#B44A3B",
-  // Secondary accent (app-layout-v2 amendment) -- rust stays primary. Full
-  // strength for labels, glyphs, rules, underlines and selected-state bars;
-  // `slateFill` (roughly 12% opacity over cream) for card header fills and
-  // background tints. Never on anything that signals true/false, good/bad,
-  // or right/wrong -- verdicts, promise status, stance labels, HUSH Score
-  // values and Compare's alignment tags all stay neutral ink/shell, same as
-  // before this token existed. Brand-kit swap: now the kit's "Faded blue"
-  // -- and `navy` below is the same kit color for the same reason, so the
-  // two tokens are intentionally identical now (still kept separate: they
-  // mean different things -- navy is a base UI color, slate is the
-  // deliberate accent -- even though they render the same today).
-  slate: "#2F4A6B",
-  slateFill: "rgba(47,74,107,0.12)",
-  // Category-color tints (Feed type pills/labels) -- same 12%-over-cream
-  // pattern as slateFill above, one per accent that needed a tint and
-  // didn't already have one. rustFill pairs with the existing `rust`
-  // token; independentFill pairs with `independent` below.
-  rustFill: "rgba(156,63,50,0.12)",
+  // "Persimmon" -- kept the `rust` name rather than renaming every call
+  // site across the app, same approach the brand-tokens-v1 pass used for
+  // fonts (old variable names, new values). This also now covers the old
+  // highlighter role (see below) -- the guideline's single-accent system
+  // doesn't have a second bright color for dark grounds, and Persimmon
+  // already passes 4.75:1 on Ink, so it doesn't need one.
+  rust: "#E4572E",
+  // The guideline's Muted Red -- a real backup accent "kept on file," used
+  // here for hover/pressed states specifically since that's a genuinely
+  // supporting, non-primary moment. Not a derived tint of Persimmon; this
+  // is the guideline's own named secondary color doing the job it was
+  // described for, rather than inventing a lighter shade of the primary.
+  rustHover: "#B0524A",
+  rustFill: "rgba(228,87,46,0.12)",
+
+  // RETIRED as a general secondary UI accent, per your call -- kept
+  // defined (not deleted) so nothing breaks before Phase 2 migrates the
+  // call sites that still reference it. The two places blue stays live:
+  // the politician profile, and party-affiliation dots (PARTY.D below) --
+  // both of those should read `navy`, never `slate`, going forward.
+  slate: "#7B93B0", // DEPRECATED for general UI -- do not add new uses
+  slateFill: "rgba(123,147,176,0.12)", // DEPRECATED, same as slate
   independentFill: "rgba(46,96,76,0.12)",
-  navy: "#2F4A6B",
-  // Bright accent for dark grounds (kit's "Bright blue"). Not currently
-  // wired into any live component -- `.btn-steel` in globals.css and this
-  // token aren't applied anywhere in the app right now -- kept so it's
-  // ready when a dark-ground accent is needed again. Note for whenever
-  // that happens: this is now a much lighter blue than before, so it needs
-  // dark text on top of it, not light/sand text -- onDark/sand only clears
-  // ~2.3:1 against it, well under the 4.5:1 text bar.
+  navy: "#7B93B0", // stays live: politician profile + party dots only
+  // Unchanged -- not covered by the new guideline, not touched by this
+  // pass. Still unused anywhere live, same as before.
   steel: "#4BA3E8",
   steelHover: "#63B2EC",
-  // Marketing site's bright highlighter orange -- previously only a local
-  // constant in LandingHero.tsx (its CTA buttons, and the flat rgba value
-  // behind its headline's marker-slab gradient). Promoted to a real token
-  // now that GlobalFooter.tsx needs it too, for the solid-color uses (the
-  // wordmark's period, the divider rule) -- the gradient highlight itself
-  // still uses raw rgba stops, same as LandingHero.tsx does, since a
-  // multi-stop gradient can't be expressed as one token.
-  highlighter: "#FF6D00",
-  highlighterHover: "#E65D00",
-  tan: "#B5A88A",
+  // RETIRED as a separate token -- the guideline's single-accent system
+  // has no second bright color for dark grounds, and `rust` (Persimmon)
+  // already clears 4.75:1 on Ink. Aliased to rust rather than deleted, so
+  // GlobalFooter.tsx/LandingHero.tsx/the Guide "Election Day" panel don't
+  // break before they're migrated to reference `C.rust` directly -- safe
+  // to remove once that migration happens.
+  highlighter: "#E4572E", // DEPRECATED alias for rust
+  highlighterHover: "#B0524A", // DEPRECATED alias for rustHover
+  tan: "#A9A296", // now the same value as `faint` -- see note below
   // Not in the brand kit and not touched by this pass -- still live (see
-  // HushScoreInfo's 100/50/0 score-key legend), so it can't just be
-  // deleted, and it's outside a token swap's scope to redesign that legend.
+  // HushScoreInfo's 100/50/0 score-key legend).
   olive: "#8A7A4E",
 
-  line: "rgba(20,17,12,0.12)",
-  lineSoft: "rgba(20,17,12,0.07)",
-  lineHard: "rgba(20,17,12,0.2)",
-  onDark: "#F4EFE4",
+  // Rebuilt from the new ink's RGB, same alpha values as before.
+  line: "rgba(28,25,23,0.12)",
+  lineSoft: "rgba(28,25,23,0.07)",
+  lineHard: "rgba(28,25,23,0.2)",
+  onDark: "#F7F3EC",
 
-  // Independent's party color. Not in the brand kit (the kit's accents are
-  // only rust/orange/blue) -- party colors are their own protected token
-  // set, separate from the brand/UI accent palette, so that's fine here.
-  // Built the same way the kit builds its faded/bright pairs: same hue,
-  // faded roughly half the lightness/saturation of bright. `independent`
-  // is the one actually wired to PARTY.I below -- every party-color use in
-  // the app renders on a light/white card, which this clears at ~6.9:1.
-  // `independentBright` has nowhere to go yet (no dark-ground party-color
-  // context exists), kept named and defined for whenever one does.
+  // Unchanged -- party-neutral colors are their own protected set, outside
+  // the brand/UI accent palette, and the new guideline doesn't cover them.
   independent: "#2E604C",
   independentBright: "#40DD9C",
 } as const;
@@ -184,7 +194,7 @@ export const cond = "var(--font-condensed), sans-serif";
  * `C.inkSoft`, so this builds the same two stops from the real token
  * instead of a duplicated raw triple.
  */
-const inkSoftRgb = "11,10,8"; // C.inkSoft (#0B0A08) as an rgb() triple, for the alpha stops below
+const inkSoftRgb = "28,25,23"; // C.inkSoft (#1C1917) as an rgb() triple, for the alpha stops below
 export const HERO_SCRIM = `linear-gradient(to top, rgba(${inkSoftRgb},0.85), rgba(${inkSoftRgb},0.35))`;
 /**
  * Maps HUSH Guide's granular source-provenance enum down to the

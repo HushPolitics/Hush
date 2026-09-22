@@ -1,37 +1,42 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Archivo_Black, Inter, IBM_Plex_Mono } from "next/font/google";
 import { PrefsProvider } from "@/lib/prefs";
 import { C } from "@/lib/theme";
 import "./globals.css";
 
-// Brand-kit token swap (brand-tokens-v1): Geist replaces Barlow/Barlow
-// Condensed. The CSS variable names stay --font-barlow/--font-condensed on
-// purpose -- every component that already reads them, including theme.ts's
-// `cond` export used everywhere for display type, keeps working untouched.
-// Renaming the variables would mean finding and updating every call site
-// for no real benefit; repointing them here is the surgical version.
-// Weights are widened to 700/800/900 to cover the kit's type scale, which
-// uses 900 for display/section heads and 800 for card heads -- both
-// heavier than anything Barlow Condensed was loading before. Without these,
-// headline-scale text renders as a browser-synthesized fake bold instead of
-// the real heavy cut.
-const barlow = Geist({
+// Brand-kit token swap (brand-tokens-v2, HUSH. Brand Guidelines Draft 1).
+// Same surgical approach as the v1 pass: CSS variable names stay
+// --font-barlow/--font-condensed/--font-mono so no call site needs to
+// change just because the underlying font changed.
+//
+// Role split narrows here versus before: --font-condensed (theme.ts's
+// `cond` export) is now Archivo Black, reserved for real display headlines
+// and the wordmark only -- NOT the broad "every uppercase label/tag/button"
+// role `cond` played before. That migration is Phase 3, not this file.
+// --font-barlow (body text, and now also small UI labels at a semibold
+// weight per your call) is Inter. --font-mono, loaded but unused since the
+// v1 pass, is now IBM Plex Mono -- reserved for sourcing/citations only.
+const barlow = Inter({
   subsets: ["latin"],
-  weight: ["400", "700", "800", "900"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-barlow",
   display: "swap",
 });
 
-const barlowCondensed = Geist({
+// Archivo Black ships as a single cut (no weight variants -- it's a
+// display-only face, the same way Barlow Condensed's heaviest weight was
+// used for headlines before). Requesting anything other than "400" here
+// will error; the font itself renders as visually black/900 regardless.
+const barlowCondensed = Archivo_Black({
   subsets: ["latin"],
-  weight: ["400", "700", "800", "900"],
+  weight: ["400"],
   variable: "--font-condensed",
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = IBM_Plex_Mono({
   subsets: ["latin"],
-  weight: ["400", "600"],
+  weight: ["400", "500", "600"],
   variable: "--font-mono",
   display: "swap",
 });
