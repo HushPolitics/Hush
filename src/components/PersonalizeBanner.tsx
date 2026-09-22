@@ -49,7 +49,7 @@ export default function PersonalizeBanner() {
           fontSize: 12,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: C.navy,
+          color: C.rust,
           whiteSpace: "nowrap",
         }}
       >
