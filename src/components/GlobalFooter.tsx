@@ -32,7 +32,7 @@ export default function GlobalFooter() {
         {/* Statement -- one flowing line; wraps naturally rather than being
             forced with nowrap, so it never overflows at an in-between
             desktop width. */}
-        <p style={{ margin: 0, flex: 1, minWidth: 0, fontFamily: cond, fontWeight: 400, fontSize: 15, lineHeight: 1.4, color: C.onDark }}>
+        <p style={{ margin: 0, flex: 1, minWidth: 0, fontWeight: 400, fontSize: 15, lineHeight: 1.4, color: C.onDark }}>
           Don&apos;t let anyone tell you how to vote.{" "}
           <span
             style={{
@@ -55,7 +55,7 @@ export default function GlobalFooter() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "0 0 auto" }}>
           <span aria-hidden style={{ width: 28, height: 2, background: C.highlighter, flex: "0 0 28px" }} />
           <span
-            style={{ fontFamily: cond, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: C.tan, whiteSpace: "nowrap" }}
+            style={{ fontWeight: 600, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: C.tan, whiteSpace: "nowrap" }}
           >
             Facts. Sources. Your Decision.
           </span>
