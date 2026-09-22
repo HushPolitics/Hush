@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { C, cond } from "@/lib/theme";
+import { C } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle } from "@/lib/guide";
 import type { IssuePosition, Politician, Race } from "@/lib/types";
@@ -167,7 +167,7 @@ function CandidatePositionCard({
         minWidth: 0,
       }}
     >
-      <span style={{ fontFamily: cond, fontSize: 16, lineHeight: 1.2 }}>{name}</span>
+      <span style={{ fontSize: 16, lineHeight: 1.2 }}>{name}</span>
 
       {position ? (
         <>
