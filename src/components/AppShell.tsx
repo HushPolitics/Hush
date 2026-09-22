@@ -327,7 +327,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               height: 32,
               borderRadius: 8,
               border: 0,
-              background: C.navy,
+              background: C.ink,
               color: C.white,
               display: "flex",
               alignItems: "center",
