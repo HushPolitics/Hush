@@ -100,7 +100,7 @@ export default function PoliticianView({
         >
           <span
             style={{
-              fontFamily: cond,
+              fontWeight: 600,
               fontSize: 12,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
@@ -291,7 +291,7 @@ export default function PoliticianView({
                 gap: 12,
                 padding: "10px 18px",
                 borderBottom: `1px solid ${C.line}`,
-                fontFamily: cond,
+                fontWeight: 600,
                 fontSize: 11,
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
@@ -350,7 +350,6 @@ export default function PoliticianView({
                       </span>
                       <span
                         style={{
-                          fontFamily: cond,
                           fontSize: 15,
                           color: fill,
                           width: 34,
@@ -418,7 +417,7 @@ export default function PoliticianView({
                   >
                     <span
                       style={{
-                        fontFamily: cond,
+                        fontWeight: 600,
                         fontSize: 15,
                         letterSpacing: "0.04em",
                         textTransform: "uppercase",
@@ -441,7 +440,7 @@ export default function PoliticianView({
                       </div>
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                        <span style={{ fontFamily: cond, fontSize: 13, color: C.ink }}>
+                        <span style={{ fontSize: 13, color: C.ink }}>
                           No public position found
                         </span>
                         <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.4 }}>
