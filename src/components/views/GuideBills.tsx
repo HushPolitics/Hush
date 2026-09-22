@@ -82,9 +82,8 @@ function ChamberPill({ children, accent }: { children: ReactNode; accent: { fg: 
   return (
     <span
       style={{
-        fontFamily: cond,
-        fontSize: 10.5,
         fontWeight: 600,
+        fontSize: 10.5,
         letterSpacing: "0.05em",
         textTransform: "uppercase",
         color: accent.fg,
@@ -168,7 +167,6 @@ function BillCard({ bill }: { bill: Bill }) {
             ) : null}
             <span
               style={{
-                fontFamily: cond,
                 fontSize: 13,
                 fontWeight: 600,
                 letterSpacing: "0.04em",
@@ -200,7 +198,6 @@ function BillCard({ bill }: { bill: Bill }) {
         >
           <span
             style={{
-              fontFamily: cond,
               fontSize: 12,
               letterSpacing: "0.04em",
               color: C.rust,
@@ -233,7 +230,7 @@ function BillCard({ bill }: { bill: Bill }) {
 
               {bill.yesMeans ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  <span style={{ fontFamily: cond, fontSize: 13, color: C.ink }}>
+                  <span style={{ fontSize: 13, color: C.ink }}>
                     A YES vote would:
                   </span>
                   <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 3 }}>
@@ -248,7 +245,7 @@ function BillCard({ bill }: { bill: Bill }) {
 
               {bill.noMeans ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  <span style={{ fontFamily: cond, fontSize: 13, color: C.rust }}>
+                  <span style={{ fontSize: 13, color: C.rust }}>
                     A NO vote would:
                   </span>
                   <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 3 }}>
