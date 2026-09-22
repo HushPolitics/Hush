@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { C, VERDICT_STYLE, cond } from "@/lib/theme";
+import { C, VERDICT_STYLE } from "@/lib/theme";
 import type { FactCheck } from "@/lib/types";
 import { Kicker } from "@/components/ui";
 
@@ -53,7 +53,7 @@ export function FactCheckCard({
           style={{
             padding: "4px 11px",
             borderRadius: 14,
-            fontFamily: cond,
+            fontWeight: 600,
             fontSize: 11,
             letterSpacing: "0.1em",
             textTransform: "uppercase",

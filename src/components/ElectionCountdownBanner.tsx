@@ -65,7 +65,7 @@ export default function ElectionCountdownBanner() {
       {KEY_DATES.map((k) => (
         <div key={k.label} style={{ display: "flex", flexDirection: "column" }}>
           <span style={{ fontSize: 12, color: C.tan }}>{k.label}</span>
-          <span style={{ fontFamily: cond, fontSize: 19, color: C.sand }}>{k.value}</span>
+          <span style={{ fontSize: 19, color: C.sand }}>{k.value}</span>
         </div>
       ))}
       <RustButton

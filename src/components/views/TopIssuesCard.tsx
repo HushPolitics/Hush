@@ -442,7 +442,7 @@ export function TopIssuesCard({
             {showEditLink ? (
               <Link
                 href="/profile/top-issues"
-                style={{ fontFamily: cond, fontSize: 13, color: C.rust, letterSpacing: "0.02em" }}
+                style={{ fontSize: 13, color: C.rust, letterSpacing: "0.02em" }}
               >
                 Edit Issues →
               </Link>
@@ -462,7 +462,7 @@ export function TopIssuesCard({
             {showEditLink ? (
               <Link
                 href="/profile/top-issues"
-                style={{ marginLeft: "auto", fontFamily: cond, fontSize: 13, color: C.rust, letterSpacing: "0.02em" }}
+                style={{ marginLeft: "auto", fontSize: 13, color: C.rust, letterSpacing: "0.02em" }}
               >
                 Edit Issues →
               </Link>

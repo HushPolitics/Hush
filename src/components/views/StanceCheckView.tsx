@@ -722,12 +722,12 @@ function CandidateCard({
         {known ? (
           <Link
             href={`/politician/${candidacy.politicianId}`}
-            style={{ fontFamily: cond, fontSize: 14, color: C.ink, textDecoration: "none" }}
+            style={{ fontSize: 14, color: C.ink, textDecoration: "none" }}
           >
             {name}
           </Link>
         ) : (
-          <span style={{ fontFamily: cond, fontSize: 14, color: C.body }}>{name}</span>
+          <span style={{ fontSize: 14, color: C.body }}>{name}</span>
         )}
         {partyBadge}
       </div>
@@ -755,7 +755,7 @@ function CandidateCard({
         </>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <span style={{ fontFamily: cond, fontSize: 12, color: C.ink }}>No public position found</span>
+          <span style={{ fontSize: 12, color: C.ink }}>No public position found</span>
           <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
             HUSH couldn&apos;t find a stated position on this issue in the sources we track.
           </span>
@@ -1036,7 +1036,7 @@ function StanceSummary({
                       borderBottom: i < answeredTopics.length - 1 ? `1px solid ${C.line}` : "none",
                     }}
                   >
-                    <span style={{ fontFamily: cond, fontSize: 14, color: C.ink }}>{issueName}</span>
+                    <span style={{ fontSize: 14, color: C.ink }}>{issueName}</span>
                     {issueMatches.length === 0 ? (
                       <span style={{ fontSize: 12, color: C.muted, fontStyle: "italic" }}>
                         No one on your ballot matched you here.

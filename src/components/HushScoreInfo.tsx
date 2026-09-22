@@ -137,7 +137,7 @@ function HushScoreInfoModal({
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <span
             style={{
-              fontFamily: cond,
+              fontWeight: 600,
               fontSize: 13,
               letterSpacing: "0.12em",
               textTransform: "uppercase",

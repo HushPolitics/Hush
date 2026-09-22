@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { C, cond } from "@/lib/theme";
+import { C } from "@/lib/theme";
 import { usePrefs, type EmailPrefs } from "@/lib/prefs";
 import { createClient } from "@/lib/supabase/client";
 import { syncOnboardingToSupabase } from "@/lib/supabase/profile";
@@ -404,7 +404,7 @@ function PrefRow({
         </span>
         <span style={{ fontSize: 13, color: C.ink }}>{value}</span>
       </div>
-      <Link href={href} style={{ fontFamily: cond, fontSize: 13, color: C.rust, whiteSpace: "nowrap" }}>
+      <Link href={href} style={{ fontSize: 13, color: C.rust, whiteSpace: "nowrap" }}>
         {cta}
       </Link>
     </div>
@@ -495,7 +495,7 @@ function PrivacySection() {
         </PrivacyItem>
         <PrivacyItem>You can update or clear any of this any time from this page or the account menu.</PrivacyItem>
       </ul>
-      <Link href="/privacy" style={{ fontFamily: cond, fontSize: 13, color: C.rust }}>
+      <Link href="/privacy" style={{ fontSize: 13, color: C.rust }}>
         Read the full privacy policy →
       </Link>
     </Card>
