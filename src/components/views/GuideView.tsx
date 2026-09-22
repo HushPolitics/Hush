@@ -884,25 +884,25 @@ function GuideAtAGlanceStrip({
         <div
           style={{
             flex: "0 0 220px",
-            background: C.ink,
-            color: C.onDark,
+            background: C.rust,
+            color: C.ink,
             padding: "20px 22px",
             display: "flex",
             flexDirection: "column",
             gap: 10,
           }}
         >
-          <span style={{ fontWeight: 600, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: C.tan }}>
+          <span style={{ fontWeight: 600, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: C.ink }}>
             Election Day
           </span>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontFamily: cond, fontSize: 52, lineHeight: 1, color: C.highlighter }}>
+            <span style={{ fontFamily: cond, fontSize: 52, lineHeight: 1, color: C.ink }}>
               {days === null ? "—" : days}
             </span>
-            <span style={{ fontSize: 13, color: C.onDark }}>Days to go</span>
+            <span style={{ fontSize: 13, color: C.ink }}>Days to go</span>
           </div>
-          <span style={{ height: 1, background: "rgba(244,239,228,0.16)" }} />
-          <span style={{ fontSize: 12, color: C.onDark, lineHeight: 1.4 }}>{electionDate}</span>
+          <span style={{ height: 1, background: "rgba(28,25,23,0.16)" }} />
+          <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.4 }}>{electionDate}</span>
         </div>
 
         {/* Key dates */}
@@ -1003,25 +1003,6 @@ function GuideAtAGlanceStrip({
         </div>
       </div>
 
-      {/* Closing signature -- copy is a placeholder, see the note above */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-          padding: "12px 20px",
-          borderTop: `1px solid ${C.line}`,
-          background: C.shell,
-        }}
-      >
-        <span style={{ fontSize: 13, fontStyle: "italic", color: C.body }}>
-          &ldquo;An informed voter is a more powerful voter.&rdquo;
-        </span>
-        <span style={{ height: 1, flex: 1, background: C.line }} />
-        <span style={{ fontWeight: 600, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: C.tan, whiteSpace: "nowrap" }}>
-          Facts. Sources. Your Decision.
-        </span>
-      </div>
     </Card>
   );
 }
