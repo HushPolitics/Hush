@@ -84,7 +84,7 @@ export default function ResetPasswordForm() {
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.body }}>
           This reset link is invalid or has expired.
         </p>
-        <Link href="/login" style={{ fontSize: 13, color: C.navy }}>
+        <Link href="/login" style={{ fontSize: 13, color: C.rust }}>
           Back to sign in
         </Link>
       </div>
@@ -92,7 +92,7 @@ export default function ResetPasswordForm() {
   }
 
   if (status === "done") {
-    return <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.navy }}>{message}</p>;
+    return <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.ink }}>{message}</p>;
   }
 
   return (
