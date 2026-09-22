@@ -69,12 +69,14 @@ function chamberPillLabel(chamber: string): string {
 }
 
 /**
- * Jurisdiction tag is always this same faded-blue treatment now -- rust is
- * reserved for the CTA only, not for telling federal and state/local bills
- * apart. (Previously `chamberAccent()` gave federal bills the rust accent
- * and state/local bills slate; that split is gone.)
+ * Jurisdiction tag is always this same neutral ink/shell treatment now --
+ * rust is reserved for the CTA only, not for telling federal and state/
+ * local bills apart. (Previously `chamberAccent()` gave federal bills the
+ * rust accent and state/local bills slate; that split is gone. Was itself
+ * a faded-blue treatment before brand-tokens-v2 Phase 2 retired blue from
+ * general UI.)
  */
-const JURISDICTION_ACCENT = { fg: C.navy, bg: C.slateFill };
+const JURISDICTION_ACCENT = { fg: C.ink, bg: C.shell };
 
 function ChamberPill({ children, accent }: { children: ReactNode; accent: { fg: string; bg: string } }) {
   return (
@@ -201,7 +203,7 @@ function BillCard({ bill }: { bill: Bill }) {
               fontFamily: cond,
               fontSize: 12,
               letterSpacing: "0.04em",
-              color: C.navy,
+              color: C.rust,
             }}
           >
             ← Tap to flip back
@@ -231,7 +233,7 @@ function BillCard({ bill }: { bill: Bill }) {
 
               {bill.yesMeans ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                  <span style={{ fontFamily: cond, fontSize: 13, color: C.navy }}>
+                  <span style={{ fontFamily: cond, fontSize: 13, color: C.ink }}>
                     A YES vote would:
                   </span>
                   <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 3 }}>
@@ -283,7 +285,7 @@ function BillCard({ bill }: { bill: Bill }) {
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              style={{ fontSize: 12, color: C.navy, marginTop: 2 }}
+              style={{ fontSize: 12, color: C.rust, marginTop: 2 }}
             >
               View Original Bill →
             </a>
