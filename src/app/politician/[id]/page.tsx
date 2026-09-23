@@ -2,7 +2,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PoliticianView from "@/components/views/PoliticianView";
-import { factChecksFor, getPolitician, guidePositions, listPoliticians, politicianExists } from "@/lib/repo";
+import {
+  factChecksFor,
+  getFundingSummary,
+  getPolitician,
+  guidePositions,
+  listPoliticians,
+  politicianExists,
+} from "@/lib/repo";
 
 export function generateStaticParams() {
   return listPoliticians().map((p) => ({ id: p.id }));
@@ -30,6 +37,7 @@ export default async function PoliticianPage({
   const { id } = await params;
   if (!politicianExists(id)) notFound();
   const p = getPolitician(id);
+  const funding = await getFundingSummary(id);
 
   return (
     <AppShell>
@@ -37,6 +45,7 @@ export default async function PoliticianPage({
         politician={p}
         checks={factChecksFor(id)}
         positions={guidePositions()[id] ?? {}}
+        funding={funding}
       />
     </AppShell>
   );
