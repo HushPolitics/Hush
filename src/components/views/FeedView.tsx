@@ -58,30 +58,35 @@ const TYPE_FILTERS: { value: TypeFilter; label: string }[] = [
 const TYPE_RAIL_WIDTH = 210;
 
 /**
- * Category color per event type -- rust for the legislative record (what
- * officials actually did), everything else neutral. Blue previously marked
- * sourced/evidentiary material (fact-checks, positions, articles) as its
- * own category; retired per the brand-tokens-v2 blue-retirement call, so
- * that distinction is gone -- those three types are now ink/shell like any
- * other non-primary content, told apart by icon and label, not color.
- * Green still marks civic logistics. `score` and `promise` are deliberately
- * absent -- those stay neutral, same as STATUS_STYLE.
+ * Category color per event type -- deliberately the same for every type.
+ * An earlier pass used rust for the legislative record (Vote, Bills) and
+ * green for civic logistics (Election Update), with everything else
+ * neutral; that distinction is gone now by design, so event type reads
+ * entirely from icon + label, never color. `score` and `promise` are
+ * listed explicitly (rather than left absent to fall back to a default)
+ * so every type -- including the two that don't otherwise appear in this
+ * map -- renders through the exact same values, with nothing depending on
+ * a fallback matching by coincidence.
  */
 const TYPE_COLOR: Partial<Record<FeedEvent["type"], string>> = {
-  vote: C.rust,
-  bill: C.rust,
+  vote: C.ink,
+  bill: C.ink,
   factcheck: C.ink,
   position: C.ink,
   article: C.ink,
-  electionUpdate: C.independent,
+  electionUpdate: C.ink,
+  score: C.ink,
+  promise: C.ink,
 };
 const TYPE_FILL: Partial<Record<FeedEvent["type"], string>> = {
-  vote: C.rustFill,
-  bill: C.rustFill,
+  vote: C.shell,
+  bill: C.shell,
   factcheck: C.shell,
   position: C.shell,
   article: C.shell,
-  electionUpdate: C.independentFill,
+  electionUpdate: C.shell,
+  score: C.shell,
+  promise: C.shell,
 };
 
 function typeLabel(t: FeedEvent["type"]): string {
