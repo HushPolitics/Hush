@@ -15,29 +15,10 @@ import {
   stripPartySuffix,
   topRankedIssueForRace,
 } from "@/lib/guide";
-import { useRegisterRailFooter, useRegisterSectionNav } from "@/lib/sectionNav";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, ExpandableQuote, GhostButton, Kicker, RustButton } from "@/components/ui";
 import RepresentativesCard from "@/components/RepresentativesCard";
 import { BillsSection } from "./GuideBills";
-
-/**
- * HUSH Guide's section-nav list, in the sidebar contextual-nav brief's
- * specified order. Kept in sync by hand with `GUIDE_LEAD` below -- races
- * lead here to match `GUIDE_LEAD = "races"`'s DOM order; if that flag is
- * flipped back to "bills", swap these two entries back as well.
- *
- * "Your address" isn't in this list -- app-layout-v2 phase 2 moved it out
- * of the jump list entirely and into the rail's footer (see
- * `useRegisterRailFooter` below), since it's a short standing fact about
- * the reader rather than a section of the page to scroll to.
- */
-const GUIDE_SECTIONS = [
-  { id: "issues", label: "Your issues" },
-  { id: "voting", label: "Voting information" },
-  { id: "races", label: "Your races" },
-  { id: "bills", label: "Bills being considered" },
-];
 
 const fieldStyle = {
   padding: "11px 14px",
@@ -384,9 +365,7 @@ export function IssuesStep({
  * the page has) or the race grid (the ballot itself). Legislation leads by
  * default; flip this to "races" for the final weeks before an election,
  * when the ballot should take priority over what's moving in the
- * legislature. This controls the DOM order in the main column only --
- * `GUIDE_SECTIONS` above holds the matching sidebar order by hand, so
- * flip both together.
+ * legislature.
  */
 const GUIDE_LEAD: "bills" | "races" = "races";
 
@@ -406,7 +385,7 @@ function TileGrid({
   onEditIssues: () => void;
 }) {
   const router = useRouter();
-  const { streetAddress, city, state, zip, topics, polling } = usePrefs();
+  const { topics, polling } = usePrefs();
   const knownIds = new Set(politicians.map((p) => p.id));
   const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
   const ballotPoliticians = useMemo(
@@ -414,32 +393,17 @@ function TileGrid({
     [politicians, ballotIds],
   );
 
-  // Only registered while the grid is actually showing -- address/issues
-  // onboarding steps render a different `Step` entirely (see GuideView's
-  // top-level switch), so there's nothing to jump to from the sidebar then.
-  useRegisterSectionNav(GUIDE_SECTIONS);
-
-  // Phase 2 moved the address out of the jump list and into the rail's own
-  // footer -- a short standing fact about the reader, not a section to
-  // scroll to. Memoized on the fields it actually depends on so the rail
-  // doesn't re-register on every unrelated render.
-  const addressFooter = useMemo(
-    () => (
-      <AddressRailFooter
-        streetAddress={streetAddress}
-        city={city}
-        state={state}
-        zip={zip}
-        onEdit={onEditAddress}
-      />
-    ),
-    [streetAddress, city, state, zip, onEditAddress],
-  );
-  useRegisterRailFooter(addressFooter);
-
   return (
     <>
       <GuideHero />
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <Display size={25}>Straight from the candidates, not from us</Display>
+        <span style={{ fontSize: 13, color: C.body, maxWidth: 640, lineHeight: 1.5 }}>
+          Each candidate&apos;s own words on your issues, unfiltered — so you can decide who earns your
+          vote.
+        </span>
+      </div>
 
       <GuideAtAGlanceStrip races={races} polling={polling} onEditAddress={onEditAddress} />
 
@@ -522,9 +486,7 @@ function TileGrid({
             </div>
           </Card>
 
-          <div style={{ flex: 1, minWidth: 240 }}>
-            <RepresentativesCard politicians={ballotPoliticians} />
-          </div>
+          <RepresentativesCard politicians={ballotPoliticians} style={{ flex: 1, minWidth: 240 }} />
         </div>
 
         <VotingInformationSection polling={polling} />
@@ -679,7 +641,7 @@ function TileGrid({
 }
 
 // ---------------------------------------------------------------------------
-// Phase 2 additions -- hero banner, rail-footer address, Voting Information
+// Phase 2 additions -- hero banner, Voting Information
 // ---------------------------------------------------------------------------
 
 /**
@@ -732,64 +694,6 @@ function GuideHero() {
           Your ballot, by the issues you picked
         </Display>
       </div>
-    </div>
-  );
-}
-
-/**
- * The rail-footer address readout -- see GUIDE_SECTIONS' doc comment and
- * AppShell's `railFooter` slot. Deliberately plain: a standing fact plus one
- * edit action, not a card, since it's rendered inside the rail's own
- * `<aside>` padding rather than the main content column.
- */
-function AddressRailFooter({
-  streetAddress,
-  city,
-  state,
-  zip,
-  onEdit,
-}: {
-  streetAddress: string;
-  city: string;
-  state: string;
-  zip: string;
-  onEdit: () => void;
-}) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 4,
-        padding: "10px 10px 4px",
-        marginTop: 6,
-        borderTop: `1px solid ${C.line}`,
-      }}
-    >
-      <span style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-        Address
-      </span>
-      <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.4 }}>
-        {streetAddress ? `${streetAddress}, ` : ""}
-        {city}, {state} {zip}
-      </span>
-      <button
-        type="button"
-        onClick={onEdit}
-        style={{
-          alignSelf: "flex-start",
-          border: 0,
-          background: "transparent",
-          color: C.rust,
-          fontSize: 11,
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          cursor: "pointer",
-          padding: 0,
-        }}
-      >
-        Edit address
-      </button>
     </div>
   );
 }
