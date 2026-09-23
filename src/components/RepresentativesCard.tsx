@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { C, PARTY } from "@/lib/theme";
 import { Card, Kicker } from "@/components/ui";
 import type { Politician } from "@/lib/types";
@@ -19,13 +20,15 @@ import type { Politician } from "@/lib/types";
 export default function RepresentativesCard({
   politicians,
   limit = 4,
+  style,
 }: {
   politicians: Politician[];
   limit?: number;
+  style?: CSSProperties;
 }) {
   const shown = politicians.slice(0, limit);
   return (
-    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+    <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8, ...style }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <Kicker>Your Representatives</Kicker>
         <Link
