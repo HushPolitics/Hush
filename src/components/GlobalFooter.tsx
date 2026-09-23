@@ -9,7 +9,7 @@ import { C, cond } from "@/lib/theme";
  * data" bar at the very bottom of AppShell -- that one lives outside the
  * scroll pane and stays pinned on screen at all times.)
  *
- * "Including us." reuses the exact marker-slab highlight treatment
+ * "We HUSH. it." reuses the exact marker-slab highlight treatment
  * LandingHero.tsx uses for "your vote shouldn't be" -- same gradient, same
  * hand-drawn clipPath shape, same rotation, same black-on-orange text (the
  * gradient's peak color only clears ~2.5:1 for light text vs ~7.4:1 for
@@ -26,14 +26,23 @@ export default function GlobalFooter() {
           <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 15, letterSpacing: "0.18em", color: C.onDark }}>
             HUSH
           </span>
-          <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 15, color: C.highlighter }}>.</span>
+          <span
+            aria-hidden
+            style={{
+              display: "inline-block",
+              width: "0.35em",
+              height: "0.35em",
+              marginLeft: "0.08em",
+              background: C.highlighter,
+            }}
+          />
         </span>
 
         {/* Statement -- one flowing line; wraps naturally rather than being
             forced with nowrap, so it never overflows at an in-between
             desktop width. */}
         <p style={{ margin: 0, flex: 1, minWidth: 0, fontWeight: 400, fontSize: 15, lineHeight: 1.4, color: C.onDark }}>
-          Don&apos;t let anyone tell you how to vote.{" "}
+          The noise is intentional.{" "}
           <span
             style={{
               display: "inline-block",
@@ -47,7 +56,7 @@ export default function GlobalFooter() {
               fontWeight: 700,
             }}
           >
-            Including us.
+            We <span style={{ fontFamily: cond, fontWeight: 600, letterSpacing: "0.08em" }}>HUSH</span>. it.
           </span>
         </p>
 
