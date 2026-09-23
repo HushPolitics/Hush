@@ -7,7 +7,8 @@ import { C, GUIDE_SOURCE_KIND, PARTY_LABEL, STATUS_STYLE, cond, progressColor, t
 import { usePrefs } from "@/lib/prefs";
 import { TRUST_WEIGHTS, promiseSplit } from "@/lib/scoring";
 import { useRegisterSectionNav } from "@/lib/sectionNav";
-import type { FactCheck, FundingSummary, IssuePosition, Politician, PromiseStatus } from "@/lib/types";
+import { isCustomCompareEligible } from "@/lib/compare";
+import type { FactCheck, FundingSummary, IssuePosition, Politician, PromiseStatus, StanceCell } from "@/lib/types";
 import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, SourceAttribution } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 import { FactCheckCard } from "./FactCheckView";
@@ -41,6 +42,7 @@ export default function PoliticianView({
   checks,
   positions,
   funding,
+  stances,
 }: {
   politician: Politician;
   checks: FactCheck[];
@@ -48,6 +50,8 @@ export default function PoliticianView({
   positions: Record<string, IssuePosition>;
   /** null when this office has no FEC filing to show -- see FundingSection. */
   funding: FundingSummary | null;
+  /** The Compare stance grid -- issue -> politicianId -> StanceCell -- used only to gate "Compare with…" (see isCustomCompareEligible). */
+  stances: Record<string, Record<string, StanceCell>>;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -71,6 +75,7 @@ export default function PoliticianView({
   const ledgerRows = p.promises.filter((x) => ledgerStatus === "All" || x.status === ledgerStatus);
   const flagship = p.promises[0];
   const flagshipStyle = flagship ? STATUS_STYLE[flagship.status] : null;
+  const compareEligible = isCustomCompareEligible(p, stances);
 
   function compareWith() {
     setPicks([p.id, ...picks.filter((x) => x !== p.id)].slice(0, 3));
@@ -153,7 +158,26 @@ export default function PoliticianView({
           <InkButton type="button" onClick={() => toggleSaved(p.id)}>
             {isSaved ? "Remove from my list" : "Save to my list"}
           </InkButton>
-          <GhostButton onClick={compareWith}>Compare with…</GhostButton>
+          {compareEligible ? (
+            <GhostButton onClick={compareWith}>Compare with…</GhostButton>
+          ) : (
+            <span
+              title={`HUSH needs a full stance record and at least one tracked promise for ${p.name} before offering a comparison.`}
+              style={{
+                padding: 12,
+                borderRadius: 7,
+                border: `1px solid ${C.line}`,
+                fontWeight: 600,
+                fontSize: 14,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                textAlign: "center",
+                color: C.muted,
+              }}
+            >
+              Compare with… (not enough data)
+            </span>
+          )}
         </div>
       </div>
 
@@ -667,10 +691,8 @@ const CONTRIBUTOR_TYPE_LABEL: Record<string, string> = {
  *      total -- "Partial data" badge, still shows what's there.
  *   4. Full data -- latest filing's totals plus its named committee/PAC
  *      contributors, if any were reported.
- * These four states are my own read of the brief's "four-state empty/
- * partial UI spec," not transcribed from an exact spec -- flag anything
- * that should read differently; copy here is expected to move in the
- * cleanup/copy pass.
+ * Copy finalized in the phase-4 cleanup pass -- states 1 and 2 both read as
+ * plain status, not an error, since neither one means anything went wrong.
  */
 function FundingSection({ funding, politicianName }: { funding: FundingSummary | null; politicianName: string }) {
   const header = (
@@ -686,8 +708,8 @@ function FundingSection({ funding, politicianName }: { funding: FundingSummary |
       <section id="funding" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {header}
         <EmptyState>
-          Campaign finance disclosure through the FEC applies to federal candidates. HUSH doesn&apos;t have an FEC
-          filing on record for {politicianName}&apos;s office.
+          Campaign finance disclosure through the FEC only covers federal candidates. HUSH doesn&apos;t have an FEC
+          match for {politicianName}&apos;s office.
         </EmptyState>
       </section>
     );
