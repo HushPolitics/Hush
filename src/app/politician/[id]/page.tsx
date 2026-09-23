@@ -9,6 +9,7 @@ import {
   guidePositions,
   listPoliticians,
   politicianExists,
+  stanceGrid,
 } from "@/lib/repo";
 
 export function generateStaticParams() {
@@ -46,6 +47,7 @@ export default async function PoliticianPage({
         checks={factChecksFor(id)}
         positions={guidePositions()[id] ?? {}}
         funding={funding}
+        stances={stanceGrid()}
       />
     </AppShell>
   );
