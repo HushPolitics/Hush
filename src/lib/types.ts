@@ -102,6 +102,17 @@ export interface Politician {
   career: CareerEntry[];
   /** Dated HUSH Score changes with their reason -- see ScoreChangeEvent. */
   scoreEvents?: ScoreChangeEvent[];
+  /**
+   * FEC candidate ID (e.g. "H8FL04123") -- the bridge between this seed
+   * politician and a row in Supabase's `politicians` table, which is what
+   * `funding_filings`/`funding_contributors` actually key off (see
+   * `getFundingSummary` in repo.ts). Only populated for politicians this
+   * phase covers; absent means "no funding data for this politician," which
+   * is a normal, expected state, not a gap -- most seed politicians never
+   * filed with the FEC (state/local offices aren't federally regulated) and
+   * some federal ones simply haven't been matched yet.
+   */
+  fecCandidateId?: string;
 }
 
 export interface FactCheck {
@@ -305,4 +316,52 @@ export interface ArticleRecord {
   dek: string;
   sourceName: string;
   sourceUrl: string;
+}
+
+/**
+ * One committee/PAC contribution named in a funding filing. Individuals are
+ * never represented here -- see FundingFiling.individualContributionsTotal
+ * and the header comment on 0006_campaign_funding.sql for why.
+ */
+export interface FundingContributor {
+  committeeName: string;
+  amount: number;
+  contributorType: "pac" | "party_committee" | "other_committee";
+}
+
+/** One FEC filing period for a single politician. */
+export interface FundingFiling {
+  id: string;
+  periodLabel: string;
+  coverageStart: string | null;
+  coverageEnd: string | null;
+  totalRaised: number | null;
+  totalSpent: number | null;
+  cashOnHand: number | null;
+  /** Aggregate only -- no individual donor is ever named. */
+  individualContributionsTotal: number | null;
+  filedAt: string | null;
+  sourceUrl: string;
+  contributors: FundingContributor[];
+}
+
+/**
+ * A politician's full funding picture, as `getFundingSummary` resolves it.
+ * `null` (not an empty object) is the "not applicable" case -- no
+ * `fecCandidateId` on record, so there's nothing to have synced. An empty
+ * `filings` array with a non-null summary is the distinct "matched, but
+ * nothing synced yet" case -- the UI must tell these two apart (see
+ * FundingSection's four states).
+ */
+export interface FundingSummary {
+  fecCandidateId: string;
+  filings: FundingFiling[];
+  /**
+   * The latest `updated_at` across this politician's filings, or `null` when
+   * `filings` is empty. Read off the filing rows themselves rather than
+   * `funding_sync_runs` -- that table is operational (service-role only, no
+   * public RLS policy) and carries per-run error detail that has no business
+   * reaching a rendering component.
+   */
+  lastSyncedAt: string | null;
 }
