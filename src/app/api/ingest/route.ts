@@ -15,6 +15,14 @@ export const maxDuration = 300;
  * Only `claim_assess` is implemented here — it is the stage with the real
  * design risk, and having it end-to-end is what makes the rest mechanical.
  * The remaining kinds are declared so the queue shape is settled.
+ *
+ * Campaign funding sync runs as a second, independent branch below the
+ * claim_assess loop rather than as an `ingest_jobs` kind — see the header
+ * comment on 0006_campaign_funding.sql for why it doesn't belong in that
+ * queue (nothing about a funding filing needs the verdict/review-queue gate
+ * `claim_assess` exists for). It tracks its own state in `funding_sync_runs`
+ * and is idempotent within a run window, so hitting this route again before
+ * the next scheduled run is harmless.
  */
 
 const BATCH_SIZE = 5;
@@ -43,11 +51,10 @@ export async function GET(request: NextRequest) {
     .limit(BATCH_SIZE);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (!jobs?.length) return NextResponse.json({ ran: 0 });
 
   const results: { jobId: string; outcome: string }[] = [];
 
-  for (const job of jobs) {
+  for (const job of jobs ?? []) {
     await supabase
       .from("ingest_jobs")
       .update({ state: "running", started_at: new Date().toISOString() })
@@ -74,7 +81,9 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ran: results.length, results });
+  const funding = await runFundingSyncIfDue(supabase);
+
+  return NextResponse.json({ ran: results.length, results, funding });
 }
 
 type ServiceClient = NonNullable<ReturnType<typeof createServiceClient>>;
@@ -197,4 +206,236 @@ async function runClaimAssess(supabase: ServiceClient, claimId: string): Promise
   }
 
   return decision.publish ? `published ${winner.verdict}` : `review: ${decision.reason}`;
+}
+
+// ---------------------------------------------------------------------------
+// Campaign funding sync — see 0006_campaign_funding.sql's header comment.
+// ---------------------------------------------------------------------------
+
+const FEC_API_BASE = "https://api.open.fec.gov/v1";
+/** Don't re-hit the FEC API if a sync already succeeded within this window. */
+const FUNDING_SYNC_FRESHNESS_HOURS = 20;
+/** Most recent filings per candidate, newest first. */
+const FILINGS_PER_CANDIDATE = 8;
+
+type CommitteeContributorType = "pac" | "party_committee" | "other_committee";
+
+function entityTypeToContributorType(entityType: string | null | undefined): CommitteeContributorType {
+  if (entityType === "PAC") return "pac";
+  if (entityType === "PTY") return "party_committee";
+  return "other_committee";
+}
+
+/**
+ * Skips the sync entirely if one already succeeded recently — this route can
+ * be hit by the daily cron and by a manual trigger without double-billing
+ * FEC API calls or generating duplicate `funding_sync_runs` rows.
+ */
+async function runFundingSyncIfDue(supabase: ServiceClient) {
+  if (!process.env.FEC_API_KEY) {
+    return { skipped: "FEC_API_KEY not configured" };
+  }
+
+  const cutoff = new Date(Date.now() - FUNDING_SYNC_FRESHNESS_HOURS * 60 * 60 * 1000).toISOString();
+  const { data: recent } = await supabase
+    .from("funding_sync_runs")
+    .select("id")
+    .eq("state", "succeeded")
+    .gte("started_at", cutoff)
+    .limit(1)
+    .maybeSingle();
+
+  if (recent) return { skipped: "synced within freshness window" };
+
+  return runFundingSync(supabase);
+}
+
+async function runFundingSync(supabase: ServiceClient) {
+  const { data: run } = await supabase
+    .from("funding_sync_runs")
+    .insert({ state: "running" })
+    .select("id")
+    .single();
+
+  if (!run) return { error: "could not create funding_sync_runs row" };
+
+  let politiciansChecked = 0;
+  let filingsCreated = 0;
+  let filingsUpdated = 0;
+
+  try {
+    const { data: politicians, error } = await supabase
+      .from("politicians")
+      .select("id, fec_candidate_id")
+      .not("fec_candidate_id", "is", null);
+
+    if (error) throw new Error(error.message);
+
+    for (const politician of politicians ?? []) {
+      politiciansChecked++;
+      const counts = await syncPoliticianFunding(
+        supabase,
+        politician.id as string,
+        politician.fec_candidate_id as string,
+      );
+      filingsCreated += counts.created;
+      filingsUpdated += counts.updated;
+    }
+
+    await supabase
+      .from("funding_sync_runs")
+      .update({
+        state: "succeeded",
+        finished_at: new Date().toISOString(),
+        politicians_checked: politiciansChecked,
+        filings_created: filingsCreated,
+        filings_updated: filingsUpdated,
+      })
+      .eq("id", run.id);
+
+    return { politiciansChecked, filingsCreated, filingsUpdated };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await supabase
+      .from("funding_sync_runs")
+      .update({
+        state: "failed",
+        finished_at: new Date().toISOString(),
+        politicians_checked: politiciansChecked,
+        filings_created: filingsCreated,
+        filings_updated: filingsUpdated,
+        error: message,
+      })
+      .eq("id", run.id);
+    return { error: message };
+  }
+}
+
+async function syncPoliticianFunding(
+  supabase: ServiceClient,
+  politicianRowId: string,
+  fecCandidateId: string,
+): Promise<{ created: number; updated: number }> {
+  const apiKey = process.env.FEC_API_KEY;
+  const url =
+    `${FEC_API_BASE}/candidate/${encodeURIComponent(fecCandidateId)}/filings/` +
+    `?sort=-coverage_end_date&per_page=${FILINGS_PER_CANDIDATE}&api_key=${apiKey}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`FEC filings lookup failed for ${fecCandidateId}: ${res.status}`);
+  const body = (await res.json()) as { results?: FecFiling[] };
+
+  let created = 0;
+  let updated = 0;
+
+  for (const filing of body.results ?? []) {
+    if (!filing.file_number || !filing.coverage_end_date) continue;
+
+    const individualTotal =
+      filing.individual_itemized_contributions != null || filing.individual_unitemized_contributions != null
+        ? (filing.individual_itemized_contributions ?? 0) + (filing.individual_unitemized_contributions ?? 0)
+        : null;
+
+    const { data: existing } = await supabase
+      .from("funding_filings")
+      .select("id")
+      .eq("politician_id", politicianRowId)
+      .eq("fec_filing_id", String(filing.file_number))
+      .maybeSingle();
+
+    const { data: saved, error: upsertError } = await supabase
+      .from("funding_filings")
+      .upsert(
+        {
+          politician_id: politicianRowId,
+          fec_filing_id: String(filing.file_number),
+          period_label: `${filing.report_type_full ?? filing.report_type ?? "Filing"} ${filing.report_year ?? ""}`.trim(),
+          coverage_start: filing.coverage_start_date,
+          coverage_end: filing.coverage_end_date,
+          total_raised: filing.total_receipts ?? null,
+          total_spent: filing.total_disbursements ?? null,
+          cash_on_hand: filing.cash_on_hand_end_period ?? null,
+          individual_contributions_total: individualTotal,
+          filed_at: filing.receipt_date ?? null,
+          source_url: `https://www.fec.gov/data/candidate/${encodeURIComponent(fecCandidateId)}/?tab=filings`,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "politician_id,fec_filing_id" },
+      )
+      .select("id")
+      .single();
+
+    if (upsertError || !saved) continue;
+    existing ? updated++ : created++;
+
+    // Committee/PAC contributions for this filing — best-effort. A failure
+    // here (e.g. the Schedule A query shape drifting from what FEC returns)
+    // must not lose the filing totals already saved above, so it's isolated
+    // in its own try/catch rather than bubbling up to the whole sync.
+    if (filing.committee_id) {
+      try {
+        await syncFilingContributors(supabase, saved.id as string, filing.committee_id, apiKey);
+      } catch {
+        // Filing stands without its committee breakdown; next sync retries.
+      }
+    }
+  }
+
+  return { created, updated };
+}
+
+async function syncFilingContributors(
+  supabase: ServiceClient,
+  fundingFilingId: string,
+  committeeId: string,
+  apiKey: string | undefined,
+) {
+  const url =
+    `${FEC_API_BASE}/schedules/schedule_a/` +
+    `?committee_id=${encodeURIComponent(committeeId)}&is_individual=false` +
+    `&sort=-contribution_receipt_amount&per_page=20&api_key=${apiKey}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Schedule A lookup failed for committee ${committeeId}: ${res.status}`);
+  const body = (await res.json()) as { results?: FecScheduleAResult[] };
+
+  // Re-derive this filing's contributor rows from scratch each sync rather
+  // than diffing — simpler, and correct as long as a filing's contributor
+  // list only ever comes from this one query.
+  await supabase.from("funding_contributors").delete().eq("funding_filing_id", fundingFilingId);
+
+  const rows = (body.results ?? [])
+    .filter((r) => r.contributor_name && r.contribution_receipt_amount != null)
+    .map((r) => ({
+      funding_filing_id: fundingFilingId,
+      committee_name: r.contributor_name as string,
+      committee_fec_id: r.contributor_id ?? null,
+      amount: r.contribution_receipt_amount as number,
+      contributor_type: entityTypeToContributorType(r.entity_type),
+    }));
+
+  if (rows.length) await supabase.from("funding_contributors").insert(rows);
+}
+
+interface FecFiling {
+  file_number?: number | string;
+  coverage_start_date?: string | null;
+  coverage_end_date?: string | null;
+  total_receipts?: number | null;
+  total_disbursements?: number | null;
+  cash_on_hand_end_period?: number | null;
+  individual_itemized_contributions?: number | null;
+  individual_unitemized_contributions?: number | null;
+  receipt_date?: string | null;
+  report_type_full?: string | null;
+  report_type?: string | null;
+  report_year?: number | null;
+  committee_id?: string | null;
+}
+
+interface FecScheduleAResult {
+  contributor_name?: string | null;
+  contributor_id?: string | null;
+  contribution_receipt_amount?: number | null;
+  entity_type?: string | null;
 }

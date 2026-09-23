@@ -27,6 +27,26 @@ export async function createClient() {
 }
 
 /**
+ * Public, cookieless client for RLS-gated public reads from rendering code
+ * that has no need for a user session (no auth-dependent query, nothing
+ * per-user). Unlike `createClient()`, this never touches `cookies()`, so
+ * calling it from a statically generated page doesn't force that page into
+ * dynamic rendering the way the cookie-bound client would. Still governed by
+ * RLS (anon key) — this is not a way around `createServiceClient()`'s "never
+ * import into anything that renders" rule, just a narrower tool for the
+ * common case of "read something anyone could see."
+ */
+export function createPublicClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+
+  return createServerClient(url, key, {
+    cookies: { getAll: () => [], setAll: () => {} },
+  });
+}
+
+/**
  * Service-role client for ingestion jobs and the Stripe webhook.
  *
  * Bypasses RLS. Never import this into anything that renders — it belongs in

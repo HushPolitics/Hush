@@ -8,8 +8,9 @@ import { usePrefs } from "@/lib/prefs";
 import { DEFAULT_DISTRICT } from "@/lib/seed-data";
 import { stripPartySuffix } from "@/lib/guide";
 import { initials } from "@/lib/scoring";
+import { eligibleCandidates, stanceCoverage } from "@/lib/compare";
 import type { IssuePosition, Politician, Race, StanceCell } from "@/lib/types";
-import { Avatar, Display, ExpandableQuote, Kicker, RustButton } from "@/components/ui";
+import { Avatar, Display, ExpandableQuote, Kicker, RustButton, SearchField } from "@/components/ui";
 
 /**
  * Side-by-side stance grid -- app IA restructure phase 5. Two changes from
@@ -45,6 +46,11 @@ export default function CompareView({
   const router = useRouter();
   const { zip, setZip, picks, setPicks, topics } = usePrefs();
   const [zipDraft, setZipDraft] = useState(zip);
+  // "add": picking a politician for the next open slot. A number: replacing
+  // the pick at that index. null: closed. One shared panel handles both --
+  // see the picker render block below the "Side by side" header.
+  const [pickerMode, setPickerMode] = useState<"add" | number | null>(null);
+  const [pickerQuery, setPickerQuery] = useState("");
 
   const byId = useMemo(
     () => new Map(politicians.map((p) => [p.id, p])),
@@ -52,6 +58,29 @@ export default function CompareView({
   );
 
   const heads = picks.map((id) => byId.get(id) ?? politicians[0]);
+
+  // Custom Compare's mechanical gate (see lib/compare.ts): full stance
+  // coverage + at least one promise, same office level as whatever's already
+  // picked. Replacing a slot excludes that slot's own current pick from the
+  // "already picked" check, so its candidate re-appears in its own list.
+  const candidatesFor = (mode: "add" | number): Politician[] =>
+    eligibleCandidates(
+      politicians,
+      stances,
+      mode === "add" ? heads : heads.filter((_, j) => j !== mode),
+    );
+
+  function choosePolitician(id: string) {
+    if (pickerMode === "add") {
+      setPicks(picks.concat(id));
+    } else if (typeof pickerMode === "number") {
+      const next = picks.slice();
+      next[pickerMode] = id;
+      setPicks(next);
+    }
+    setPickerMode(null);
+    setPickerQuery("");
+  }
 
   // Issues the user ranked, in rank order, promoted to the top of the grid;
   // everything else keeps its original order after them. `stances` only
@@ -214,14 +243,16 @@ export default function CompareView({
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <Kicker>Side by side</Kicker>
             <Display size={25}>Stance grid</Display>
+            {/* One-time note, not a lock -- see lib/compare.ts's header comment. */}
+            <span style={{ fontSize: 11, color: C.muted }}>Free while in beta.</span>
           </div>
           {picks.length < 3 ? (
             <button
               type="button"
               className="btn-ghost"
               onClick={() => {
-                const next = politicians.find((p) => !picks.includes(p.id));
-                if (next) setPicks(picks.concat(next.id));
+                setPickerMode("add");
+                setPickerQuery("");
               }}
               style={{
                 marginLeft: "auto",
@@ -235,10 +266,25 @@ export default function CompareView({
                 cursor: "pointer",
               }}
             >
-              + Add a third politician
+              + Add a politician to compare
             </button>
           ) : null}
         </div>
+
+        {pickerMode !== null ? (
+          <ComparePicker
+            candidates={candidatesFor(pickerMode)}
+            stances={stances}
+            query={pickerQuery}
+            onQueryChange={setPickerQuery}
+            onPick={choosePolitician}
+            onCancel={() => {
+              setPickerMode(null);
+              setPickerQuery("");
+            }}
+            replacing={typeof pickerMode === "number" ? heads[pickerMode]?.name : undefined}
+          />
+        ) : null}
 
         <div style={{ overflowX: "auto" }}>
           <div
@@ -292,32 +338,28 @@ export default function CompareView({
                     ✕
                   </button>
                 </div>
-                <select
-                  value={h.id}
-                  onChange={(e) => {
-                    const next = picks.slice();
-                    next[i] = e.target.value;
-                    setPicks(next);
-                  }}
-                  aria-label={`Comparison slot ${i + 1}`}
-                  style={{
-                    border: `1px solid ${C.lineHard}`,
-                    borderRadius: 6,
-                    background: C.white,
-                    padding: "5px 6px",
-                    fontSize: 15,
-                    color: C.ink,
-                  }}
-                >
-                  {politicians.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.name}
-                    </option>
-                  ))}
-                </select>
+                <span style={{ fontFamily: cond, fontSize: 15 }}>{h.name}</span>
                 <span style={{ fontSize: 11, color: C.muted }}>
                   {h.office} · {h.district}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPickerMode(i);
+                    setPickerQuery("");
+                  }}
+                  style={{
+                    alignSelf: "flex-start",
+                    border: 0,
+                    background: "transparent",
+                    padding: 0,
+                    fontSize: 11,
+                    color: C.rust,
+                    cursor: "pointer",
+                  }}
+                >
+                  Change
+                </button>
               </div>
             ))}
 
@@ -472,5 +514,109 @@ function Row({
         );
       })}
     </>
+  );
+}
+
+/**
+ * The custom-compare picker: search + a list of already-gated candidates
+ * (see lib/compare.ts's eligibleCandidates -- `candidates` here has already
+ * been filtered to full stance coverage, a tracked promise, and the same
+ * office level as the rest of the comparison, so every row shown is a valid
+ * pick). Each row's "X/N stances" figure is the coverage-bar gate made
+ * visible, not a separate check -- it will always read N/N here since a
+ * partial-coverage candidate never reaches this list, which is deliberate:
+ * seeing "6/6" next to a real name is what makes the gate legible rather
+ * than a silent filter no one can see the logic of.
+ */
+function ComparePicker({
+  candidates,
+  stances,
+  query,
+  onQueryChange,
+  onPick,
+  onCancel,
+  replacing,
+}: {
+  candidates: Politician[];
+  stances: Record<string, Record<string, StanceCell>>;
+  query: string;
+  onQueryChange: (v: string) => void;
+  onPick: (id: string) => void;
+  onCancel: () => void;
+  /** Name of the pick being replaced, when this panel opened from "Change" rather than "+ Add". */
+  replacing?: string;
+}) {
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return candidates
+      .filter((p) => !q || `${p.name} ${p.office}`.toLowerCase().includes(q))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [candidates, query]);
+
+  return (
+    <div
+      style={{
+        border: `1px solid ${C.line}`,
+        borderRadius: 10,
+        background: C.white,
+        padding: 14,
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ fontSize: 13, fontWeight: 600 }}>
+          {replacing ? `Replace ${replacing}` : "Add a politician to compare"}
+        </span>
+        <button
+          type="button"
+          onClick={onCancel}
+          style={{ marginLeft: "auto", border: 0, background: "transparent", color: C.muted, cursor: "pointer", fontSize: 12 }}
+        >
+          Cancel
+        </button>
+      </div>
+
+      <SearchField value={query} onChange={onQueryChange} placeholder="Search by name or office…" />
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 2, maxHeight: 240, overflowY: "auto" }}>
+        {filtered.map((p) => {
+          const { have, total } = stanceCoverage(p.id, stances);
+          return (
+            <button
+              key={p.id}
+              type="button"
+              className="row-hover"
+              onClick={() => onPick(p.id)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                border: 0,
+                background: "transparent",
+                padding: "8px 6px",
+                borderRadius: 6,
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              <Avatar text={initials(p.name)} size={26} radius={7} bg={PARTY[p.party]} fg={C.sand} font={11} />
+              <span style={{ fontSize: 13 }}>{p.name}</span>
+              <span style={{ fontSize: 11, color: C.muted }}>{p.office}</span>
+              <span style={{ marginLeft: "auto", fontSize: 10, color: C.muted, whiteSpace: "nowrap" }}>
+                {have}/{total} stances
+              </span>
+            </button>
+          );
+        })}
+        {filtered.length === 0 ? (
+          <span style={{ fontSize: 12, color: C.muted, padding: "8px 6px", lineHeight: 1.5 }}>
+            No one matches. Eligible candidates need full stance coverage and a tracked promise, at the same office
+            level as your other picks.
+          </span>
+        ) : null}
+      </div>
+    </div>
   );
 }

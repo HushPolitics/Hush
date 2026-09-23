@@ -7,7 +7,8 @@ import { C, GUIDE_SOURCE_KIND, PARTY_LABEL, STATUS_STYLE, cond, progressColor, t
 import { usePrefs } from "@/lib/prefs";
 import { TRUST_WEIGHTS, promiseSplit } from "@/lib/scoring";
 import { useRegisterSectionNav } from "@/lib/sectionNav";
-import type { FactCheck, IssuePosition, Politician, PromiseStatus } from "@/lib/types";
+import { isCustomCompareEligible } from "@/lib/compare";
+import type { FactCheck, FundingSummary, IssuePosition, Politician, PromiseStatus, StanceCell } from "@/lib/types";
 import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, SourceAttribution } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 import { FactCheckCard } from "./FactCheckView";
@@ -40,11 +41,17 @@ export default function PoliticianView({
   politician: p,
   checks,
   positions,
+  funding,
+  stances,
 }: {
   politician: Politician;
   checks: FactCheck[];
   /** This politician's sourced Guide positions, keyed by issue name. */
   positions: Record<string, IssuePosition>;
+  /** null when this office has no FEC filing to show -- see FundingSection. */
+  funding: FundingSummary | null;
+  /** The Compare stance grid -- issue -> politicianId -> StanceCell -- used only to gate "Compare with…" (see isCustomCompareEligible). */
+  stances: Record<string, Record<string, StanceCell>>;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -58,6 +65,7 @@ export default function PoliticianView({
     { id: "score", label: "The record" },
     { id: "ledger", label: "Promises" },
     { id: "positions", label: "Positions" },
+    { id: "funding", label: "Funding" },
     { id: "claims-checked", label: "Claims checked" },
   ]);
 
@@ -67,6 +75,7 @@ export default function PoliticianView({
   const ledgerRows = p.promises.filter((x) => ledgerStatus === "All" || x.status === ledgerStatus);
   const flagship = p.promises[0];
   const flagshipStyle = flagship ? STATUS_STYLE[flagship.status] : null;
+  const compareEligible = isCustomCompareEligible(p, stances);
 
   function compareWith() {
     setPicks([p.id, ...picks.filter((x) => x !== p.id)].slice(0, 3));
@@ -149,7 +158,26 @@ export default function PoliticianView({
           <InkButton type="button" onClick={() => toggleSaved(p.id)}>
             {isSaved ? "Remove from my list" : "Save to my list"}
           </InkButton>
-          <GhostButton onClick={compareWith}>Compare with…</GhostButton>
+          {compareEligible ? (
+            <GhostButton onClick={compareWith}>Compare with…</GhostButton>
+          ) : (
+            <span
+              title={`HUSH needs a full stance record and at least one tracked promise for ${p.name} before offering a comparison.`}
+              style={{
+                padding: 12,
+                borderRadius: 7,
+                border: `1px solid ${C.line}`,
+                fontWeight: 600,
+                fontSize: 14,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                textAlign: "center",
+                color: C.muted,
+              }}
+            >
+              Compare with… (not enough data)
+            </span>
+          )}
         </div>
       </div>
 
@@ -455,6 +483,13 @@ export default function PoliticianView({
           )}
         </section>
 
+        {/* Campaign funding -- not one of the brief's original 5 sections,
+            added per the campaign-funding brief. Placed after Positions and
+            before Claims checked: like Positions, it's "what's true about
+            this candidate independent of any one claim," not part of the
+            promise ledger and not a fact-check verdict. */}
+        <FundingSection funding={funding} politicianName={p.name} />
+
         {/* 5. Claims checked */}
         <section id="claims-checked" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -621,5 +656,139 @@ export default function PoliticianView({
         </section>
       </div>
     </div>
+  );
+}
+
+function money(n: number | null): string {
+  if (n == null) return "—";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
+const CONTRIBUTOR_TYPE_LABEL: Record<string, string> = {
+  pac: "PAC",
+  party_committee: "Party committee",
+  other_committee: "Committee",
+};
+
+/**
+ * Campaign funding, sourced from FEC filings -- see repo.ts's
+ * getFundingSummary and 0006_campaign_funding.sql's header comment for the
+ * content rules this renders under: individual donors are never named (only
+ * the aggregate `individualContributionsTotal`), committees/PACs are named
+ * individually, and nothing here is characterized as good or bad -- it's
+ * reported, not judged, same as the rest of this page treats a record.
+ *
+ * Four states, in order of how "populated" the underlying data is:
+ *   1. `funding === null` -- this office has no FEC filing at all (every
+ *      state/local seed politician; federal ones not yet matched).
+ *   2. Matched (fecCandidateId set) but `filings` is empty -- nothing has
+ *      synced yet.
+ *   3. Filings exist but at least one is missing totals or an individual
+ *      total -- "Partial data" badge, still shows what's there.
+ *   4. Full data -- latest filing's totals plus its named committee/PAC
+ *      contributors, if any were reported.
+ * Copy finalized in the phase-4 cleanup pass -- states 1 and 2 both read as
+ * plain status, not an error, since neither one means anything went wrong.
+ */
+function FundingSection({ funding, politicianName }: { funding: FundingSummary | null; politicianName: string }) {
+  const header = (
+    <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+      <Kicker>Campaign funding</Kicker>
+      <span style={{ fontFamily: cond, fontSize: 18 }}>Federal disclosure</span>
+    </div>
+  );
+
+  // State 1: not applicable to this office.
+  if (!funding) {
+    return (
+      <section id="funding" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {header}
+        <EmptyState>
+          Campaign finance disclosure through the FEC only covers federal candidates. HUSH doesn&apos;t have an FEC
+          match for {politicianName}&apos;s office.
+        </EmptyState>
+      </section>
+    );
+  }
+
+  // State 2: matched, nothing synced yet.
+  if (funding.filings.length === 0) {
+    return (
+      <section id="funding" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {header}
+        <EmptyState>
+          HUSH is tracking {politicianName}&apos;s FEC filings, but nothing has synced from the FEC yet. Check back
+          soon.
+        </EmptyState>
+      </section>
+    );
+  }
+
+  const latest = funding.filings[0];
+  const isPartial = funding.filings.some(
+    (f) => f.totalRaised == null || f.totalSpent == null || f.individualContributionsTotal == null,
+  );
+
+  return (
+    <section id="funding" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+        {header}
+        {isPartial ? (
+          <Pill bg={C.shell} fg={C.muted}>
+            Partial data
+          </Pill>
+        ) : null}
+        <span style={{ marginLeft: "auto", fontSize: 12, color: C.muted }}>
+          {latest.periodLabel}
+          {funding.lastSyncedAt ? ` · synced ${new Date(funding.lastSyncedAt).toLocaleDateString()}` : ""}
+        </span>
+      </div>
+
+      <Card style={{ padding: 18, display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+          {[
+            { label: "Total raised", value: latest.totalRaised },
+            { label: "Total spent", value: latest.totalSpent },
+            { label: "Cash on hand", value: latest.cashOnHand },
+            { label: "From individuals", value: latest.individualContributionsTotal },
+          ].map((s) => (
+            <div key={s.label} style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: 11, color: C.muted, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                {s.label}
+              </span>
+              <span style={{ fontFamily: cond, fontSize: 22 }}>{money(s.value)}</span>
+            </div>
+          ))}
+        </div>
+
+        <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
+          &ldquo;From individuals&rdquo; is a total only -- HUSH never publishes individual donor names or employers.
+        </p>
+
+        {latest.contributors.length > 0 ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, borderTop: `1px solid ${C.line}`, paddingTop: 14 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: C.muted }}>
+              Committee &amp; PAC contributions
+            </span>
+            {latest.contributors.map((c, i) => (
+              <div
+                key={`${c.committeeName}-${i}`}
+                style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}
+              >
+                <span style={{ flex: 1 }}>{c.committeeName}</span>
+                <span style={{ fontSize: 11, color: C.muted }}>{CONTRIBUTOR_TYPE_LABEL[c.contributorType]}</span>
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>{money(c.amount)}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        <SourceAttribution kind="Official filing" org="FEC" href={latest.sourceUrl} actionLabel="View on FEC.gov →" />
+      </Card>
+    </section>
   );
 }

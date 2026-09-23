@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { C, HERO_SCRIM, PARTY, PARTY_LABEL } from "@/lib/theme";
 import { ballotPoliticianIds } from "@/lib/feed";
 import { initials } from "@/lib/scoring";
+import { usePrefs } from "@/lib/prefs";
+import { isCustomCompareEligible, matchesPickLevel } from "@/lib/compare";
 import { Avatar, Chip, Display, EmptyState, Kicker, SearchField } from "@/components/ui";
-import type { Level, Party, Politician, Race } from "@/lib/types";
+import type { Level, Party, Politician, Race, StanceCell } from "@/lib/types";
 
 type BallotFilter = "all" | "onBallot";
 
@@ -18,14 +21,16 @@ const BALLOT_FILTERS: { key: BallotFilter; label: string }[] = [
 const LEVEL_FILTERS: (Level | "All")[] = ["All", "Federal", "State", "Local"];
 const PARTY_FILTERS: (Party | "All")[] = ["All", "D", "R", "I"];
 
-// Avatar / Name / Party / Office / District / On your ballot. All four data
-// columns are proportional (not a fixed width mixed in) so they grow at a
-// consistent rate and read as evenly spaced instead of Name and Office
-// ballooning past a cramped, fixed-width Party column. Office keeps the
-// largest share and District close behind -- a few entries run long there
-// ("Florida State College at Jacksonville" as a district), so they need
-// room to wrap onto a second line rather than getting clipped.
-const ROW_GRID = "40px 1fr 0.8fr 1.2fr 1fr 90px";
+// Avatar / Name / Party / Office / District / On your ballot / Compare. All
+// four data columns are proportional (not a fixed width mixed in) so they
+// grow at a consistent rate and read as evenly spaced instead of Name and
+// Office ballooning past a cramped, fixed-width Party column. Office keeps
+// the largest share and District close behind -- a few entries run long
+// there ("Florida State College at Jacksonville" as a district), so they
+// need room to wrap onto a second line rather than getting clipped. The
+// trailing Compare column (entry point 3 for custom Compare, see
+// lib/compare.ts) is a fixed width matching its chip's natural size.
+const ROW_GRID = "40px 1fr 0.8fr 1.2fr 1fr 90px 118px";
 
 /**
  * Politicians' hero banner -- same shell and scrim device as Feed's
@@ -88,10 +93,15 @@ function PoliticiansHero() {
 export default function PoliticiansView({
   politicians,
   races,
+  stances,
 }: {
   politicians: Politician[];
   races: Race[];
+  /** The Compare stance grid, passed through only to gate the directory's Compare column -- see lib/compare.ts. */
+  stances: Record<string, Record<string, StanceCell>>;
 }) {
+  const router = useRouter();
+  const { picks, setPicks } = usePrefs();
   const [q, setQ] = useState("");
   const [ballotFilter, setBallotFilter] = useState<BallotFilter>("onBallot");
   const [levelFilter, setLevelFilter] = useState<Level | "All">("All");
@@ -99,6 +109,19 @@ export default function PoliticiansView({
   const [officeFilter, setOfficeFilter] = useState<string>("All");
 
   const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
+
+  // The politicians currently picked for a custom comparison, resolved from
+  // `picks` -- used to enforce the same-office-level constraint as a new row
+  // is toggled on (see matchesPickLevel's own doc comment for why a mixed
+  // pre-existing set doesn't block).
+  const pickedPoliticians = useMemo(
+    () => picks.map((id) => politicians.find((p) => p.id === id)).filter((p): p is Politician => Boolean(p)),
+    [picks, politicians],
+  );
+
+  function togglePick(id: string) {
+    setPicks(picks.includes(id) ? picks.filter((x) => x !== id) : picks.concat(id));
+  }
 
   const offices = useMemo(() => {
     const set = new Set(
@@ -230,15 +253,35 @@ export default function PoliticiansView({
         <span>Office</span>
         <span>District</span>
         <span>On your ballot</span>
+        <span>Compare</span>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingBottom: picks.length >= 2 ? 56 : 0 }}>
         {filtered.map((p) => {
           const onBallot = ballotIds.has(p.id);
+          const isPicked = picks.includes(p.id);
+          const eligible = isCustomCompareEligible(p, stances);
+          const levelOk = matchesPickLevel(p, pickedPoliticians);
+          const canAdd = eligible && levelOk && picks.length < 3;
+          let compareTitle: string | undefined;
+          if (!isPicked) {
+            if (!eligible) {
+              compareTitle = `HUSH needs a full stance record and at least one tracked promise for ${p.name} before offering a comparison.`;
+            } else if (!levelOk) {
+              compareTitle = "Your current comparison is all one office level -- pick someone at that same level.";
+            } else if (picks.length >= 3) {
+              compareTitle = "You can compare up to 3 politicians at once. Remove one to add another.";
+            }
+          }
           return (
-            <Link
+            <div
               key={p.id}
-              href={`/politician/${p.id}`}
+              role="link"
+              tabIndex={0}
+              onClick={() => router.push(`/politician/${p.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") router.push(`/politician/${p.id}`);
+              }}
               className="card-hover"
               style={{
                 display: "grid",
@@ -250,6 +293,7 @@ export default function PoliticiansView({
                 background: C.white,
                 padding: "13px 16px",
                 color: C.ink,
+                cursor: "pointer",
               }}
             >
               <Avatar text={initials(p.name)} size={36} radius={9} font={14} />
@@ -263,11 +307,100 @@ export default function PoliticiansView({
               <span style={{ fontSize: 12, fontWeight: 600, color: onBallot ? C.rust : C.faint }}>
                 {onBallot ? "Yes" : "No"}
               </span>
-            </Link>
+              {isPicked ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePick(p.id);
+                  }}
+                  style={{
+                    padding: "7px 10px",
+                    borderRadius: 16,
+                    border: `1px solid ${C.rust}`,
+                    background: C.rust,
+                    color: C.cream,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    cursor: "pointer",
+                  }}
+                >
+                  ✓ Added
+                </button>
+              ) : canAdd ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePick(p.id);
+                  }}
+                  style={{
+                    padding: "7px 10px",
+                    borderRadius: 16,
+                    border: `1px solid ${C.lineHard}`,
+                    background: "transparent",
+                    color: C.ink,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    cursor: "pointer",
+                  }}
+                >
+                  + Compare
+                </button>
+              ) : (
+                <span
+                  title={compareTitle}
+                  style={{
+                    padding: "7px 10px",
+                    borderRadius: 16,
+                    border: `1px solid ${C.line}`,
+                    color: C.faint,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    textAlign: "center",
+                    width: "fit-content",
+                  }}
+                >
+                  + Compare
+                </span>
+              )}
+            </div>
           );
         })}
         {filtered.length === 0 ? <EmptyState>No one matches these filters.</EmptyState> : null}
       </div>
+
+      {/* Entry point 3's floating action bar -- appears once 2+ are picked
+          from this directory (Compare itself allows starting from as few as
+          the seeded default, but this list-driven flow only makes sense once
+          there's an actual comparison forming). Fixed within the page's
+          scroll container, not the viewport, matching how AppShell scopes
+          other overlays. */}
+      {picks.length >= 2 ? (
+        <div style={{ position: "sticky", bottom: 16, display: "flex", justifyContent: "center", zIndex: 5 }}>
+          <Link
+            href="/compare"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "12px 22px",
+              borderRadius: 999,
+              background: C.ink,
+              color: C.sand,
+              fontSize: 14,
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.22)",
+            }}
+          >
+            Compare {picks.length} →
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }
