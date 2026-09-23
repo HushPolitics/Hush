@@ -18,20 +18,32 @@ export function BillsSection({ bills }: { bills: Bill[] }) {
   return (
     <section id="bills" style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 10 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <Kicker>Bills Being Considered</Kicker>
-        <Display size={22}>Understand what your elected officials are voting on</Display>
+        <Kicker>On Your Ballot</Kicker>
+        <Display size={22}>What you&apos;ll actually be voting on</Display>
       </div>
 
       <Card style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
         <p style={{ margin: 0, fontSize: 12.5, color: C.body, lineHeight: 1.6 }}>
-          HUSH translates complex legislative language into plain English to help you understand
-          what a bill would do. These explanations are paraphrased by HUSH and are not the
-          official language of the bill. Always review the original bill and source before making
-          a decision.
+          These are the statewide and local measures on your ballot this election — amendments and
+          questions you vote yes or no on directly, not bills your representatives vote on. HUSH
+          translates the legal language into plain English. These explanations are paraphrased by
+          HUSH and are not the official ballot language. Always review the official amendment text
+          and your sample ballot before voting.
         </p>
-        <p style={{ margin: 0, fontSize: 12.5, color: C.ink, lineHeight: 1.6, fontWeight: 600 }}>
-          HUSH doesn&apos;t tell you how to vote. We explain what the legislation says so you can
-          decide for yourself.
+        <p style={{ margin: 0, fontSize: 12.5, color: C.ink, lineHeight: 1.8, fontWeight: 600 }}>
+          <mark
+            style={{
+              background: C.rust,
+              color: C.cream,
+              padding: "1px 4px",
+              borderRadius: 2,
+              boxDecorationBreak: "clone",
+              WebkitBoxDecorationBreak: "clone",
+            }}
+          >
+            HUSH doesn&apos;t tell you how to vote. We explain what the legislation says so you can
+            decide for yourself.
+          </mark>
         </p>
       </Card>
 
