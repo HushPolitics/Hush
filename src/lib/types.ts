@@ -13,7 +13,7 @@ export type Level = "Local" | "State" | "Federal";
  * voter ever reads.
  */
 export type PromiseStatus = "Delivered" | "In progress" | "No movement";
-export type Verdict = "True" | "Misleading" | "False";
+export type Verdict = "Supported" | "Needs Context" | "Unsupported" | "Inconclusive";
 export type StanceTag = "Aligned" | "Partial" | "Opposed" | "No record";
 
 /**

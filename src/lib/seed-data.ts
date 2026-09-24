@@ -2004,7 +2004,7 @@ export const POLITICIANS: Politician[] = [
 export const FACT_CHECKS: FactCheck[] = [
   {
     "id": "fc-001",
-    "verdict": "False",
+    "verdict": "Unsupported",
     "politicianId": "pike",
     "topic": "Housing",
     "date": "Aug 22",
@@ -2018,7 +2018,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-002",
-    "verdict": "True",
+    "verdict": "Supported",
     "politicianId": "marchetti",
     "topic": "Healthcare",
     "date": "Aug 20",
@@ -2032,7 +2032,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-003",
-    "verdict": "Misleading",
+    "verdict": "Needs Context",
     "politicianId": "ainsley",
     "topic": "Transit",
     "date": "Aug 18",
@@ -2046,7 +2046,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-004",
-    "verdict": "False",
+    "verdict": "Unsupported",
     "politicianId": "hollis",
     "topic": "Economy",
     "date": "Aug 15",
@@ -2060,7 +2060,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-005",
-    "verdict": "True",
+    "verdict": "Supported",
     "politicianId": "vance",
     "topic": "Voting rights",
     "date": "Aug 12",
@@ -2074,7 +2074,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-006",
-    "verdict": "Misleading",
+    "verdict": "Needs Context",
     "politicianId": "torrance",
     "topic": "Education",
     "date": "Aug 9",
@@ -2088,7 +2088,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-007",
-    "verdict": "False",
+    "verdict": "Unsupported",
     "politicianId": "pike",
     "topic": "Energy",
     "date": "Aug 6",
@@ -2102,7 +2102,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-008",
-    "verdict": "True",
+    "verdict": "Supported",
     "politicianId": "bellweather",
     "topic": "Education",
     "date": "Aug 3",
@@ -2116,7 +2116,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-009",
-    "verdict": "Misleading",
+    "verdict": "Needs Context",
     "politicianId": "oseihart",
     "topic": "Criminal justice",
     "date": "Jul 30",
@@ -2130,7 +2130,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-010",
-    "verdict": "Misleading",
+    "verdict": "Needs Context",
     "politicianId": "wexler",
     "topic": "Permitting",
     "date": "Aug 5",
@@ -2143,7 +2143,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-011",
-    "verdict": "Misleading",
+    "verdict": "Needs Context",
     "politicianId": "olamide",
     "topic": "Labor",
     "date": "Jul 28",
@@ -2156,7 +2156,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-012",
-    "verdict": "Misleading",
+    "verdict": "Needs Context",
     "politicianId": "kohl",
     "topic": "Transit",
     "date": "Jul 22",
@@ -2169,7 +2169,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-013",
-    "verdict": "False",
+    "verdict": "Unsupported",
     "politicianId": "rausch",
     "topic": "Taxes",
     "date": "Jul 15",
@@ -2182,7 +2182,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-014",
-    "verdict": "False",
+    "verdict": "Unsupported",
     "politicianId": "trask",
     "topic": "Criminal justice",
     "date": "Jul 10",
@@ -2195,7 +2195,7 @@ export const FACT_CHECKS: FactCheck[] = [
   },
   {
     "id": "fc-015",
-    "verdict": "Misleading",
+    "verdict": "Needs Context",
     "politicianId": "mora",
     "topic": "Education",
     "date": "Jul 3",
@@ -2204,6 +2204,19 @@ export const FACT_CHECKS: FactCheck[] = [
     "sources": [
       "College board minutes",
       "WJCT"
+    ]
+  },
+  {
+    "id": "fc-016",
+    "verdict": "Inconclusive",
+    "politicianId": "bellweather",
+    "topic": "Education",
+    "date": "Sep 15",
+    "claim": "Every instructional aide in the district now earns at least $22 an hour.",
+    "finding": "The district's pay schedule sets a $22 floor for the aide classification, but actual paid rates are reported by grade band, not by individual employee, so whether every aide clears that floor in practice can't be confirmed or ruled out from public records.",
+    "sources": [
+      "District pay schedule",
+      "HR data request (partial)"
     ]
   }
 ];
