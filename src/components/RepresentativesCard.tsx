@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { C, PARTY } from "@/lib/theme";
-import { Card, Kicker } from "@/components/ui";
+import { Card, Display, Kicker } from "@/components/ui";
 import type { Politician } from "@/lib/types";
 
 /**
@@ -16,21 +16,36 @@ import type { Politician } from "@/lib/types";
  * two scores on one screen means the only place a politician's score
  * belongs is their own page, one click away via the name link or the
  * chevron to the full /politicians index.
+ *
+ * `header` defaults to the small uppercase Kicker treatment this card has
+ * always used (HUSH Guide's sidebar, where the surrounding cards are all
+ * that same small/dense type). The Feed's orientation strip opts into
+ * `"display"` instead -- a bigger, bolder condensed header to read as a
+ * header alongside "Your Election"/"Your Top Issues" there, without
+ * changing how this card looks anywhere else it's used.
  */
 export default function RepresentativesCard({
   politicians,
   limit = 4,
   style,
+  header = "kicker",
 }: {
   politicians: Politician[];
   limit?: number;
   style?: CSSProperties;
+  header?: "kicker" | "display";
 }) {
   const shown = politicians.slice(0, limit);
   return (
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8, ...style }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <Kicker>Your Representatives</Kicker>
+        {header === "display" ? (
+          <Display size={16} color={C.rust}>
+            Your Representatives
+          </Display>
+        ) : (
+          <Kicker>Your Representatives</Kicker>
+        )}
         <Link
           href="/politicians"
           aria-label="See the full politician directory"
