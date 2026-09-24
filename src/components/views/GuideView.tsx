@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
-import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
+import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
@@ -407,91 +407,16 @@ function TileGrid({
         </span>
       </div>
 
-      <GuideAtAGlanceStrip races={races} polling={polling} onEditAddress={onEditAddress} />
+      <GuideAtAGlanceStrip
+        races={races}
+        polling={polling}
+        onEditAddress={onEditAddress}
+        topics={topics}
+        representatives={ballotPoliticians}
+        onEditIssues={onEditIssues}
+      />
 
-      <div
-        className="stack-row"
-        style={{ display: "flex", gap: 20, alignItems: "stretch" }}
-      >
-        <Card id="issues" style={{ flex: 2, minWidth: 0, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
-              <Kicker>Your priorities</Kicker>
-              <span style={{ fontSize: 11, color: C.muted }}>
-                {topics.length} issue{topics.length === 1 ? "" : "s"}, ranked
-              </span>
-              {/*
-                Both edits happen in place -- this swaps `manualStep` rather
-                than navigating, so the grid is still one page.
-              */}
-              <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-                <Link
-                  href="/profile/top-issues/issue-finder?next=/hush-guide"
-                  className="link-quiet"
-                  style={{ color: C.muted, fontSize: 12 }}
-                >
-                  Try Issue Finder →
-                </Link>
-                <button
-                  type="button"
-                  className="link-quiet"
-                  onClick={onEditIssues}
-                  style={{
-                    border: 0,
-                    background: "transparent",
-                    color: C.rust,
-                    fontSize: 12,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    cursor: "pointer",
-                    padding: 6,
-                  }}
-                >
-                  Edit issues
-                </button>
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))", gap: 8 }}>
-              {topics.map((name, idx) => (
-                <div
-                  key={name}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 9,
-                    padding: "10px 12px",
-                    borderRadius: 8,
-                    background: idx === 0 ? C.shell : "transparent",
-                    border: `1px solid ${idx === 0 ? C.rust : C.line}`,
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: "50%",
-                      flex: "0 0 22px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontFamily: cond,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      background: idx === 0 ? C.rust : C.shell,
-                      color: idx === 0 ? C.white : C.ink,
-                    }}
-                  >
-                    {idx + 1}
-                  </span>
-                  <span style={{ fontSize: 12.5, fontWeight: 500, color: C.ink }}>{name}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          <RepresentativesCard politicians={ballotPoliticians} style={{ flex: 1, minWidth: 240 }} />
-        </div>
-
-        <VotingInformationSection polling={polling} />
+      <VotingInformationSection polling={polling} />
 
         {GUIDE_LEAD === "bills" ? <BillsSection bills={bills} /> : null}
 
@@ -569,11 +494,7 @@ function TileGrid({
                         return (
                           <div key={c.politicianId} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                              <span
-                                style={{ width: 7, height: 7, borderRadius: "50%", background: PARTY[c.party], flex: "0 0 7px" }}
-                              />
                               {nameEl}
-                              <span style={{ fontSize: 11, color: C.muted }}>{PARTY_LABEL[c.party]}</span>
                             </div>
                             {pos ? (
                               <ExpandableQuote
@@ -706,10 +627,16 @@ function GuideAtAGlanceStrip({
   races,
   polling,
   onEditAddress,
+  topics,
+  representatives,
+  onEditIssues,
 }: {
   races: Race[];
   polling: { name: string; detail: string };
   onEditAddress: () => void;
+  topics: string[];
+  representatives: Politician[];
+  onEditIssues: () => void;
 }) {
   const days = useDaysToElection();
   const { city, state, zip } = usePrefs();
@@ -787,45 +714,75 @@ function GuideAtAGlanceStrip({
           <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.4 }}>{electionDate}</span>
         </div>
 
-        {/* Key dates */}
+        {/* Your Most Important Issues + Your Representatives -- replaces the
+            Register/Early voting/Mail ballot rows. Those three dates still show
+            in full in the Voting Plan section further down this page; this
+            column now covers the strip's other half -- who's on the ballot and
+            what you told HUSH matters to you -- instead of repeating the dates
+            a second time. */}
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", borderLeft: `1px solid ${C.line}` }} className="stack-row">
-          {KEY_DATES.map((k) => (
-            <div
-              key={k.label}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 14,
-                padding: "14px 20px",
-                borderBottom: `1px solid ${C.lineSoft}`,
-              }}
-            >
-              <span
-                aria-hidden
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "50%",
-                  flex: "0 0 32px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: C.shell,
-                }}
+          {/* Your Most Important Issues */}
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: 7,
+              padding: "14px 20px",
+              borderBottom: `1px solid ${C.lineSoft}`,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Kicker>Your Most Important Issues</Kicker>
+              <button
+                type="button"
+                onClick={onEditIssues}
+                className="link-quiet"
+                style={{ marginLeft: "auto", border: 0, background: "transparent", color: C.rust, fontSize: 11, letterSpacing: "0.04em", textTransform: "uppercase", cursor: "pointer", padding: 0 }}
               >
-                <GlanceIcon kind={k.label} size={16} color={C.ink} />
-              </span>
-              <div style={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
-                <span style={{ fontWeight: 600, fontSize: 12.5, letterSpacing: "0.04em", textTransform: "uppercase", color: C.ink }}>
-                  {k.label === "Register by" ? "Voter registration deadline" : k.label}
-                </span>
-                <span style={{ fontSize: 12, color: C.muted }}>{k.detail}</span>
-              </div>
-              <span style={{ marginLeft: "auto", fontSize: 15, color: C.ink, whiteSpace: "nowrap" }}>
-                {k.value}
-              </span>
+                Edit
+              </button>
             </div>
-          ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              {topics.slice(0, 3).map((name, idx) => (
+                <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: C.ink }}>
+                  <span
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: "50%",
+                      flex: "0 0 16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontFamily: cond,
+                      fontSize: 9.5,
+                      fontWeight: 600,
+                      background: idx === 0 ? C.rust : C.shell,
+                      color: idx === 0 ? C.white : C.ink,
+                    }}
+                  >
+                    {idx + 1}
+                  </span>
+                  <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Your Representatives -- the same shared card the Feed's
+              orientation strip already uses (RepresentativesCard.tsx), just
+              stripped of its own border/radius/background here so it reads as
+              this column's second half rather than a card nested inside a
+              card. Nothing about the component itself changes, so the Feed's
+              version is unaffected. */}
+          <RepresentativesCard
+            politicians={representatives}
+            limit={3}
+            style={{ flex: 1, border: "none", borderRadius: 0, background: "transparent", padding: "14px 20px" }}
+          />
         </div>
 
         {/* Polling place + ballot cards */}
@@ -987,7 +944,7 @@ function VotingInformationSection({ polling }: { polling: { name: string; detail
     <section id="voting" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <Kicker>Your Voting Plan</Kicker>
-        <Display size={22}>Key dates so you're ready</Display>
+        <Display size={22}>Key dates</Display>
       </div>
       <Card className="stack-row" style={{ padding: 20, display: "flex", gap: 24, alignItems: "stretch" }}>
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 18 }}>
