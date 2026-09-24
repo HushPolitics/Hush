@@ -22,6 +22,19 @@ import { Kicker } from "@/components/ui";
  *      CandidateCard.
  *   3. The Feed, as one of its event types (phase 4).
  */
+
+/**
+ * Whether a verdict gets the "Redact & Highlight" treatment (see the doc
+ * comment inside FactCheckCard below) -- Needs Context and Unsupported have
+ * a specific correction to show, Supported and Inconclusive don't. Exported
+ * so FeedView's Recent Updates rows can apply the identical strikethrough/
+ * highlight treatment inline, without the two files' conditions drifting
+ * apart from each other.
+ */
+export function isRedactVerdict(v: Verdict): boolean {
+  return v === "Needs Context" || v === "Unsupported";
+}
+
 export function FactCheckCard({
   check,
   who,
@@ -92,7 +105,7 @@ export function FactCheckCard({
         scoped to sourcing/citations only, and a claim or finding is
         substantive content, not a citation string.
       */}
-      {check.verdict === "Needs Context" || check.verdict === "Unsupported" ? (
+      {isRedactVerdict(check.verdict) ? (
         <>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, textWrap: "pretty" }}>
             <span
