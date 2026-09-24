@@ -39,7 +39,7 @@ export function BillsSection({ bills }: { bills: Bill[] }) {
       )}
 
       <Card style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-        <p style={{ margin: 0, fontSize: 12.5, color: C.body, lineHeight: 1.6 }}>
+        <p style={{ margin: 0, fontSize: 12.5, color: C.body, lineHeight: 1.6, fontStyle: "italic" }}>
           These are the statewide and local measures on your ballot this election — amendments and
           questions you vote yes or no on directly, not bills your representatives vote on. HUSH
           translates the legal language into plain English. These explanations are paraphrased by

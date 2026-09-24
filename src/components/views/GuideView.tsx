@@ -693,7 +693,7 @@ function GuideAtAGlanceStrip({
         <div
           style={{
             flex: "0 0 220px",
-            background: C.rust,
+            background: C.rustFill,
             color: C.ink,
             padding: "20px 22px",
             display: "flex",
@@ -743,28 +743,39 @@ function GuideAtAGlanceStrip({
                 Edit
               </button>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
               {topics.slice(0, 3).map((name, idx) => (
-                <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: C.ink }}>
+                <div key={name} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12.5, color: C.ink }}>
                   <span
+                    aria-hidden
                     style={{
-                      width: 16,
-                      height: 16,
+                      width: 24,
+                      height: 24,
                       borderRadius: "50%",
-                      flex: "0 0 16px",
+                      flex: "0 0 24px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       fontFamily: cond,
-                      fontSize: 9.5,
+                      fontSize: 11,
                       fontWeight: 600,
-                      background: idx === 0 ? C.rust : C.shell,
+                      background: idx === 0 ? C.rust : C.white,
                       color: idx === 0 ? C.white : C.ink,
+                      border: idx === 0 ? "none" : `1.5px solid ${C.line}`,
                     }}
                   >
                     {idx + 1}
                   </span>
-                  <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <span
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      fontWeight: idx === 0 ? 600 : 400,
+                    }}
+                  >
                     {name}
                   </span>
                 </div>
