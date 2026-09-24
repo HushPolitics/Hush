@@ -74,6 +74,7 @@ export function FactCheckCard({
             background: v.bg,
             color: v.fg,
           }}
+          title={VERDICT_DEFINITION[check.verdict]}
         >
           {check.verdict}
         </span>
@@ -173,6 +174,21 @@ const VERDICT_DEFINITIONS: { verdict: Verdict; definition: string }[] = [
     definition: "There isn't enough reliable evidence to determine whether the claim is supported or unsupported.",
   },
 ];
+
+/**
+ * The same four definitions as VERDICT_DEFINITIONS above, keyed by verdict
+ * for O(1) lookup -- built from that array (not a second hand-typed copy) so
+ * the two can never drift. Used as the native `title` tooltip on the verdict
+ * pill everywhere it appears without its definition already printed next to
+ * it -- FactCheckCard here (and by extension StanceCheckView's reveal, which
+ * renders FactCheckCard directly) and FeedView's FeedListRow -- so hovering
+ * "Needs Context" or any other verdict shows what it means. VerdictKey
+ * doesn't need it: its whole job is printing the definition inline already.
+ */
+export const VERDICT_DEFINITION: Record<Verdict, string> = VERDICT_DEFINITIONS.reduce(
+  (acc, d) => ({ ...acc, [d.verdict]: d.definition }),
+  {} as Record<Verdict, string>
+);
 
 /**
  * The four verdict definitions, in one place -- so a reader can look up what

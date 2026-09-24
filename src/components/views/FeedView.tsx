@@ -29,7 +29,7 @@ import type {
 } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, IssueIcon, Kicker, Pill } from "@/components/ui";
 import RepresentativesCard from "@/components/RepresentativesCard";
-import { isRedactVerdict } from "./FactCheckView";
+import { isRedactVerdict, VERDICT_DEFINITION } from "./FactCheckView";
 
 type TypeFilter = "all" | FeedEvent["type"];
 
@@ -902,6 +902,7 @@ function FeedListRow({
             <Pill
               bg={VERDICT_STYLE[event.check.verdict].bg}
               fg={VERDICT_STYLE[event.check.verdict].fg}
+              title={VERDICT_DEFINITION[event.check.verdict]}
               style={{
                 fontWeight: 600,
                 fontSize: 10.5,
