@@ -133,6 +133,9 @@ export default function PoliticiansView({
 
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <Display size={25}>Every candidate and elected official</Display>
+        <span style={{ fontSize: 13, color: C.body, maxWidth: 640, lineHeight: 1.5 }}>
+          Not just your ballot — search or filter to find anyone in the system.
+        </span>
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
