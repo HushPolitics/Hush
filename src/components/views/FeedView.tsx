@@ -37,9 +37,7 @@ const TYPE_FILTERS: { value: TypeFilter; label: string }[] = [
   { value: "vote", label: "Votes" },
   { value: "bill", label: "Bills & Legislation" },
   { value: "factcheck", label: "Fact Check" },
-  { value: "electionUpdate", label: "Election Updates" },
   { value: "article", label: "Articles" },
-  { value: "position", label: "Positions" },
 ];
 
 /** Recent Updates' page-size choices -- 10 by default, with room to see more at once. */
@@ -237,6 +235,12 @@ function TypeIcon({
  *
  * The scope chips (My Ballot / My Issues / Following) are unchanged from
  * phase 0 -- `useFeedScope` still drives them, just relabeled to title case.
+ *
+ * Election Update and Position events are excluded from the Feed outright
+ * (filtered out of `allEvents` below) -- no filter chip, no row, not
+ * eligible for Worth Knowing. `guide`/`stance`/`electionUpdates` are still
+ * threaded through to `buildFeedEvents` since it needs them to build the
+ * rest of the list; only the two event types are dropped.
  */
 export default function FeedView({
   politicians,
@@ -275,8 +279,19 @@ export default function FeedView({
     [politicians, ballotIds],
   );
 
+  // Election Update and Position events are excluded from the Feed entirely
+  // -- not just unfiltered by default -- per request: no filter chip, no row
+  // in Recent Updates, and (since WorthKnowingSection reads off of
+  // scopedEvents, which derives from this) not eligible for Worth Knowing
+  // either. Filtered here rather than in buildFeedEvents() itself since that
+  // helper is Feed-page-only today, but keeping the exclusion at this single
+  // call site (rather than, say, inside isWorthKnowing) is what guarantees
+  // every downstream list agrees.
   const allEvents = useMemo(
-    () => buildFeedEvents(politicians, factChecks, guide, stance, votes, bills, electionUpdates, articles),
+    () =>
+      buildFeedEvents(politicians, factChecks, guide, stance, votes, bills, electionUpdates, articles).filter(
+        (e) => e.type !== "electionUpdate" && e.type !== "position",
+      ),
     [politicians, factChecks, guide, stance, votes, bills, electionUpdates, articles],
   );
 
@@ -329,7 +344,7 @@ export default function FeedView({
       <FeedHero />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <Display size={25}>What&apos;s happened · {events.length}</Display>
+        <Display size={25}>What&apos;s happened</Display>
         <span style={{ fontSize: 13, color: C.body, maxWidth: 640, lineHeight: 1.5 }}>
           Votes, bills, and fact checks as they happen — filter by type, or narrow to My Ballot, My
           Issues, or Following below.
