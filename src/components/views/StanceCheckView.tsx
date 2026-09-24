@@ -761,7 +761,7 @@ function CandidateCard({
 
 /** One (issue, candidate) pair where the user's answer matched a candidate's
  * sourced stance -- the atomic unit `StanceSummary` below rolls up into the
- * cross-party headline and the "strongest surprise." */
+ * cross-party headline and the by-issue and trend charts. */
 interface Match {
   issue: string;
   candidacy: Candidacy;
@@ -845,11 +845,277 @@ function NextActionRow({
 }
 
 /**
+ * Replaces "Your strongest surprise." Rather than pulling out one
+ * highlighted finding, this shows the same `matches` data for every
+ * answered issue at once — a stacked bar per issue, one segment per
+ * party, sized by how many candidates in that party matched the user
+ * there — plus a read on where the total lands between the two major
+ * parties. Uses PARTY's existing colors: party color is the one
+ * documented exception to Hush's no-color-as-verdict rule (see
+ * theme.ts), so this isn't introducing a new use of color, just a new
+ * place it's used. Every colored element is also labeled in text
+ * (legend, aria-label, the counts themselves) since two of the three
+ * party colors read a little desaturated on their own.
+ */
+function AgreementByIssueChart({
+  matches,
+  answeredTopics,
+  countByParty,
+  goToComparison,
+}: {
+  matches: Match[];
+  answeredTopics: string[];
+  countByParty: Record<Party, number>;
+  goToComparison: (politicianId: string) => void;
+}) {
+  const demCount = countByParty.D;
+  const repCount = countByParty.R;
+  const indCount = countByParty.I;
+  const leanTotal = demCount + repCount;
+  // 0 = every D/R match was Democrat, 1 = every D/R match was Republican,
+  // 0.5 = an even split. Independent matches sit outside this axis rather
+  // than being forced onto a left-right line that doesn't describe them.
+  const leanRatio = leanTotal === 0 ? 0.5 : repCount / leanTotal;
+  const leanLabel =
+    leanTotal === 0
+      ? "Not enough matches yet to show a lean."
+      : leanRatio <= 0.35
+      ? "Your matches lean Democrat."
+      : leanRatio >= 0.65
+      ? "Your matches lean Republican."
+      : "Your matches are fairly balanced between the two parties.";
+
+  return (
+    <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 18 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <Kicker size={11}>Where you agree, by issue</Kicker>
+        <Display size={18} style={{ lineHeight: 1.2 }}>
+          {leanLabel}
+        </Display>
+        {leanTotal > 0 ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div
+              style={{
+                position: "relative",
+                height: 6,
+                borderRadius: 3,
+                background: `linear-gradient(to right, ${PARTY.D}, ${C.line} 50%, ${PARTY.R})`,
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  top: -3,
+                  left: `${leanRatio * 100}%`,
+                  transform: "translateX(-50%)",
+                  width: 12,
+                  height: 12,
+                  borderRadius: "50%",
+                  background: C.white,
+                  border: `2px solid ${C.ink}`,
+                }}
+              />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: C.muted }}>
+              <span>{demCount} Democrat</span>
+              <span>{repCount} Republican</span>
+            </div>
+            {indCount > 0 ? (
+              <span style={{ fontSize: 11, color: C.muted }}>
+                Plus {indCount} independent match{indCount === 1 ? "" : "es"}, not shown on this scale.
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      <div style={{ display: "flex", gap: 14, fontSize: 11, color: C.muted }}>
+        {(["D", "R", "I"] as Party[]).map((party) => (
+          <span key={party} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span aria-hidden style={{ width: 8, height: 8, borderRadius: "50%", background: PARTY[party] }} />
+            {PARTY_LABEL[party]}
+          </span>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {answeredTopics.map((issue) => {
+          const issueMatches = matches.filter((m) => m.issue === issue);
+          const byParty = (["D", "R", "I"] as Party[])
+            .map((party) => ({ party, items: issueMatches.filter((m) => m.candidacy.party === party) }))
+            .filter((b) => b.items.length > 0);
+          const total = issueMatches.length;
+          return (
+            <div key={issue} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: C.ink }}>
+                <span>{issue}</span>
+                <span style={{ color: C.muted }}>
+                  {total === 0 ? "No match" : `${total} match${total === 1 ? "" : "es"}`}
+                </span>
+              </div>
+              {total === 0 ? (
+                <div aria-hidden style={{ height: 8, borderRadius: 4, border: `1px dashed ${C.line}` }} />
+              ) : (
+                <div style={{ display: "flex", gap: 2, height: 8 }}>
+                  {byParty.map((b) => (
+                    <button
+                      key={b.party}
+                      type="button"
+                      onClick={() => goToComparison(b.items[0].candidacy.politicianId)}
+                      aria-label={`${b.items.length} ${PARTY_LABEL[b.party]} match${b.items.length === 1 ? "" : "es"} on ${issue} — see comparison`}
+                      title={b.items.map((m) => stripPartySuffix(m.candidacy.name)).join(", ")}
+                      style={{
+                        flex: b.items.length,
+                        minWidth: 6,
+                        border: 0,
+                        padding: 0,
+                        borderRadius: 4,
+                        background: PARTY[b.party],
+                        cursor: "pointer",
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+/**
+ * "Trending based on the way they select answers." Questions are asked
+ * in the same order `topics` lists them (`topics[at]` drives the
+ * per-question screen above), and `answeredTopics` is already `topics`
+ * filtered down to answered ones — so it doubles as this chart's x-axis
+ * in true answer order with no extra bookkeeping. Y is a running total
+ * of matched candidates per party after each question, so the three
+ * lines show whether a reader's matches drifted toward one party as
+ * they went, not just where they ended up.
+ */
+function AnswerTrendChart({ matches, answeredTopics }: { matches: Match[]; answeredTopics: string[] }) {
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+
+  if (answeredTopics.length < 2) return null; // a trend needs at least two points
+
+  const running: Record<Party, number>[] = [];
+  const totals: Record<Party, number> = { D: 0, R: 0, I: 0 };
+  for (const issue of answeredTopics) {
+    for (const m of matches.filter((mm) => mm.issue === issue)) {
+      totals[m.candidacy.party] += 1;
+    }
+    running.push({ ...totals });
+  }
+
+  const maxTotal = Math.max(1, ...(["D", "R", "I"] as Party[]).map((p) => Math.max(...running.map((r) => r[p]))));
+  const W = 100;
+  const H = 60;
+  const xAt = (i: number) => (i / (running.length - 1)) * W;
+  const points = (party: Party) =>
+    running.map((r, i) => `${xAt(i)},${H - (r[party] / maxTotal) * H}`).join(" ");
+
+  return (
+    <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <Kicker size={11}>How your answers trended</Kicker>
+        <span style={{ fontSize: 12.5, color: C.muted }}>
+          Running total of matches per party, question by question, in the order you answered.
+        </span>
+      </div>
+
+      <div style={{ position: "relative" }}>
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          width="100%"
+          height={140}
+          preserveAspectRatio="none"
+          role="img"
+          aria-label="Line chart of cumulative party matches by question order"
+        >
+          {(["D", "R", "I"] as Party[]).map((party) => (
+            <polyline
+              key={party}
+              points={points(party)}
+              fill="none"
+              stroke={PARTY[party]}
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          ))}
+          {hoverIdx !== null ? (
+            <line
+              x1={xAt(hoverIdx)}
+              x2={xAt(hoverIdx)}
+              y1={0}
+              y2={H}
+              stroke={C.line}
+              strokeWidth={1}
+              vectorEffect="non-scaling-stroke"
+            />
+          ) : null}
+          {answeredTopics.map((_, i) => (
+            <rect
+              key={i}
+              x={xAt(i) - W / running.length / 2}
+              y={0}
+              width={W / running.length}
+              height={H}
+              fill="transparent"
+              onMouseEnter={() => setHoverIdx(i)}
+              onMouseLeave={() => setHoverIdx((h) => (h === i ? null : h))}
+            />
+          ))}
+        </svg>
+        {hoverIdx !== null ? (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: `${(xAt(hoverIdx) / W) * 100}%`,
+              transform: "translateX(-50%)",
+              background: C.ink,
+              color: C.onDark,
+              fontSize: 11,
+              padding: "6px 9px",
+              borderRadius: 6,
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: 2 }}>After &ldquo;{answeredTopics[hoverIdx]}&rdquo;</div>
+            {(["D", "R", "I"] as Party[]).map((party) => (
+              <div key={party}>
+                {PARTY_LABEL[party]}: {running[hoverIdx][party]}
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div style={{ display: "flex", gap: 14, fontSize: 11, color: C.muted }}>
+        {(["D", "R", "I"] as Party[]).map((party) => (
+          <span key={party} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span aria-hidden style={{ width: 8, height: 8, borderRadius: "50%", background: PARTY[party] }} />
+            {PARTY_LABEL[party]}
+          </span>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+/**
  * Stance Check's end-of-run screen (see 1.5) -- the payoff for the whole
  * feature. Every number here is computed from the user's own answers and
  * the same sourced `STANCE_POSITIONS` the per-question breakdown already
  * used -- there is still no score anywhere on this screen, only findings:
- * overall alignment by party, the single strongest surprise, the issues
+ * overall alignment by party, a by-issue breakdown of who matched, how
+ * those matches trended over the course of the questions, the issues
  * where nobody on the ballot matched, and a full breakdown for anyone who
  * wants it. app-layout-v2 phase 4: this is an editorial layout (headline,
  * then distinct cards, then a two-column body) rather than the phase 3
@@ -895,13 +1161,6 @@ function StanceSummary({
     .filter((p) => p.count > 0);
   const crossesParty = partyCounts.length >= 2;
 
-  // The strongest surprise: a match against the party the user matched with
-  // least overall, among parties matched at all.
-  const leastMatchedParty = crossesParty
-    ? partyCounts.reduce((min, p) => (p.count < min.count ? p : min))
-    : null;
-  const surprise = leastMatchedParty ? matches.find((m) => m.candidacy.party === leastMatchedParty.party) : undefined;
-
   const noMatchIssues = answeredTopics.filter((issue) => !matches.some((m) => m.issue === issue));
 
   // "Your Overall Alignment" always shows all three parties, zero-count
@@ -912,7 +1171,7 @@ function StanceSummary({
   for (const p of partyCounts) countByParty[p.party] = p.count;
 
   // Same pattern PoliticianView's own "Compare" link already uses --
-  // load the surprise candidate into the existing compare-picks slots and
+  // load the clicked candidate into the existing compare-picks slots and
   // go straight to /compare, rather than a generic unfocused link there.
   function goToComparison(politicianId: string) {
     setPicks([politicianId, ...picks.filter((id) => id !== politicianId)].slice(0, 3));
@@ -973,41 +1232,23 @@ function StanceSummary({
           "What this means" and "Next steps" on the right. */}
       <div className="stack-row" style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
-          {surprise || noMatchIssues.length > 0 ? (
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-              {surprise ? (
-                <Card style={{ flex: "1 1 300px", padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
-                  <Kicker size={11}>Your strongest surprise</Kicker>
-                  <span style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.5 }}>
-                    On <strong>{surprise.issue}</strong>, you matched {PARTY_LABEL[surprise.candidacy.party]}{" "}
-                    <Link href={`/politician/${surprise.candidacy.politicianId}`} style={{ color: C.rust }}>
-                      {stripPartySuffix(surprise.candidacy.name)}
-                    </Link>{" "}
-                    — the party you matched with least overall.
-                  </span>
-                  <p style={{ margin: 0, fontSize: 12.5, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
-                    &ldquo;{surprise.position.excerpt}&rdquo;
-                  </p>
-                  <button
-                    type="button"
-                    className="link-quiet"
-                    onClick={() => goToComparison(surprise.candidacy.politicianId)}
-                    style={{ alignSelf: "flex-start", border: 0, background: "transparent", color: C.rust, fontSize: 12.5, cursor: "pointer", padding: 0, marginTop: 2 }}
-                  >
-                    See full comparison →
-                  </button>
-                </Card>
-              ) : null}
-              {noMatchIssues.length > 0 ? (
-                <Card style={{ flex: "1 1 300px", padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
-                  <Kicker size={11}>Where nobody on your ballot matched you</Kicker>
-                  <span style={{ fontSize: 13.5, color: C.body, lineHeight: 1.5 }}>{noMatchIssues.join(", ")}</span>
-                  <Link href="/hush-guide" style={{ fontSize: 12.5, color: C.rust }}>
-                    Explore these issues →
-                  </Link>
-                </Card>
-              ) : null}
-            </div>
+          <AgreementByIssueChart
+            matches={matches}
+            answeredTopics={answeredTopics}
+            countByParty={countByParty}
+            goToComparison={goToComparison}
+          />
+
+          <AnswerTrendChart matches={matches} answeredTopics={answeredTopics} />
+
+          {noMatchIssues.length > 0 ? (
+            <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+              <Kicker size={11}>Where nobody on your ballot matched you</Kicker>
+              <span style={{ fontSize: 13.5, color: C.body, lineHeight: 1.5 }}>{noMatchIssues.join(", ")}</span>
+              <Link href="/hush-guide" style={{ fontSize: 12.5, color: C.rust }}>
+                Explore these issues →
+              </Link>
+            </Card>
           ) : null}
 
           {/* New: a plain, complete breakdown -- every answered issue and
