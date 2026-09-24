@@ -165,16 +165,17 @@ export const TAG_STYLE: Record<string, { bg: string; fg: string }> = {
 };
 
 /**
- * One neutral treatment for every fact-check verdict -- True, Misleading and
- * False all render identically now. The verdict word itself (plus the claim
- * and finding text next to it) is what tells the reader what was found;
- * navy/tan/rust behind it would tell them how to feel about it before they'd
- * even read the label.
+ * One neutral treatment for every fact-check verdict -- Supported, Needs
+ * Context, Unsupported and Inconclusive all render identically. The verdict
+ * word itself (plus the claim and finding text next to it) is what tells
+ * the reader what was found; navy/tan/rust behind it would tell them how to
+ * feel about it before they'd even read the label.
  */
 export const VERDICT_STYLE: Record<string, { bg: string; fg: string; dot: string }> = {
-  True: { bg: C.shell, fg: C.ink, dot: C.body },
-  Misleading: { bg: C.shell, fg: C.ink, dot: C.body },
-  False: { bg: C.shell, fg: C.ink, dot: C.body },
+  Supported: { bg: C.shell, fg: C.ink, dot: C.body },
+  "Needs Context": { bg: C.shell, fg: C.ink, dot: C.body },
+  Unsupported: { bg: C.shell, fg: C.ink, dot: C.body },
+  Inconclusive: { bg: C.shell, fg: C.ink, dot: C.body },
 };
 
 /** Chip styling for the on/off filter pills used across every view. */
