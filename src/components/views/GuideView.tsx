@@ -693,7 +693,7 @@ function GuideAtAGlanceStrip({
         <div
           style={{
             flex: "0 0 220px",
-            background: C.rust,
+            background: C.rustFill,
             color: C.ink,
             padding: "20px 22px",
             display: "flex",
@@ -743,28 +743,44 @@ function GuideAtAGlanceStrip({
                 Edit
               </button>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-              {topics.slice(0, 3).map((name, idx) => (
-                <div key={name} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: C.ink }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {topics.slice(0, 4).map((name, idx) => (
+                <div
+                  key={name}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 7,
+                    minWidth: 0,
+                    padding: "7px 10px",
+                    borderRadius: 8,
+                    border: `${idx === 0 ? 2 : 1.5}px solid ${idx === 0 ? C.rust : C.line}`,
+                    background: idx === 0 ? C.rustFill : C.white,
+                  }}
+                >
                   <span
                     style={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: "50%",
-                      flex: "0 0 16px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      flex: "0 0 auto",
                       fontFamily: cond,
-                      fontSize: 9.5,
-                      fontWeight: 600,
-                      background: idx === 0 ? C.rust : C.shell,
-                      color: idx === 0 ? C.white : C.ink,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: idx === 0 ? C.rust : C.muted,
                     }}
                   >
                     {idx + 1}
                   </span>
-                  <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <span
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      fontSize: 12.5,
+                      color: C.ink,
+                      fontWeight: idx === 0 ? 600 : 400,
+                    }}
+                  >
                     {name}
                   </span>
                 </div>
@@ -780,7 +796,7 @@ function GuideAtAGlanceStrip({
               version is unaffected. */}
           <RepresentativesCard
             politicians={representatives}
-            limit={3}
+            limit={4}
             style={{ flex: 1, border: "none", borderRadius: 0, background: "transparent", padding: "14px 20px" }}
           />
         </div>

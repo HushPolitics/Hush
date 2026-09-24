@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { C } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { parseRaceTitle } from "@/lib/guide";
+import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
 import type { IssuePosition, Politician, Race } from "@/lib/types";
 import { Card, Display, EmptyState, Kicker, RustButton } from "@/components/ui";
 
@@ -86,7 +86,7 @@ export default function GuideRaceView({
                 background: C.white,
               }}
             >
-              {c.name}
+              {stripPartySuffix(c.name)}
             </Link>
           ) : (
             <span
@@ -100,7 +100,7 @@ export default function GuideRaceView({
                 background: C.white,
               }}
             >
-              {c.name}
+              {stripPartySuffix(c.name)}
             </span>
           ),
         )}
@@ -141,7 +141,7 @@ function IssueSection({
         {race.candidates.map((c) => (
           <CandidatePositionCard
             key={c.politicianId}
-            name={c.name}
+            name={stripPartySuffix(c.name)}
             position={positions[c.politicianId]?.[issue]}
           />
         ))}
