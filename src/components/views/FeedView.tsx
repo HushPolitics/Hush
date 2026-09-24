@@ -1011,7 +1011,7 @@ const EXPLORE_TILES = [
       { label: "Sources", value: "Direct quotes and original records" },
     ],
     cta: "Search a politician →",
-    ctaStyle: "outline" as const,
+    ctaStyle: "filled" as const,
   },
   {
     href: "/compare",
@@ -1024,7 +1024,7 @@ const EXPLORE_TILES = [
       { label: "Context", value: "Direct quotes and sources" },
     ],
     cta: "Start a comparison →",
-    ctaStyle: "outline" as const,
+    ctaStyle: "filled" as const,
   },
   {
     href: "/follow-the-money",
@@ -1037,7 +1037,7 @@ const EXPLORE_TILES = [
       { label: "Spending", value: "PACs, committees, and outside groups" },
     ],
     cta: "Explore campaign finance →",
-    ctaStyle: "outline" as const,
+    ctaStyle: "filled" as const,
   },
 ];
 
