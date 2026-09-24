@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
-import { C, HERO_SCRIM, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
+import { C, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
@@ -397,6 +397,8 @@ function TileGrid({
     <>
       <GuideHero />
 
+      <Kicker>HUSH. Guide</Kicker>
+
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <Display size={25}>Straight from the candidates, not from us</Display>
         <span style={{ fontSize: 13, color: C.body, maxWidth: 640, lineHeight: 1.5 }}>
@@ -662,8 +664,6 @@ function GuideHero() {
         overflow: "hidden",
         background: C.ink,
         minHeight: 260,
-        display: "flex",
-        alignItems: "flex-end",
       }}
     >
       <img
@@ -672,28 +672,6 @@ function GuideHero() {
         aria-hidden
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
       />
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: HERO_SCRIM,
-        }}
-      />
-      <div
-        style={{
-          position: "relative",
-          padding: "22px 26px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 4,
-        }}
-      >
-        <Kicker color={C.tan}>HUSH Guide</Kicker>
-        <Display size={28} color={C.sand}>
-          Your ballot, by the issues you picked
-        </Display>
-      </div>
     </div>
   );
 }
