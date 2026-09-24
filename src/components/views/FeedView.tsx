@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { C, HERO_SCRIM, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
@@ -41,6 +41,9 @@ const TYPE_FILTERS: { value: TypeFilter; label: string }[] = [
   { value: "article", label: "Articles" },
   { value: "position", label: "Positions" },
 ];
+
+/** Recent Updates' page-size choices -- 10 by default, with room to see more at once. */
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 function typeLabel(t: FeedEvent["type"]): string {
   switch (t) {
@@ -226,6 +229,12 @@ function TypeIcon({
  *      Check, and Follow the Money (the new campaign-finance hub; see
  *      FollowTheMoneyView.tsx) below the list.
  *
+ * The list itself is paginated (PAGE_SIZE_OPTIONS: 10 by default, up to
+ * 100) rather than rendering every scoped/filtered event at once -- Prev/
+ * Next plus a page-size picker sit under the list, and the page resets to 1
+ * whenever scope, type filter, sort, page size, or the search query changes
+ * so a reader is never silently stranded on a now-empty page.
+ *
  * The scope chips (My Ballot / My Issues / Following) are unchanged from
  * phase 0 -- `useFeedScope` still drives them, just relabeled to title case.
  */
@@ -256,6 +265,8 @@ export default function FeedView({
   const [scope, setScope] = useFeedScope();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [sort, setSort] = useState<"recent" | "oldest">("recent");
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [page, setPage] = useState(1);
   const mounted = useMounted();
 
   const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
@@ -291,6 +302,20 @@ export default function FeedView({
   const sortedEvents = useMemo(
     () => (sort === "oldest" ? events.slice().reverse() : events),
     [events, sort],
+  );
+
+  // Jump back to page 1 whenever the underlying list could have changed
+  // shape -- staying on, say, page 3 after switching scope or type would
+  // usually just show an empty page.
+  useEffect(() => {
+    setPage(1);
+  }, [scope, typeFilter, sort, pageSize, q]);
+
+  const pageCount = Math.max(1, Math.ceil(sortedEvents.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const pagedEvents = useMemo(
+    () => sortedEvents.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [sortedEvents, currentPage, pageSize],
   );
 
   const followingEmpty = scope === "following" && saved.length === 0;
@@ -370,10 +395,31 @@ export default function FeedView({
               <option value="oldest">Oldest first</option>
             </select>
           </label>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, color: C.muted }}>
+            Show
+            <select
+              value={pageSize}
+              onChange={(e) => setPageSize(Number(e.target.value))}
+              style={{
+                border: `1px solid ${C.lineHard}`,
+                borderRadius: 6,
+                padding: "4px 8px",
+                fontSize: 12.5,
+                color: C.ink,
+                background: C.sand,
+              }}
+            >
+              {PAGE_SIZE_OPTIONS.map((n) => (
+                <option key={n} value={n}>
+                  {n} per page
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
-          {sortedEvents.map((e) => (
+          {pagedEvents.map((e) => (
             <FeedListRow key={e.id} event={e} unread={!isEventRead(e.id)} onOpen={() => markEventRead(e.id)} />
           ))}
           {events.length === 0 ? (
@@ -398,6 +444,46 @@ export default function FeedView({
             </EmptyState>
           ) : null}
         </div>
+
+        {events.length > 0 && pageCount > 1 ? (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14 }}>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage <= 1}
+              style={{
+                border: `1px solid ${C.lineHard}`,
+                borderRadius: 6,
+                padding: "5px 12px",
+                fontSize: 12.5,
+                background: "transparent",
+                color: currentPage <= 1 ? C.muted : C.ink,
+                cursor: currentPage <= 1 ? "default" : "pointer",
+              }}
+            >
+              ← Prev
+            </button>
+            <span style={{ fontSize: 12.5, color: C.muted }}>
+              Page {currentPage} of {pageCount}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+              disabled={currentPage >= pageCount}
+              style={{
+                border: `1px solid ${C.lineHard}`,
+                borderRadius: 6,
+                padding: "5px 12px",
+                fontSize: 12.5,
+                background: "transparent",
+                color: currentPage >= pageCount ? C.muted : C.ink,
+                cursor: currentPage >= pageCount ? "default" : "pointer",
+              }}
+            >
+              Next →
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <ExploreHushSection />
@@ -572,13 +658,21 @@ function TypeFilterBar({
   );
 }
 
+// Tall enough for the header row + a 2-line clamped headline + the context
+// line + the date, at this section's font sizes -- see the height comment
+// on the Card below for why this is fixed rather than content-driven.
+const WORTH_KNOWING_CARD_HEIGHT = 148;
+
 /**
  * Personally-relevant highlights -- up to 3 events matching `isWorthKnowing`
  * (a saved politician or a ranked issue), pulled from the front of `events`
  * (already reverse-chronological), so this stays "the 3 most recent
  * eligible" as new events show up with no extra refresh logic. A solid rust
  * dot plus a thin rust card border mark an event unread; both clear on the
- * next render once `markEventRead` fires from a click.
+ * next render once `markEventRead` fires from a click. Every card is a
+ * fixed size (WORTH_KNOWING_CARD_HEIGHT, plus the grid's equal-width
+ * columns) rather than sized to its own content, so a short headline and a
+ * long one still produce identically-sized boxes.
  */
 function WorthKnowingSection({
   events,
@@ -623,6 +717,11 @@ function WorthKnowingSection({
           const body = (
             <Card
               style={{
+                // Fixed height (rather than letting content decide) is what
+                // keeps all 3 boxes the same size regardless of headline
+                // length -- WORTH_KNOWING_CARD_HEIGHT below, plus the
+                // headline's own 2-line clamp, are the two halves of that.
+                height: WORTH_KNOWING_CARD_HEIGHT,
                 padding: "14px 16px",
                 display: "flex",
                 flexDirection: "column",
@@ -649,7 +748,18 @@ function WorthKnowingSection({
                   <span aria-hidden style={{ marginLeft: "auto", width: 7, height: 7, borderRadius: "50%", background: C.rust }} />
                 ) : null}
               </div>
-              <span style={{ fontFamily: cond, fontSize: 14, color: C.ink, lineHeight: 1.3 }}>
+              <span
+                style={{
+                  fontFamily: cond,
+                  fontSize: 14,
+                  color: C.ink,
+                  lineHeight: 1.3,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
                 {eventHeadline(e)}
               </span>
               <span
@@ -664,7 +774,10 @@ function WorthKnowingSection({
               >
                 {politician ? politician.name : eventText(e)}
               </span>
-              <span style={{ fontSize: 11, color: C.muted }}>{e.date}</span>
+              {/* marginTop: auto pins the date to the same spot at the
+                  bottom of the fixed-height card whether the headline above
+                  it clamped to one line or two. */}
+              <span style={{ fontSize: 11, color: C.muted, marginTop: "auto" }}>{e.date}</span>
             </Card>
           );
           if (!href) {
@@ -675,14 +788,19 @@ function WorthKnowingSection({
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => markEventRead(e.id)}
-                style={{ textDecoration: "none", color: "inherit" }}
+                style={{ textDecoration: "none", color: "inherit", minWidth: 0 }}
               >
                 {body}
               </a>
             );
           }
           return (
-            <Link key={e.id} href={href} onClick={() => markEventRead(e.id)} style={{ textDecoration: "none", color: "inherit" }}>
+            <Link
+              key={e.id}
+              href={href}
+              onClick={() => markEventRead(e.id)}
+              style={{ textDecoration: "none", color: "inherit", minWidth: 0 }}
+            >
               {body}
             </Link>
           );
@@ -821,20 +939,20 @@ const EXPLORE_TILES = [
     cta: "Go to HUSH. Guide →",
   },
   {
-    href: "/compare",
-    icon: "compare" as const,
-    kicker: "Compare candidates",
-    title: "Compare",
-    body: "See candidates side by side on the issues that matter to you.",
-    cta: "Start a comparison →",
-  },
-  {
     href: "/stance-check",
     icon: "stance" as const,
     kicker: "Explore a politician",
     title: "Stance Check",
     body: "See what a politician has said about the issues, with direct quotes and sources.",
     cta: "Search a politician →",
+  },
+  {
+    href: "/compare",
+    icon: "compare" as const,
+    kicker: "Compare candidates",
+    title: "Compare",
+    body: "See candidates side by side on the issues that matter to you.",
+    cta: "Start a comparison →",
   },
   {
     href: "/follow-the-money",
