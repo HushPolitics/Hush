@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { C, GUIDE_SOURCE_KIND, HERO_SCRIM, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
+import { C, GUIDE_SOURCE_KIND, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
 import { jumpToSection } from "@/lib/sectionNav";
@@ -322,6 +322,8 @@ export default function StanceCheckView({
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
       <StanceCheckHero />
 
+      <Kicker>Stance Check</Kicker>
+
       {/* This header (kicker + "Question X of Y" / "Edit issues") is
           question-screen-only now -- on the completion screen it read as a
           third "Stance Check" label stacked right under the hero's own and
@@ -484,8 +486,6 @@ function StanceCheckHero() {
         overflow: "hidden",
         background: C.ink,
         minHeight: 260,
-        display: "flex",
-        alignItems: "flex-end",
       }}
     >
       <img
@@ -494,20 +494,6 @@ function StanceCheckHero() {
         aria-hidden
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
       />
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: HERO_SCRIM,
-        }}
-      />
-      <div style={{ position: "relative", padding: "22px 26px", display: "flex", flexDirection: "column", gap: 6 }}>
-        <Kicker color={C.tan}>Stance Check</Kicker>
-        <Display size={28} color={C.sand}>
-          Same questions. Real positions. No spin.
-        </Display>
-      </div>
     </div>
   );
 }

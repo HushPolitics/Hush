@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { C, HERO_SCRIM, PARTY, PARTY_LABEL } from "@/lib/theme";
+import { C, PARTY, PARTY_LABEL } from "@/lib/theme";
 import { ballotPoliticianIds } from "@/lib/feed";
 import { initials } from "@/lib/scoring";
 import { usePrefs } from "@/lib/prefs";
@@ -52,8 +52,6 @@ function PoliticiansHero() {
         overflow: "hidden",
         background: C.ink,
         minHeight: 260,
-        display: "flex",
-        alignItems: "flex-end",
       }}
     >
       <img
@@ -62,20 +60,6 @@ function PoliticiansHero() {
         aria-hidden
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
       />
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: HERO_SCRIM,
-        }}
-      />
-      <div style={{ position: "relative", padding: "22px 26px", display: "flex", flexDirection: "column", gap: 6 }}>
-        <Kicker color={C.tan}>Politicians</Kicker>
-        <Display size={28} color={C.sand}>
-          Look up anyone. See where they stand.
-        </Display>
-      </div>
     </div>
   );
 }
@@ -144,6 +128,8 @@ export default function PoliticiansView({
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
       <PoliticiansHero />
+
+      <Kicker>Politicians</Kicker>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <Display size={25}>Every candidate and elected official</Display>
