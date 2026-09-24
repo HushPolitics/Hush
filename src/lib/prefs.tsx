@@ -109,6 +109,13 @@ export interface Prefs {
    * that. Never trimmed or capped.
    */
   finderAnswers: Record<string, { value: IssueFinderAnswer; answeredAt: number }>;
+  /**
+   * Feed event ids the reader has opened -- drives Worth Knowing's and Recent
+   * Updates' unread dot. Same "grows over time, never trimmed" convention as
+   * `saved`; an id with no matching event today (feed content changed) simply
+   * never matches anything, same as a stale `saved` id would.
+   */
+  readEventIds: string[];
 }
 
 // DEFAULT_DISTRICT.city is a combined "City, ST" string; split it once here
@@ -142,6 +149,7 @@ const DEFAULTS: Prefs = {
   picks: ["marchetti", "vance", "pike"],
   polling: DEFAULT_POLLING_PLACE,
   finderAnswers: {},
+  readEventIds: [],
 };
 
 const STORAGE_KEY = "hush.prefs.v1";
@@ -244,6 +252,8 @@ interface PrefsContextValue extends Prefs {
    * only the latest answer to a given question counts toward its score.
    */
   recordFinderAnswer: (questionId: string, value: IssueFinderAnswer) => void;
+  markEventRead: (id: string) => void;
+  isEventRead: (id: string) => boolean;
 }
 
 const Ctx = createContext<PrefsContextValue | null>(null);
@@ -305,6 +315,11 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
             [questionId]: { value, answeredAt: Date.now() },
           },
         }),
+      markEventRead: (id) => {
+        if (snapshot.readEventIds.includes(id)) return;
+        patch({ readEventIds: snapshot.readEventIds.concat(id) });
+      },
+      isEventRead: (id) => prefs.readEventIds.includes(id),
     }),
     [prefs, patch],
   );

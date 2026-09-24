@@ -348,6 +348,22 @@ export function matchesIssues(e: FeedEvent, topics: string[]): boolean {
 }
 
 /**
+ * Whether an event belongs in "Worth Knowing" -- personally-relevant
+ * highlights pulled from the front of the reverse-chronological list
+ * buildFeedEvents() already returns. An event qualifies if it's about one
+ * of the reader's saved politicians, or matches one of their ranked issues
+ * -- the same two "this is about me" signals the Following/My Issues scope
+ * chips already use individually, combined with OR here since Worth
+ * Knowing isn't scoped to just one at a time. An empty saved list and empty
+ * topics list both fail closed, same convention matchesIssues uses.
+ */
+export function isWorthKnowing(e: FeedEvent, saved: string[], topics: string[]): boolean {
+  if (matchesIssues(e, topics)) return true;
+  const politician = eventPolitician(e);
+  return politician ? saved.includes(politician.id) : false;
+}
+
+/**
  * Whether a Feed event belongs under the reader's current scope chip --
  * centralizes the three scopes' rules in one place rather than leaving the
  * view to reimplement them, since two event types (bill, electionUpdate)
