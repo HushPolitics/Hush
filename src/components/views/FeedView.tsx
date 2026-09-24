@@ -950,7 +950,7 @@ const EXPLORE_TILES = [
     href: "/compare",
     icon: "compare" as const,
     kicker: "Compare candidates",
-    title: "Compare",
+    title: "Politicians",
     body: "See candidates side by side on the issues that matter to you.",
     cta: "Start a comparison →",
   },
