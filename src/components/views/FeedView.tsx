@@ -1073,7 +1073,14 @@ function ExploreHushSection() {
             >
               {t.body}
             </span>
-            <Link href={t.href} style={{ fontSize: 12.5, color: C.rust }}>
+            {/* marginTop: auto pins the CTA to the bottom of the card --
+                Card is a flex column, and every card in the row is already
+                stretched to the same height by the grid above it, so this
+                is what makes the link flush with the bottom edge of every
+                box rather than trailing right behind whatever the fixed-
+                height kicker/title/paragraph reservations above added up to
+                for that one tile. */}
+            <Link href={t.href} style={{ fontSize: 12.5, color: C.rust, marginTop: "auto" }}>
               {t.cta}
             </Link>
           </Card>
