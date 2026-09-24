@@ -66,23 +66,24 @@ export default function FollowTheMoneyView({
                 {/* Overrides Pill's own `whiteSpace: nowrap` -- some status
                     phrases here ("Funding data unavailable right now") are
                     long enough that refusing to wrap forced this whole row's
-                    flex layout to starve the name column for space instead,
-                    down to the point of the name's own text overflowing its
-                    box on narrow screens. Letting the status wrap is what
-                    gives the name room to stay legible.
-                    Deliberately NOT setting minWidth: 0 here -- that would
-                    strip the Pill's own automatic min-content floor (the
-                    width of its longest word), letting ITS text overflow
-                    past a too-narrow box instead. Since it's right-aligned,
-                    that overflow would spill left on top of the name --
-                    the same failure this is meant to fix, just moved to the
-                    other side. Keeping the default floor caps how far the
-                    name gets squeezed, without ever letting the Pill itself
-                    overflow. */}
+                    flex layout to starve the name column for space instead.
+                    Wrapping alone isn't enough, though: the name column's
+                    `flex: 1` gives it a 0% flex-basis, so with the Pill's
+                    own flex-basis left at its default `auto` (~its full
+                    unwrapped text width), the row's total content still
+                    fits without ever entering the shrink phase -- the Pill
+                    renders at full width uncontested and the name is left
+                    to grow into whatever's left over, often just a few
+                    pixels. Setting the Pill's own flexBasis to 0 puts it in
+                    the same position the name is already in: it now only
+                    gets its automatic min-content floor (the width of its
+                    longest word, since whiteSpace stays "normal" and
+                    minWidth stays at its default "auto", not 0), and the
+                    name's flex-grow claims the rest. */}
                 <Pill
                   bg={status.tone === "ink" ? C.shell : "transparent"}
                   fg={status.tone === "ink" ? C.ink : C.muted}
-                  style={{ whiteSpace: "normal", textAlign: "right" }}
+                  style={{ whiteSpace: "normal", textAlign: "right", flexBasis: 0 }}
                 >
                   {status.label}
                 </Pill>
