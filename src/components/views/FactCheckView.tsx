@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { C, VERDICT_STYLE } from "@/lib/theme";
-import type { FactCheck } from "@/lib/types";
+import type { FactCheck, Verdict } from "@/lib/types";
 import { Kicker } from "@/components/ui";
 
 /**
@@ -76,18 +76,23 @@ export function FactCheckCard({
       {/*
         Signature device (brand-tokens-v2 Phase 4, guideline Section 06):
         "Redact & Highlight" -- the claim reads as struck-down, the finding
-        underneath as the sourced record. Only for Misleading/False: a True
-        verdict has nothing to redact, striking it through would visually
-        claim it was debunked when it wasn't. The guideline's own demo sets
-        the claim's text color equal to its background for a true redaction
-        (on-brand for a static marketing graphic) -- this card exists to
-        show people exactly what was claimed, so the in-app version keeps
-        the claim legible with a strikethrough instead. Not using
-        IBM Plex Mono here despite the guideline's demo: that font is scoped
-        to sourcing/citations only, and a claim or finding is substantive
-        content, not a citation string.
+        underneath as the sourced record. Only for Needs Context/Unsupported:
+        a Supported verdict has nothing to redact, striking it through would
+        visually claim it was debunked when it wasn't. Inconclusive falls to
+        the same plain-text branch as Supported, deliberately -- the
+        strikethrough exists to show a claim was actively contradicted by a
+        specific correction underneath it, and Inconclusive has none: its
+        finding is "we couldn't establish this either way," which reads as
+        plain explanatory text, not a redaction. The guideline's own demo
+        sets the claim's text color equal to its background for a true
+        redaction (on-brand for a static marketing graphic) -- this card
+        exists to show people exactly what was claimed, so the in-app
+        version keeps the claim legible with a strikethrough instead. Not
+        using IBM Plex Mono here despite the guideline's demo: that font is
+        scoped to sourcing/citations only, and a claim or finding is
+        substantive content, not a citation string.
       */}
-      {check.verdict === "Misleading" || check.verdict === "False" ? (
+      {check.verdict === "Needs Context" || check.verdict === "Unsupported" ? (
         <>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, textWrap: "pretty" }}>
             <span
@@ -139,5 +144,67 @@ export function FactCheckCard({
         </div>
       ) : null}
     </article>
+  );
+}
+
+const VERDICT_DEFINITIONS: { verdict: Verdict; definition: string }[] = [
+  { verdict: "Supported", definition: "Reliable evidence backs the claim." },
+  {
+    verdict: "Needs Context",
+    definition:
+      "The core claim has support, but important context, qualification, or omission materially affects how it should be understood.",
+  },
+  { verdict: "Unsupported", definition: "The available reliable evidence does not substantiate the claim." },
+  {
+    verdict: "Inconclusive",
+    definition: "There isn't enough reliable evidence to determine whether the claim is supported or unsupported.",
+  },
+];
+
+/**
+ * The four verdict definitions, in one place -- so a reader can look up what
+ * "Needs Context" or "Inconclusive" actually means without guessing from the
+ * word alone. Reuses VERDICT_STYLE's exact pill treatment (flat shell/ink,
+ * no color-as-verdict) so the key's badges look identical to the real ones
+ * on every card below it, not a second, slightly different-looking legend.
+ */
+export function VerdictKey() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 7,
+        padding: "12px 14px",
+        border: `1px solid ${C.line}`,
+        borderRadius: 10,
+        background: C.shell,
+      }}
+    >
+      {VERDICT_DEFINITIONS.map((d) => {
+        const v = VERDICT_STYLE[d.verdict];
+        return (
+          <div key={d.verdict} style={{ display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
+            <span
+              style={{
+                flex: "0 0 auto",
+                padding: "3px 10px",
+                borderRadius: 14,
+                fontWeight: 600,
+                fontSize: 10.5,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                whiteSpace: "nowrap",
+                background: C.white,
+                color: v.fg,
+              }}
+            >
+              {d.verdict}
+            </span>
+            <span style={{ fontSize: 12, color: C.body, lineHeight: 1.5 }}>{d.definition}</span>
+          </div>
+        );
+      })}
+    </div>
   );
 }

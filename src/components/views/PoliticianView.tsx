@@ -11,7 +11,7 @@ import { isCustomCompareEligible } from "@/lib/compare";
 import type { FactCheck, FundingSummary, IssuePosition, Politician, PromiseStatus, StanceCell } from "@/lib/types";
 import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, SourceAttribution } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
-import { FactCheckCard } from "./FactCheckView";
+import { FactCheckCard, VerdictKey } from "./FactCheckView";
 
 const LEDGER_FILTERS: (PromiseStatus | "All")[] = ["All", "Delivered", "In progress", "No movement"];
 const LEDGER_GRID = "1fr 168px 96px 132px";
@@ -496,6 +496,7 @@ export default function PoliticianView({
             <Kicker>Claims checked</Kicker>
             <span style={{ fontFamily: cond, fontSize: 18 }}>Fact-checks on {p.name}</span>
           </div>
+          <VerdictKey />
           <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
             {checks.map((c) => (
               <FactCheckCard key={c.id} check={c} showSources={false} />
