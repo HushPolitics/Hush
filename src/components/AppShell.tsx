@@ -61,13 +61,15 @@ const MENU_SHADOW = "0 8px 24px rgba(21,21,21,0.14)";
 
 // The top bar's responsive collapse order (app-layout-v2 amendment) is pure
 // CSS, keyed off the class names below -- same architecture as the rail's
-// own 1100px cutoff. Widest to narrowest: the tagline (`.topbar-tagline` +
-// its divider) drops first, since it's the lowest-priority element; then
-// the search field collapses to an icon that expands on click
-// (`.topbar-search-toggle`/`.topbar-search-field`, reusing the shell's own
-// 1100px design floor); then the nav collapses to a menu
-// (`.topbar-nav`/`.topbar-nav-toggle`). The wordmark and avatar are never
-// hidden. See globals.css for the exact breakpoints.
+// own 1100px cutoff. Widest to narrowest: the search field collapses to an
+// icon that expands on click first (`.topbar-search-toggle`/
+// `.topbar-search-field`, reusing the shell's own 1100px design floor);
+// then the nav collapses to a menu (`.topbar-nav`/`.topbar-nav-toggle`).
+// The wordmark, notifications button, and avatar are never hidden. See
+// globals.css for the exact breakpoints. (The tagline that used to drop
+// first here is gone -- its phrase now lives in GlobalFooter.tsx's
+// statement instead; `.topbar-tagline`'s own CSS rule goes unused rather
+// than needing cleanup, since nothing renders that class anymore.)
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -129,12 +131,17 @@ export default function AppShell({ children }: { children: ReactNode }) {
       {/*
         The top bar -- app-layout-v2 amendment. A straight left-to-right flex
         row now rather than a three-column grid: wordmark, nav, a search
-        field that fills whatever space is left, the avatar, and a tagline
-        pinned at the far end. No more centered nav column -- there's nothing
-        else on the left to center against once the location chip and
-        election-day indicator are gone (their content lives elsewhere now,
-        see the two doc comments below). Outside `.scroll` below, so it never
-        scrolls away.
+        field that fills whatever space is left, a notifications button, and
+        the avatar. No more centered nav column -- there's nothing else on
+        the left to center against once the location chip and election-day
+        indicator are gone (zip now lives in HUSH Guide's rail footer, see
+        AddressRailFooter in GuideView.tsx; the countdown lives in the
+        Feed's own orientation strip, see ElectionCard in FeedView.tsx --
+        both were already built for app-layout-v2's earlier phases, so
+        removing them from here duplicated nothing). The tagline that used
+        to sit at the far end of this bar is gone too -- its phrase now
+        lives in GlobalFooter.tsx's statement instead. Outside `.scroll`
+        below, so it never scrolls away.
       */}
       <header
         className="app-topbar"
@@ -331,6 +338,40 @@ export default function AppShell({ children }: { children: ReactNode }) {
           />
         </div>
 
+        {/*
+          Notifications -- links straight to the Feed's Recent Updates
+          section. No unread-count badge yet: that would need feed event
+          data (politicians, bills, votes, etc.), which only FeedView's own
+          page loads today -- AppShell wraps every page and doesn't have it
+          available here. Left as a real, working link rather than a fake or
+          stale-looking count; wiring up a real badge is a reasonable next
+          step, just a bigger one (either passing feed data into AppShell
+          globally, or exposing a lighter "has unread" signal some other
+          way).
+        */}
+        <Link
+          href="/feed#recent-updates"
+          aria-label="Notifications"
+          className="topbar-notifications"
+          style={{
+            border: `1px solid ${C.line}`,
+            borderRadius: 7,
+            width: 34,
+            height: 34,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "transparent",
+            color: C.faint,
+            flex: "0 0 auto",
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke={C.faint} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M4 6.5a4 4 0 0 1 8 0c0 2.5.7 3.6 1.3 4.3H2.7C3.3 10.1 4 9 4 6.5Z" />
+            <path d="M6.5 13a1.5 1.5 0 0 0 3 0" />
+          </svg>
+        </Link>
+
         <div style={{ position: "relative", flex: "0 0 auto" }}>
           <button
             type="button"
@@ -422,30 +463,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
           ) : null}
         </div>
 
-        {/*
-          Tagline -- the lowest-priority element in the bar (see the
-          collapse-order doc comment above), so it's the first thing
-          globals.css hides as the viewport narrows. Zip and the election-day
-          countdown used to live in this same right-hand area; zip now lives
-          in HUSH Guide's rail footer (see AddressRailFooter in GuideView.tsx)
-          and the countdown lives in the Feed's own orientation strip
-          (ElectionCard in FeedView.tsx) -- both were already built for
-          app-layout-v2's earlier phases, so removing them from here duplicates
-          nothing.
-        */}
-        <span
-          className="topbar-tagline-divider"
-          aria-hidden
-          style={{ width: 1, alignSelf: "stretch", margin: "16px 0", background: C.line, flex: "0 0 auto" }}
-        />
-        <div className="topbar-tagline" style={{ display: "flex", flexDirection: "column", gap: 3, flex: "0 0 auto", minWidth: 0 }}>
-          <span style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.3 }}>
-            Politics is noisy,
-            <br />
-            your vote shouldn&apos;t be.
-          </span>
-          <span aria-hidden style={{ width: 26, height: 2, background: C.rust }} />
-        </div>
       </header>
 
       <PersonalizeBanner />
