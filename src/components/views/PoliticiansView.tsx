@@ -221,6 +221,7 @@ export default function PoliticiansView({
 
       {/* Column header -- same treatment as the promise ledger's grid head on a politician's own page */}
       <div
+        className="stack-grid-head"
         style={{
           display: "grid",
           gridTemplateColumns: ROW_GRID,
@@ -242,7 +243,7 @@ export default function PoliticiansView({
         <span>Compare</span>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingBottom: picks.length >= 2 ? 56 : 0 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingBottom: picks.length >= 2 ? 80 : 0 }}>
         {filtered.map((p) => {
           const onBallot = ballotIds.has(p.id);
           const isPicked = picks.includes(p.id);
@@ -268,7 +269,7 @@ export default function PoliticiansView({
               onKeyDown={(e) => {
                 if (e.key === "Enter") router.push(`/politician/${p.id}`);
               }}
-              className="card-hover"
+              className="card-hover stack-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: ROW_GRID,
@@ -364,9 +365,13 @@ export default function PoliticiansView({
           the seeded default, but this list-driven flow only makes sense once
           there's an actual comparison forming). Fixed within the page's
           scroll container, not the viewport, matching how AppShell scopes
-          other overlays. */}
+          other overlays. On phone widths the party filter chips wrap onto
+          an extra row, which can put them in the same bottom strip this
+          bar hovers over -- `.compare-toolbar` (globals.css) turns it into
+          a full-width bottom bar with a solid backing band there instead,
+          so it reads as an intentional toolbar rather than a stray overlap. */}
       {picks.length >= 2 ? (
-        <div style={{ position: "sticky", bottom: 16, display: "flex", justifyContent: "center", zIndex: 5 }}>
+        <div className="compare-toolbar" style={{ position: "sticky", bottom: 16, display: "flex", justifyContent: "center", zIndex: 5 }}>
           <Link
             href="/compare"
             style={{

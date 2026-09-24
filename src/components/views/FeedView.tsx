@@ -354,6 +354,7 @@ export default function FeedView({
       </div>
 
       <div
+        className="stack-cards"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
@@ -710,7 +711,7 @@ function WorthKnowingSection({
           View all →
         </a>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+      <div className="stack-cards" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
         {shown.map((e) => {
           const unread = !isEventRead(e.id);
           const href = eventHref(e);

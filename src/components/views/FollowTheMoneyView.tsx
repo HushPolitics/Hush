@@ -63,7 +63,18 @@ export default function FollowTheMoneyView({
                   <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>{p.name}</span>
                   <span style={{ fontSize: 12, color: C.muted }}>{p.office}</span>
                 </div>
-                <Pill bg={status.tone === "ink" ? C.shell : "transparent"} fg={status.tone === "ink" ? C.ink : C.muted}>
+                {/* Overrides Pill's own `whiteSpace: nowrap` -- some status
+                    phrases here ("Funding data unavailable right now") are
+                    long enough that refusing to wrap forced this whole row's
+                    flex layout to starve the name column for space instead,
+                    down to the point of the name's own text overflowing its
+                    box on narrow screens. Letting the status wrap is what
+                    gives the name room to stay legible. */}
+                <Pill
+                  bg={status.tone === "ink" ? C.shell : "transparent"}
+                  fg={status.tone === "ink" ? C.ink : C.muted}
+                  style={{ whiteSpace: "normal", textAlign: "right", flex: "0 1 auto", minWidth: 0 }}
+                >
                   {status.label}
                 </Pill>
                 <span aria-hidden style={{ color: C.muted }}>
