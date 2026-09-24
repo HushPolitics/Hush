@@ -39,7 +39,13 @@ export default function RepresentativesCard({
   return (
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8, ...style }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {header === "display" ? <Display size={16}>Your Representatives</Display> : <Kicker>Your Representatives</Kicker>}
+        {header === "display" ? (
+          <Display size={16} color={C.rust}>
+            Your Representatives
+          </Display>
+        ) : (
+          <Kicker>Your Representatives</Kicker>
+        )}
         <Link
           href="/politicians"
           aria-label="See the full politician directory"
