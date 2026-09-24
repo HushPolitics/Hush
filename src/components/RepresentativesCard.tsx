@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { C, PARTY } from "@/lib/theme";
+import { C, PARTY, cond } from "@/lib/theme";
 import { Card, Display, Kicker } from "@/components/ui";
 import type { Politician } from "@/lib/types";
 
 /**
  * "Your Representatives" -- a short directory card, not a ranking: name,
- * office, party dot, nothing else. Used on the Feed's orientation strip and
- * HUSH Guide's right column (app-layout-v2 phases 1-2), identical both
- * places, so it lives here rather than being copied into each view.
+ * office, an initials avatar ringed in party color, nothing else. Used on
+ * the Feed's orientation strip and HUSH Guide's right column (app-layout-v2
+ * phases 1-2), identical both places, so it lives here rather than being
+ * copied into each view.
  *
  * Deliberately carries no HUSH. Score -- the standing rule against showing
  * two scores on one screen means the only place a politician's score
@@ -54,20 +55,52 @@ export default function RepresentativesCard({
           →
         </Link>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-        {shown.map((p) => (
-          <Link
-            key={p.id}
-            href={`/politician/${p.id}`}
-            style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: C.ink }}
-          >
-            <span style={{ width: 7, height: 7, borderRadius: 2, background: PARTY[p.party], flex: "0 0 7px" }} />
-            <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {p.name}
-            </span>
-            <span style={{ fontSize: 11, color: C.muted, whiteSpace: "nowrap" }}>{p.office}</span>
-          </Link>
-        ))}
+      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+        {shown.map((p) => {
+          const initials = p.name
+            .split(" ")
+            .filter(Boolean)
+            .map((w) => w[0])
+            .slice(0, 2)
+            .join("")
+            .toUpperCase();
+          return (
+            <Link
+              key={p.id}
+              href={`/politician/${p.id}`}
+              style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12.5, color: C.ink }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  flex: "0 0 28px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: cond,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: PARTY[p.party],
+                  background: C.shell,
+                  border: `1.5px solid ${PARTY[p.party]}`,
+                }}
+              >
+                {initials}
+              </span>
+              <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 1 }}>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 500 }}>
+                  {p.name}
+                </span>
+                <span style={{ fontSize: 11, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {p.office}
+                </span>
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </Card>
   );
