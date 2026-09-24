@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { C, HERO_SCRIM, cond } from "@/lib/theme";
+import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
@@ -344,6 +344,7 @@ export default function FeedView({
       <FeedHero />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <Kicker>Feed</Kicker>
         <Display size={25}>What&apos;s happened</Display>
         <span style={{ fontSize: 13, color: C.body, maxWidth: 640, lineHeight: 1.5 }}>
           Votes, bills, and fact checks as they happen — filter by type, or narrow to My Ballot, My
@@ -507,11 +508,11 @@ export default function FeedView({
 }
 
 /**
- * Feed's hero banner -- modeled directly on GuideView.tsx's GuideHero(),
- * same shell and scrim treatment, so it reads as the same device rather
- * than a new one. Purely additive above the existing Kicker/Display title
- * row, which stays exactly where it is (the functional page title; this is
- * the branded banner above it, not a replacement).
+ * Feed's hero banner -- just the image now. The "Feed" kicker and "The
+ * record, not the spin." tagline that used to sit overlaid on it (with a
+ * scrim behind them for legibility) moved down into the page's own
+ * Kicker/Display title row below the image instead, so no scrim is needed
+ * here anymore either.
  */
 function FeedHero() {
   return (
@@ -522,8 +523,6 @@ function FeedHero() {
         overflow: "hidden",
         background: C.ink,
         minHeight: 260,
-        display: "flex",
-        alignItems: "flex-end",
       }}
     >
       <img
@@ -532,20 +531,6 @@ function FeedHero() {
         aria-hidden
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
       />
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: HERO_SCRIM,
-        }}
-      />
-      <div style={{ position: "relative", padding: "22px 26px", display: "flex", flexDirection: "column", gap: 6 }}>
-        <Kicker color={C.tan}>Feed</Kicker>
-        <Display size={28} color={C.sand}>
-          The record, not the spin.
-        </Display>
-      </div>
     </div>
   );
 }
