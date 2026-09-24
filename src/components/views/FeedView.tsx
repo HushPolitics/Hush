@@ -2,27 +2,19 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState, type ReactNode } from "react";
-import { C, HERO_SCRIM, STATUS_STYLE, cond } from "@/lib/theme";
+import { useMemo, useState } from "react";
+import { C, HERO_SCRIM, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
 import { FEED_SCOPES, useFeedScope } from "@/lib/feedScope";
-import { initials } from "@/lib/scoring";
 import {
   ballotPoliticianIds,
   buildFeedEvents,
   eventInScope,
   eventPolitician,
-  type ArticleFeedEvent,
-  type BillFeedEvent,
-  type ElectionUpdateFeedEvent,
-  type FactCheckFeedEvent,
+  isWorthKnowing,
   type FeedEvent,
-  type PositionFeedEvent,
-  type PromiseFeedEvent,
-  type ScoreFeedEvent,
-  type VoteFeedEvent,
 } from "@/lib/feed";
 import type {
   ArticleRecord,
@@ -35,9 +27,8 @@ import type {
   StanceCheckPosition,
   VoteRecord,
 } from "@/lib/types";
-import { Avatar, Card, Chip, Display, EmptyState, ExpandableQuote, IssueIcon, Kicker, Pill } from "@/components/ui";
+import { Card, Chip, Display, EmptyState, IssueIcon, Kicker, Pill } from "@/components/ui";
 import RepresentativesCard from "@/components/RepresentativesCard";
-import { FactCheckCard } from "./FactCheckView";
 
 type TypeFilter = "all" | FeedEvent["type"];
 
@@ -50,44 +41,6 @@ const TYPE_FILTERS: { value: TypeFilter; label: string }[] = [
   { value: "article", label: "Articles" },
   { value: "position", label: "Positions" },
 ];
-
-// Sized for "Bills & Legislation," the longest row label, plus the icon and
-// count columns. Local to the Feed rather than AppShell's shared RAIL_WIDTH
-// -- see the Phase 1 findings note on why this rail is page-local JSX
-// rather than a route AppShell's contextual-rail mechanism knows about.
-const TYPE_RAIL_WIDTH = 210;
-
-/**
- * Category color per event type -- deliberately the same for every type.
- * An earlier pass used rust for the legislative record (Vote, Bills) and
- * green for civic logistics (Election Update), with everything else
- * neutral; that distinction is gone now by design, so event type reads
- * entirely from icon + label, never color. `score` and `promise` are
- * listed explicitly (rather than left absent to fall back to a default)
- * so every type -- including the two that don't otherwise appear in this
- * map -- renders through the exact same values, with nothing depending on
- * a fallback matching by coincidence.
- */
-const TYPE_COLOR: Partial<Record<FeedEvent["type"], string>> = {
-  vote: C.ink,
-  bill: C.ink,
-  factcheck: C.ink,
-  position: C.ink,
-  article: C.ink,
-  electionUpdate: C.ink,
-  score: C.ink,
-  promise: C.ink,
-};
-const TYPE_FILL: Partial<Record<FeedEvent["type"], string>> = {
-  vote: C.shell,
-  bill: C.shell,
-  factcheck: C.shell,
-  position: C.shell,
-  article: C.shell,
-  electionUpdate: C.shell,
-  score: C.shell,
-  promise: C.shell,
-};
 
 function typeLabel(t: FeedEvent["type"]): string {
   switch (t) {
@@ -256,20 +209,22 @@ function TypeIcon({
 }
 
 /**
- * The Feed, restructured for app-layout-v2 phase 1. Three additions sit on
- * top of the existing reverse-chronological event list:
+ * The Feed, rebuilt around three pieces sitting on top of the same
+ * reverse-chronological event list app-layout-v2 phase 1 assembled:
  *
  *   1. An orientation strip (Your Election / Your Top Issues / Your
  *      Representatives) so a reader lands somewhere useful before scrolling
  *      into the list itself.
- *   2. A Type filter rail, page-local to the Feed (see TYPE_RAIL_WIDTH's
- *      doc comment) rather than routed through AppShell's contextual rail,
- *      which is built for scroll-spy jump links, not click-to-filter.
- *   3. Four new event types -- Votes, Bills & Legislation, Election
- *      Updates, Articles -- alongside the original four. `score` and
- *      `promise` events have no dedicated filter row (they're not named in
- *      the Type rail's seven categories) but still appear under "All
- *      Updates."
+ *   2. Worth Knowing -- up to 3 personally-relevant highlights (saved
+ *      politicians or ranked issues, see `isWorthKnowing`) pulled from the
+ *      front of the list, with a per-reader unread dot (`readEventIds` in
+ *      prefs.tsx) -- then the full list below it, filterable by a
+ *      horizontal type bar (replacing the old sidebar rail, which forced a
+ *      two-column layout this content didn't need) and sortable
+ *      newest/oldest.
+ *   3. Explore HUSH -- static navigation into HUSH Guide, Compare, Stance
+ *      Check, and Follow the Money (the new campaign-finance hub; see
+ *      FollowTheMoneyView.tsx) below the list.
  *
  * The scope chips (My Ballot / My Issues / Following) are unchanged from
  * phase 0 -- `useFeedScope` still drives them, just relabeled to title case.
@@ -297,9 +252,10 @@ export default function FeedView({
 }) {
   const params = useSearchParams();
   const q = params.get("q") ?? "";
-  const { saved, topics } = usePrefs();
+  const { saved, topics, markEventRead, isEventRead } = usePrefs();
   const [scope, setScope] = useFeedScope();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [sort, setSort] = useState<"recent" | "oldest">("recent");
   const mounted = useMounted();
 
   const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
@@ -327,15 +283,14 @@ export default function FeedView({
     });
   }, [allEvents, scope, ballotIds, saved, topics, q]);
 
-  const typeCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: scopedEvents.length };
-    for (const e of scopedEvents) counts[e.type] = (counts[e.type] ?? 0) + 1;
-    return counts;
-  }, [scopedEvents]);
-
   const events = useMemo(
     () => (typeFilter === "all" ? scopedEvents : scopedEvents.filter((e) => e.type === typeFilter)),
     [scopedEvents, typeFilter],
+  );
+
+  const sortedEvents = useMemo(
+    () => (sort === "oldest" ? events.slice().reverse() : events),
+    [events, sort],
   );
 
   const followingEmpty = scope === "following" && saved.length === 0;
@@ -376,56 +331,76 @@ export default function FeedView({
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-        <aside
-          style={{
-            width: TYPE_RAIL_WIDTH,
-            flex: `0 0 ${TYPE_RAIL_WIDTH}px`,
-            position: "sticky",
-            // AppShell's top bar (66px) and PersonalizeBanner both sit outside
-            // the scrolling pane (`main.scroll` in AppShell.tsx) as flex
-            // siblings above it, not inside it -- so this sticky offset is
-            // relative to the top of the scroll container itself, which
-            // already starts below the top bar. 16 just matches the page's
-            // own top padding, same as the rest of this layout's breathing
-            // room, rather than needing to clear the nav's height on top of it.
-            top: 16,
-          }}
-        >
-          <TypeFilterRail value={typeFilter} onChange={setTypeFilter} counts={typeCounts} />
-        </aside>
+      <WorthKnowingSection
+        events={scopedEvents}
+        saved={saved}
+        topics={topics}
+        isEventRead={isEventRead}
+        markEventRead={markEventRead}
+      />
 
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
-          <TodayStrip events={events} />
+      <div id="recent-updates" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <Display size={20}>Recent Updates</Display>
+          <TypeFilterBar value={typeFilter} onChange={setTypeFilter} />
+          <label
+            style={{
+              marginLeft: "auto",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 12.5,
+              color: C.muted,
+            }}
+          >
+            Sort by
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as "recent" | "oldest")}
+              style={{
+                border: `1px solid ${C.lineHard}`,
+                borderRadius: 6,
+                padding: "4px 8px",
+                fontSize: 12.5,
+                color: C.ink,
+                background: C.sand,
+              }}
+            >
+              <option value="recent">Most recent</option>
+              <option value="oldest">Oldest first</option>
+            </select>
+          </label>
+        </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {events.map((e) => (
-              <FeedEventCard key={e.id} event={e} />
-            ))}
-            {events.length === 0 ? (
-              <EmptyState>
-                {followingEmpty ? (
-                  "Nothing followed yet — open a profile and hit “Save to my list”."
-                ) : issuesEmpty ? (
-                  <>
-                    You haven&apos;t ranked any issues yet —{" "}
-                    <Link href="/profile/top-issues/start?next=/feed" style={{ color: C.rust }}>
-                      pick your top issues
-                    </Link>{" "}
-                    to personalize your feed.
-                  </>
-                ) : q.trim() ? (
-                  `Nothing matches "${q.trim()}".`
-                ) : typeFilter !== "all" ? (
-                  "Nothing in this category yet."
-                ) : (
-                  "Nothing to show yet."
-                )}
-              </EmptyState>
-            ) : null}
-          </div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {sortedEvents.map((e) => (
+            <FeedListRow key={e.id} event={e} unread={!isEventRead(e.id)} onOpen={() => markEventRead(e.id)} />
+          ))}
+          {events.length === 0 ? (
+            <EmptyState>
+              {followingEmpty ? (
+                "Nothing followed yet — open a profile and hit “Save to my list”."
+              ) : issuesEmpty ? (
+                <>
+                  You haven&apos;t ranked any issues yet —{" "}
+                  <Link href="/profile/top-issues/start?next=/feed" style={{ color: C.rust }}>
+                    pick your top issues
+                  </Link>{" "}
+                  to personalize your feed.
+                </>
+              ) : q.trim() ? (
+                `Nothing matches "${q.trim()}".`
+              ) : typeFilter !== "all" ? (
+                "Nothing in this category yet."
+              ) : (
+                "Nothing to show yet."
+              )}
+            </EmptyState>
+          ) : null}
         </div>
       </div>
+
+      <ExploreHushSection />
     </div>
   );
 }
@@ -579,74 +554,137 @@ function TopIssuesCard({ topics }: { topics: string[] }) {
   );
 }
 
-function TypeFilterRail({
+function TypeFilterBar({
   value,
   onChange,
-  counts,
 }: {
   value: TypeFilter;
   onChange: (v: TypeFilter) => void;
-  counts: Record<string, number>;
 }) {
   return (
-    <nav aria-label="Filter by type" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      {TYPE_FILTERS.map((f) => {
-        const on = value === f.value;
-        return (
-          <button
-            key={f.value}
-            type="button"
-            onClick={() => onChange(f.value)}
-            aria-current={on ? "true" : undefined}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 9,
-              width: "100%",
-              textAlign: "left",
-              padding: "9px 10px 9px 11px",
-              borderRadius: 7,
-              border: 0,
-              borderLeft: `3px solid ${on ? C.rust : "transparent"}`,
-              background: on ? C.shell : "transparent",
-              color: on ? C.ink : C.body,
-              fontSize: 12.5,
-              cursor: "pointer",
-            }}
-          >
-            <TypeIcon type={f.value} />
-            <span style={{ flex: 1 }}>{f.label}</span>
-            <span style={{ fontSize: 11, color: C.muted }}>{counts[f.value] ?? 0}</span>
-          </button>
-        );
-      })}
-    </nav>
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      {TYPE_FILTERS.map((f) => (
+        <Chip key={f.value} on={value === f.value} onClick={() => onChange(f.value)}>
+          {f.label}
+        </Chip>
+      ))}
+    </div>
   );
 }
 
-function TodayStrip({ events }: { events: FeedEvent[] }) {
-  if (events.length === 0) return null;
+/**
+ * Personally-relevant highlights -- up to 3 events matching `isWorthKnowing`
+ * (a saved politician or a ranked issue), pulled from the front of `events`
+ * (already reverse-chronological), so this stays "the 3 most recent
+ * eligible" as new events show up with no extra refresh logic. A solid rust
+ * dot plus a thin rust card border mark an event unread; both clear on the
+ * next render once `markEventRead` fires from a click.
+ */
+function WorthKnowingSection({
+  events,
+  saved,
+  topics,
+  isEventRead,
+  markEventRead,
+}: {
+  events: FeedEvent[];
+  saved: string[];
+  topics: string[];
+  isEventRead: (id: string) => boolean;
+  markEventRead: (id: string) => void;
+}) {
+  const eligible = useMemo(
+    () => events.filter((e) => isWorthKnowing(e, saved, topics)),
+    [events, saved, topics],
+  );
+  if (eligible.length === 0) return null;
+
+  const unreadCount = eligible.filter((e) => !isEventRead(e.id)).length;
+  const shown = eligible.slice(0, 3);
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <Kicker>Today&apos;s Updates</Kicker>
-      <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
-        {events.slice(0, 6).map((e) => {
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <Kicker>Worth Knowing</Kicker>
+        {unreadCount > 0 ? (
+          <Pill bg={C.rustFill} fg={C.rust}>
+            {unreadCount} new update{unreadCount === 1 ? "" : "s"}
+          </Pill>
+        ) : null}
+        <a href="#recent-updates" style={{ marginLeft: "auto", fontSize: 12.5, color: C.rust }}>
+          View all →
+        </a>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+        {shown.map((e) => {
+          const unread = !isEventRead(e.id);
+          const href = eventHref(e);
           const politician = eventPolitician(e);
-          return (
-            <Card key={e.id} style={{ flex: "0 0 220px", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <TypeIcon type={e.type} size={13} color={TYPE_COLOR[e.type] ?? C.ink} />
+          const body = (
+            <Card
+              style={{
+                padding: "14px 16px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+                border: unread ? `1px solid ${C.rust}` : undefined,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <TypeIcon type={e.type} size={13} color={C.ink} />
                 <Pill
-                  bg={TYPE_FILL[e.type] ?? C.shell}
-                  fg={TYPE_COLOR[e.type] ?? C.muted}
-                  style={{ fontWeight: 600, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", padding: "2px 8px" }}
+                  bg={C.shell}
+                  fg={C.ink}
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 10.5,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    padding: "2px 8px",
+                  }}
                 >
                   {typeLabel(e.type)}
                 </Pill>
+                {unread ? (
+                  <span aria-hidden style={{ marginLeft: "auto", width: 7, height: 7, borderRadius: "50%", background: C.rust }} />
+                ) : null}
               </div>
-              <span style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.4 }}>{eventHeadline(e)}</span>
-              {politician ? <span style={{ fontSize: 11, color: C.muted }}>{politician.name}</span> : null}
+              <span style={{ fontFamily: cond, fontSize: 14, color: C.ink, lineHeight: 1.3 }}>
+                {eventHeadline(e)}
+              </span>
+              <span
+                style={{
+                  fontSize: 12,
+                  color: C.body,
+                  lineHeight: 1.4,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {politician ? politician.name : eventText(e)}
+              </span>
+              <span style={{ fontSize: 11, color: C.muted }}>{e.date}</span>
             </Card>
+          );
+          if (!href) {
+            return (
+              <a
+                key={e.id}
+                href={eventExternalUrl(e) ?? "#"}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => markEventRead(e.id)}
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                {body}
+              </a>
+            );
+          }
+          return (
+            <Link key={e.id} href={href} onClick={() => markEventRead(e.id)} style={{ textDecoration: "none", color: "inherit" }}>
+              {body}
+            </Link>
           );
         })}
       </div>
@@ -654,249 +692,233 @@ function TodayStrip({ events }: { events: FeedEvent[] }) {
   );
 }
 
-function FeedEventCard({ event }: { event: FeedEvent }) {
-  switch (event.type) {
+/** Where a Feed event's row links to -- each type's own page section. Bills have no per-candidate page, so they go to HUSH Guide's; electionUpdate has no internal page at all (see eventExternalUrl). */
+function eventHref(e: FeedEvent): string | null {
+  switch (e.type) {
     case "score":
-      return <ScoreEventCard event={event} />;
+      return `/politician/${e.politician.id}#score`;
     case "promise":
-      return <PromiseEventCard event={event} />;
+      return `/politician/${e.politician.id}#ledger`;
     case "factcheck":
-      return <FactCheckEventCard event={event} />;
+      return `/politician/${e.politician.id}#claims-checked`;
     case "position":
-      return <PositionEventCard event={event} />;
+      return `/politician/${e.politician.id}#positions`;
     case "vote":
-      return <VoteEventCard event={event} />;
-    case "bill":
-      return <BillEventCard event={event} />;
-    case "electionUpdate":
-      return <ElectionUpdateEventCard event={event} />;
     case "article":
-      return <ArticleEventCard event={event} />;
+      return `/politician/${e.politician.id}`;
+    case "bill":
+      return "/hush-guide#bills";
+    case "electionUpdate":
+      return null;
+  }
+}
+
+/** electionUpdate is the one type with no internal page -- it links straight to its own source instead. */
+function eventExternalUrl(e: FeedEvent): string | null {
+  return e.type === "electionUpdate" ? e.update.sourceUrl : null;
+}
+
+/**
+ * One compact row per event -- dot, icon, type pill, headline, one line of
+ * context, date, chevron -- replacing the old per-type bordered cards
+ * (quote, byline, and inline source link now live one click away, on the
+ * politician's own page or HUSH Guide, rather than in the Feed itself).
+ */
+function FeedListRow({
+  event,
+  unread,
+  onOpen,
+}: {
+  event: FeedEvent;
+  unread: boolean;
+  onOpen: () => void;
+}) {
+  const politician = eventPolitician(event);
+  const href = eventHref(event);
+  const external = eventExternalUrl(event);
+
+  const row = (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 12,
+        padding: "14px 4px",
+        borderBottom: `1px solid ${C.line}`,
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          width: 7,
+          height: 7,
+          borderRadius: "50%",
+          marginTop: 6,
+          flex: "0 0 7px",
+          background: unread ? C.rust : "transparent",
+          border: unread ? "none" : `1.5px solid ${C.line}`,
+        }}
+      />
+      <span style={{ marginTop: 2, flex: "0 0 auto" }}>
+        <TypeIcon type={event.type} size={15} color={C.ink} />
+      </span>
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 3 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <Pill
+            bg={C.shell}
+            fg={C.ink}
+            style={{ fontWeight: 600, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", padding: "2px 8px" }}
+          >
+            {typeLabel(event.type)}
+          </Pill>
+          <span style={{ fontFamily: cond, fontSize: 15, color: C.ink, lineHeight: 1.3 }}>
+            {eventHeadline(event)}
+          </span>
+        </div>
+        <span
+          style={{
+            fontSize: 12.5,
+            color: C.body,
+            lineHeight: 1.4,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {eventText(event)}
+        </span>
+        {politician ? <span style={{ fontSize: 11.5, color: C.muted }}>{politician.name}</span> : null}
+      </div>
+      <span style={{ fontSize: 12, color: C.muted, flex: "0 0 auto", whiteSpace: "nowrap" }}>{event.date}</span>
+      <span aria-hidden style={{ color: C.muted, flex: "0 0 auto" }}>
+        ›
+      </span>
+    </div>
+  );
+
+  if (external) {
+    return (
+      <a href={external} target="_blank" rel="noreferrer" onClick={onOpen} style={{ textDecoration: "none", color: "inherit" }}>
+        {row}
+      </a>
+    );
+  }
+  if (!href) return row;
+  return (
+    <Link href={href} onClick={onOpen} style={{ textDecoration: "none", color: "inherit" }}>
+      {row}
+    </Link>
+  );
+}
+
+const EXPLORE_TILES = [
+  {
+    href: "/hush-guide",
+    icon: "guide" as const,
+    kicker: "Research your ballot",
+    title: "HUSH. Guide",
+    body: "See every race and ballot measure with clear, sourced candidate positions on the issues you care about.",
+    cta: "Go to HUSH. Guide →",
+  },
+  {
+    href: "/compare",
+    icon: "compare" as const,
+    kicker: "Compare candidates",
+    title: "Compare",
+    body: "See candidates side by side on the issues that matter to you.",
+    cta: "Start a comparison →",
+  },
+  {
+    href: "/stance-check",
+    icon: "stance" as const,
+    kicker: "Explore a politician",
+    title: "Stance Check",
+    body: "See what a politician has said about the issues, with direct quotes and sources.",
+    cta: "Search a politician →",
+  },
+  {
+    href: "/follow-the-money",
+    icon: "money" as const,
+    kicker: "Campaign finance",
+    title: "Follow the Money",
+    body: "See who funds the politicians on your ballot — FEC-filed totals and committee contributions, sourced and dated.",
+    cta: "Explore campaign finance →",
+  },
+];
+
+function ExploreIcon({ kind }: { kind: "guide" | "compare" | "stance" | "money" }) {
+  const common = {
+    width: 18,
+    height: 18,
+    viewBox: "0 0 16 16",
+    fill: "none",
+    stroke: C.ink,
+    strokeWidth: 1.4,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+  switch (kind) {
+    case "guide":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M2 3.2c1.6-.9 3.4-.9 5 0v9.6c-1.6-.9-3.4-.9-5 0z" />
+          <path d="M13 3.2c-1.6-.9-3.4-.9-5 0v9.6c1.6-.9 3.4-.9 5 0z" />
+        </svg>
+      );
+    case "compare":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M2.5 5.5h9M9 3l2.5 2.5L9 8" />
+          <path d="M13.5 10.5h-9M7 8l-2.5 2.5L7 13" />
+        </svg>
+      );
+    case "stance":
+      return (
+        <svg {...common} aria-hidden>
+          <rect x="2.25" y="2.25" width="9" height="11.5" rx="1" />
+          <line x1="4.25" y1="5.25" x2="9.25" y2="5.25" />
+          <line x1="4.25" y1="7.75" x2="9.25" y2="7.75" />
+          <circle cx="11.75" cy="11" r="2.25" />
+        </svg>
+      );
+    case "money":
+      return (
+        <svg {...common} aria-hidden>
+          <rect x="1.5" y="4" width="13" height="8.5" rx="1.25" />
+          <circle cx="8" cy="8.25" r="2" />
+          <line x1="3.5" y1="6" x2="3.5" y2="6" />
+          <line x1="12.5" y1="10.5" x2="12.5" y2="10.5" />
+        </svg>
+      );
   }
 }
 
 /**
- * Shared card shell -- the flat tinted header panel (ink glyph + condensed
- * type label + date) app-layout-v2 calls for, wrapping whatever body the
- * specific event type renders below it. FactCheckEventCard is the one
- * exception (see its own doc comment): it keeps delegating to the shared
- * FactCheckCard rather than being wrapped in a second header, since that
- * component also renders on the politician page and Stance Check's reveal
- * and shouldn't grow a Feed-only header treatment.
+ * Static navigation into HUSH's other surfaces -- three of four go to real,
+ * working pages today; Follow the Money is new (see FollowTheMoneyView.tsx).
+ * Icons follow TypeIcon's own convention (flat single-stroke ink line
+ * glyphs, 16x16 viewBox, no per-category color) rather than a second icon
+ * style for this one section.
  */
-function EventCard({ event, children }: { event: FeedEvent; children: ReactNode }) {
+function ExploreHushSection() {
   return (
-    <Card className="lift" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 9,
-          padding: "8px 14px",
-          background: C.shell,
-          borderBottom: `1px solid ${C.line}`,
-        }}
-      >
-        <TypeIcon type={event.type} color={TYPE_COLOR[event.type] ?? C.ink} />
-        <span
-          style={{
-            fontWeight: 600,
-            fontSize: 12.5,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            color: TYPE_COLOR[event.type] ?? C.ink,
-          }}
-        >
-          {typeLabel(event.type)}
-        </span>
-        <span style={{ marginLeft: "auto", fontSize: 12, color: C.muted }}>{event.date}</span>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <Kicker>Explore HUSH</Kicker>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10 }}>
+        {EXPLORE_TILES.map((t) => (
+          <Card key={t.href} style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+            <ExploreIcon kind={t.icon} />
+            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: C.muted }}>
+              {t.kicker}
+            </span>
+            <Display size={18}>{t.title}</Display>
+            <span style={{ fontSize: 12.5, color: C.body, lineHeight: 1.5, flex: 1 }}>{t.body}</span>
+            <Link href={t.href} style={{ fontSize: 12.5, color: C.rust }}>
+              {t.cta}
+            </Link>
+          </Card>
+        ))}
       </div>
-      <div style={{ padding: "11px 14px", display: "flex", flexDirection: "column", gap: 8 }}>{children}</div>
-    </Card>
-  );
-}
-
-function PoliticianRow({ politician, anchor }: { politician: Politician; anchor?: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
-      <Avatar text={initials(politician.name)} size={24} radius={6} font={10} />
-      <Link
-        href={anchor ? `/politician/${politician.id}#${anchor}` : `/politician/${politician.id}`}
-        style={{ fontSize: 13, fontWeight: 500, color: C.ink }}
-      >
-        {politician.name}
-      </Link>
-      <span style={{ fontSize: 12, color: C.muted }}>{politician.office}</span>
     </div>
-  );
-}
-
-function ScoreEventCard({ event }: { event: ScoreFeedEvent }) {
-  return (
-    <EventCard event={event}>
-      {/* WHAT: canonical headline, same helper + sizing as every other card */}
-      <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
-        {eventHeadline(event)}
-      </span>
-      {/* WHO */}
-      <PoliticianRow politician={event.politician} anchor="score" />
-      {/* WHY */}
-      <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{event.reason}</span>
-    </EventCard>
-  );
-}
-
-function PromiseEventCard({ event }: { event: PromiseFeedEvent }) {
-  const s = STATUS_STYLE[event.status];
-  return (
-    <EventCard event={event}>
-      {/* WHAT */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <Pill bg={s.bg} fg={s.fg}>
-          {event.status}
-        </Pill>
-        <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
-          {eventHeadline(event)}
-        </span>
-      </div>
-      {/* WHO */}
-      <PoliticianRow politician={event.politician} anchor="ledger" />
-    </EventCard>
-  );
-}
-
-function FactCheckEventCard({ event }: { event: FactCheckFeedEvent }) {
-  return (
-    <FactCheckCard
-      check={event.check}
-      who={event.politician.name}
-      href={`/politician/${event.politician.id}#claims-checked`}
-      showSources={false}
-    />
-  );
-}
-
-function PositionEventCard({ event }: { event: PositionFeedEvent }) {
-  const sub = event.kind === "guide" ? "HUSH Guide position" : `Stance Check · ${event.stance}`;
-  return (
-    <EventCard event={event}>
-      {/* WHAT */}
-      <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
-        {eventHeadline(event)}
-      </span>
-      {/* WHO */}
-      <PoliticianRow politician={event.politician} anchor="positions" />
-      {/* WHY */}
-      <span style={{ fontSize: 12, color: C.muted }}>
-        {sub} · {event.issue}
-      </span>
-      <ExpandableQuote text={event.excerpt} style={{ fontSize: 14 }} />
-      {/* SOURCE */}
-      <a
-        href={event.sourceUrl}
-        target="_blank"
-        rel="noreferrer"
-        style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}
-      >
-        {event.sourceTitle}
-      </a>
-    </EventCard>
-  );
-}
-
-function VoteEventCard({ event }: { event: VoteFeedEvent }) {
-  const v = event.vote;
-  return (
-    <EventCard event={event}>
-      {/* WHAT: canonical headline, same helper + sizing as every other card */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <Pill bg={C.shell} fg={C.ink}>{v.vote}</Pill>
-        <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
-          {eventHeadline(event)}
-        </span>
-      </div>
-      {/* WHO / WHAT IT INVOLVES */}
-      <PoliticianRow politician={event.politician} />
-      {/* WHY IT MATTERS / SHORT CONTEXT */}
-      <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{v.note}</span>
-      <span style={{ fontSize: 11, color: C.muted }}>{v.chamber}</span>
-      {/* SOURCE -- was missing entirely; VoteRecord already carries this */}
-      <a
-        href={v.sourceUrl}
-        target="_blank"
-        rel="noreferrer"
-        style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}
-      >
-        {v.sourceName}
-      </a>
-    </EventCard>
-  );
-}
-
-function BillEventCard({ event }: { event: BillFeedEvent }) {
-  const b = event.bill;
-  return (
-    <EventCard event={event}>
-      {/* WHAT: canonical headline, same size as every other card. The bill
-          number moves down into the metadata line below rather than being
-          dropped -- eventHeadline() for a bill is just its title. */}
-      <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
-        {eventHeadline(event)}
-      </span>
-      <span style={{ fontSize: 12, color: C.muted }}>
-        {b.number} · {b.chamber}
-        {b.voteStage ? ` · ${b.voteStage}` : ""}
-      </span>
-      {b.description ? <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{b.description}</span> : null}
-      <Link href="/hush-guide#bills" style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}>
-        See HUSH&apos;s plain-English breakdown
-      </Link>
-    </EventCard>
-  );
-}
-
-function ElectionUpdateEventCard({ event }: { event: ElectionUpdateFeedEvent }) {
-  const u = event.update;
-  return (
-    <EventCard event={event}>
-      {/* WHAT: canonical headline, same size as every other card (was 16px) */}
-      <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
-        {eventHeadline(event)}
-      </span>
-      <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{u.detail}</span>
-      <a
-        href={u.sourceUrl}
-        target="_blank"
-        rel="noreferrer"
-        style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}
-      >
-        {u.sourceName}
-      </a>
-    </EventCard>
-  );
-}
-
-function ArticleEventCard({ event }: { event: ArticleFeedEvent }) {
-  const a = event.article;
-  return (
-    <EventCard event={event}>
-      {/* WHAT */}
-      <span style={{ fontFamily: cond, fontSize: 15.5, color: C.ink, lineHeight: 1.3 }}>
-        {eventHeadline(event)}
-      </span>
-      {/* WHO */}
-      <PoliticianRow politician={event.politician} />
-      {/* WHY */}
-      <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{a.dek}</span>
-      {/* SOURCE */}
-      <a
-        href={a.sourceUrl}
-        target="_blank"
-        rel="noreferrer"
-        style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}
-      >
-        {a.sourceName}
-      </a>
-    </EventCard>
   );
 }
