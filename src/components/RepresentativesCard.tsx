@@ -8,10 +8,14 @@ import type { Politician } from "@/lib/types";
 
 /**
  * "Your Representatives" -- a short directory card, not a ranking: name,
- * office, an initials avatar ringed in party color, nothing else. Used on
- * the Feed's orientation strip and HUSH Guide's right column (app-layout-v2
- * phases 1-2), identical both places, so it lives here rather than being
- * copied into each view.
+ * office, an initials avatar ringed in party color, nothing else. Rows sit
+ * in a 2x2 grid of bordered boxes rather than a stacked list, matching the
+ * "Your Most Important Issues" tiles above it in HUSH Guide's at-a-glance
+ * strip -- unlike that grid's #1 issue, no single representative is
+ * highlighted here (this card was never a ranking), so every box gets the
+ * same neutral border. Used on the Feed's orientation strip and HUSH
+ * Guide's right column (app-layout-v2 phases 1-2), identical both places,
+ * so it lives here rather than being copied into each view.
  *
  * Deliberately carries no HUSH. Score -- the standing rule against showing
  * two scores on one screen means the only place a politician's score
@@ -55,7 +59,7 @@ export default function RepresentativesCard({
           →
         </Link>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         {shown.map((p) => {
           const initials = p.name
             .split(" ")
@@ -68,20 +72,30 @@ export default function RepresentativesCard({
             <Link
               key={p.id}
               href={`/politician/${p.id}`}
-              style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12.5, color: C.ink }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                minWidth: 0,
+                padding: "7px 9px",
+                borderRadius: 8,
+                border: `1.5px solid ${C.line}`,
+                fontSize: 12.5,
+                color: C.ink,
+              }}
             >
               <span
                 aria-hidden
                 style={{
-                  width: 28,
-                  height: 28,
+                  width: 24,
+                  height: 24,
                   borderRadius: "50%",
-                  flex: "0 0 28px",
+                  flex: "0 0 24px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontFamily: cond,
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: 600,
                   color: PARTY[p.party],
                   background: C.shell,
@@ -94,7 +108,7 @@ export default function RepresentativesCard({
                 <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 500 }}>
                   {p.name}
                 </span>
-                <span style={{ fontSize: 11, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: 10.5, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {p.office}
                 </span>
               </span>
