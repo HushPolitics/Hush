@@ -75,15 +75,23 @@ export function Bar({ pct, color, height = 6, track = C.shell, style }: {
   );
 }
 
-/** Rounded pill used for verdicts, promise statuses and stance tags. */
-export function Pill({ children, bg, fg, style }: {
+/**
+ * Rounded pill used for verdicts, promise statuses and stance tags. `title`
+ * is optional and, when set, becomes the native browser tooltip shown on
+ * hover -- used for verdict pills to surface the verdict's definition
+ * without needing a separate tooltip component (see VERDICT_DEFINITION in
+ * FactCheckView.tsx).
+ */
+export function Pill({ children, bg, fg, style, title }: {
   children: ReactNode;
   bg: string;
   fg: string;
   style?: CSSProperties;
+  title?: string;
 }) {
   return (
     <span
+      title={title}
       style={{
         padding: "4px 11px",
         borderRadius: 14,

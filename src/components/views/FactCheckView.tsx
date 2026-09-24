@@ -22,6 +22,19 @@ import { Kicker } from "@/components/ui";
  *      CandidateCard.
  *   3. The Feed, as one of its event types (phase 4).
  */
+
+/**
+ * Whether a verdict gets the "Redact & Highlight" treatment (see the doc
+ * comment inside FactCheckCard below) -- Needs Context and Unsupported have
+ * a specific correction to show, Supported and Inconclusive don't. Exported
+ * so FeedView's Recent Updates rows can apply the identical strikethrough/
+ * highlight treatment inline, without the two files' conditions drifting
+ * apart from each other.
+ */
+export function isRedactVerdict(v: Verdict): boolean {
+  return v === "Needs Context" || v === "Unsupported";
+}
+
 export function FactCheckCard({
   check,
   who,
@@ -61,6 +74,7 @@ export function FactCheckCard({
             background: v.bg,
             color: v.fg,
           }}
+          title={VERDICT_DEFINITION[check.verdict]}
         >
           {check.verdict}
         </span>
@@ -92,7 +106,7 @@ export function FactCheckCard({
         scoped to sourcing/citations only, and a claim or finding is
         substantive content, not a citation string.
       */}
-      {check.verdict === "Needs Context" || check.verdict === "Unsupported" ? (
+      {isRedactVerdict(check.verdict) ? (
         <>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, textWrap: "pretty" }}>
             <span
@@ -160,6 +174,21 @@ const VERDICT_DEFINITIONS: { verdict: Verdict; definition: string }[] = [
     definition: "There isn't enough reliable evidence to determine whether the claim is supported or unsupported.",
   },
 ];
+
+/**
+ * The same four definitions as VERDICT_DEFINITIONS above, keyed by verdict
+ * for O(1) lookup -- built from that array (not a second hand-typed copy) so
+ * the two can never drift. Used as the native `title` tooltip on the verdict
+ * pill everywhere it appears without its definition already printed next to
+ * it -- FactCheckCard here (and by extension StanceCheckView's reveal, which
+ * renders FactCheckCard directly) and FeedView's FeedListRow -- so hovering
+ * "Needs Context" or any other verdict shows what it means. VerdictKey
+ * doesn't need it: its whole job is printing the definition inline already.
+ */
+export const VERDICT_DEFINITION: Record<Verdict, string> = VERDICT_DEFINITIONS.reduce(
+  (acc, d) => ({ ...acc, [d.verdict]: d.definition }),
+  {} as Record<Verdict, string>
+);
 
 /**
  * The four verdict definitions, in one place -- so a reader can look up what

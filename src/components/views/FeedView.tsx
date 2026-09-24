@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { C, cond } from "@/lib/theme";
+import { C, VERDICT_STYLE, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
@@ -29,6 +29,7 @@ import type {
 } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, IssueIcon, Kicker, Pill } from "@/components/ui";
 import RepresentativesCard from "@/components/RepresentativesCard";
+import { isRedactVerdict, VERDICT_DEFINITION } from "./FactCheckView";
 
 type TypeFilter = "all" | FeedEvent["type"];
 
@@ -841,6 +842,14 @@ function eventExternalUrl(e: FeedEvent): string | null {
  * context, date, chevron -- replacing the old per-type bordered cards
  * (quote, byline, and inline source link now live one click away, on the
  * politician's own page or HUSH Guide, rather than in the Feed itself).
+ *
+ * A factcheck row is the one exception to "one line of context": it carries
+ * its own verdict pill next to the FACT CHECK type pill, and for Needs
+ * Context/Unsupported verdicts applies the same "Redact & Highlight"
+ * treatment FactCheckCard uses (see isRedactVerdict) -- struck-through claim
+ * as the headline, the finding highlighted as the context line -- so the
+ * verdict and its correction read right here in the list, not only after
+ * clicking through to the politician's page.
  */
 function FeedListRow({
   event,
@@ -889,22 +898,70 @@ function FeedListRow({
           >
             {typeLabel(event.type)}
           </Pill>
-          <span style={{ fontFamily: cond, fontSize: 15, color: C.ink, lineHeight: 1.3 }}>
+          {event.type === "factcheck" ? (
+            <Pill
+              bg={VERDICT_STYLE[event.check.verdict].bg}
+              fg={VERDICT_STYLE[event.check.verdict].fg}
+              title={VERDICT_DEFINITION[event.check.verdict]}
+              style={{
+                fontWeight: 600,
+                fontSize: 10.5,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                padding: "2px 8px",
+                border: `1px solid ${C.line}`,
+              }}
+            >
+              {event.check.verdict}
+            </Pill>
+          ) : null}
+          <span
+            style={{
+              fontFamily: cond,
+              fontSize: 15,
+              lineHeight: 1.3,
+              color: C.ink,
+              ...(event.type === "factcheck" && isRedactVerdict(event.check.verdict)
+                ? { textDecoration: "line-through", textDecorationThickness: 2, textDecorationColor: C.ink, color: C.muted }
+                : {}),
+            }}
+          >
             {eventHeadline(event)}
           </span>
         </div>
-        <span
-          style={{
-            fontSize: 12.5,
-            color: C.body,
-            lineHeight: 1.4,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {eventText(event)}
-        </span>
+        {event.type === "factcheck" && isRedactVerdict(event.check.verdict) ? (
+          <span
+            style={{
+              display: "inline-block",
+              maxWidth: "100%",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              background: C.rust,
+              color: C.ink,
+              fontWeight: 600,
+              padding: "2px 6px",
+              borderRadius: 2,
+              fontSize: 12,
+              lineHeight: 1.5,
+            }}
+          >
+            {event.check.finding}
+          </span>
+        ) : (
+          <span
+            style={{
+              fontSize: 12.5,
+              color: C.body,
+              lineHeight: 1.4,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {event.type === "factcheck" ? event.check.finding : eventText(event)}
+          </span>
+        )}
         {politician ? <span style={{ fontSize: 11.5, color: C.muted }}>{politician.name}</span> : null}
       </div>
       <span style={{ fontSize: 12, color: C.muted, flex: "0 0 auto", whiteSpace: "nowrap" }}>{event.date}</span>
