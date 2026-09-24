@@ -69,11 +69,20 @@ export default function FollowTheMoneyView({
                     flex layout to starve the name column for space instead,
                     down to the point of the name's own text overflowing its
                     box on narrow screens. Letting the status wrap is what
-                    gives the name room to stay legible. */}
+                    gives the name room to stay legible.
+                    Deliberately NOT setting minWidth: 0 here -- that would
+                    strip the Pill's own automatic min-content floor (the
+                    width of its longest word), letting ITS text overflow
+                    past a too-narrow box instead. Since it's right-aligned,
+                    that overflow would spill left on top of the name --
+                    the same failure this is meant to fix, just moved to the
+                    other side. Keeping the default floor caps how far the
+                    name gets squeezed, without ever letting the Pill itself
+                    overflow. */}
                 <Pill
                   bg={status.tone === "ink" ? C.shell : "transparent"}
                   fg={status.tone === "ink" ? C.ink : C.muted}
-                  style={{ whiteSpace: "normal", textAlign: "right", flex: "0 1 auto", minWidth: 0 }}
+                  style={{ whiteSpace: "normal", textAlign: "right" }}
                 >
                   {status.label}
                 </Pill>
