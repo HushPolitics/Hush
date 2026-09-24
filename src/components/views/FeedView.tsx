@@ -1041,7 +1041,24 @@ function ExploreHushSection() {
         {EXPLORE_TILES.map((t) => (
           <Card key={t.href} style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
             <ExploreIcon kind={t.icon} />
-            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: C.muted }}>
+            {/* Fixed 2-line height (lineHeight * minHeight, both in em on
+                this span) rather than letting the kicker's own length decide
+                -- a short kicker like "Campaign finance" would otherwise stay
+                on one line while a longer one like "Research your ballot"
+                wraps to two, pushing that card's title down and leaving the
+                row of titles across all 4 tiles misaligned. */}
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: C.muted,
+                lineHeight: 1.4,
+                minHeight: "2.8em",
+                display: "block",
+              }}
+            >
               {t.kicker}
             </span>
             <Display size={18}>{t.title}</Display>
