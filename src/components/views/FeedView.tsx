@@ -360,7 +360,7 @@ export default function FeedView({
       >
         <ElectionCard days={days} raceCount={races.length} />
         <TopIssuesCard topics={topics} />
-        <RepresentativesCard politicians={ballotPoliticians} />
+        <RepresentativesCard politicians={ballotPoliticians} header="display" />
       </div>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -561,7 +561,7 @@ function ElectionCard({ days, raceCount }: { days: number | null; raceCount: num
   const earlyVoting = KEY_DATES.find((k) => k.label === "Early voting");
   return (
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
-      <Kicker>Your Election</Kicker>
+      <Display size={16}>Your Election</Display>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
         <span style={{ fontFamily: cond, fontSize: 34, lineHeight: 1, color: C.ink }}>
           {days === null ? "—" : days}
@@ -597,7 +597,7 @@ function TopIssuesCard({ topics }: { topics: string[] }) {
   const shown = topics.slice(0, 3);
   return (
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
-      <Kicker>Your Top Issues</Kicker>
+      <Display size={16}>Your Top Issues</Display>
       {topics.length === 0 ? (
         <span style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.5 }}>
           Nothing ranked yet —{" "}
@@ -1062,7 +1062,22 @@ function ExploreHushSection() {
               {t.kicker}
             </span>
             <Display size={18}>{t.title}</Display>
-            <span style={{ fontSize: 12.5, color: C.body, lineHeight: 1.5, flex: 1 }}>{t.body}</span>
+            {/* Same fixed-height treatment as the kicker above -- 3 lines'
+                worth, sized for the longest body copy (Follow the Money's) --
+                rather than `flex: 1`, which sized each paragraph's own box to
+                match card height but left the actual text sitting at
+                different heights depending on how many lines it wrapped to. */}
+            <span
+              style={{
+                fontSize: 12.5,
+                color: C.body,
+                lineHeight: 1.5,
+                minHeight: "4.5em",
+                display: "block",
+              }}
+            >
+              {t.body}
+            </span>
             <Link href={t.href} style={{ fontSize: 12.5, color: C.rust }}>
               {t.cta}
             </Link>
