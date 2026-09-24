@@ -989,157 +989,176 @@ function FeedListRow({
 const EXPLORE_TILES = [
   {
     href: "/hush-guide",
-    icon: "guide" as const,
-    kicker: "Research your ballot",
+    eyebrow: "Research your ballot",
     title: "HUSH. Guide",
     body: "See every race and ballot measure with clear, sourced candidate positions on the issues you care about.",
+    rows: [
+      { label: "Races", value: "Every race on your ballot" },
+      { label: "Positions", value: "Direct quotes from candidates" },
+      { label: "Sources", value: "Official records and links" },
+    ],
     cta: "Go to HUSH. Guide →",
+    ctaStyle: "filled" as const,
   },
   {
     href: "/stance-check",
-    icon: "stance" as const,
-    kicker: "Explore a politician",
+    eyebrow: "Explore a politician",
     title: "Stance Check",
     body: "See what a politician has said about the issues, with direct quotes and sources.",
+    rows: [
+      { label: "Search", value: "Any politician or candidate" },
+      { label: "Issues", value: "Position by position" },
+      { label: "Sources", value: "Direct quotes and original records" },
+    ],
     cta: "Search a politician →",
+    ctaStyle: "filled" as const,
   },
   {
     href: "/compare",
-    icon: "compare" as const,
-    kicker: "Compare candidates",
+    eyebrow: "Compare candidates",
     title: "Politicians",
     body: "See candidates side by side on the issues that matter to you.",
+    rows: [
+      { label: "Compare", value: "Side by side on key issues" },
+      { label: "Focus", value: "The issues you care about" },
+      { label: "Context", value: "Direct quotes and sources" },
+    ],
     cta: "Start a comparison →",
+    ctaStyle: "filled" as const,
   },
   {
     href: "/follow-the-money",
-    icon: "money" as const,
-    kicker: "Campaign finance",
+    eyebrow: "Campaign finance",
     title: "Follow the Money",
-    body: "See who funds the politicians on your ballot — FEC-filed totals and committee contributions, sourced and dated.",
+    body: "See who funds the politicians on your ballot — including major donors, industries, PACs, and outside spending.",
+    rows: [
+      { label: "Donors", value: "Top contributors" },
+      { label: "Industries", value: "Where the money comes from" },
+      { label: "Spending", value: "PACs, committees, and outside groups" },
+    ],
     cta: "Explore campaign finance →",
+    ctaStyle: "filled" as const,
   },
 ];
-
-function ExploreIcon({ kind }: { kind: "guide" | "compare" | "stance" | "money" }) {
-  const common = {
-    width: 18,
-    height: 18,
-    viewBox: "0 0 16 16",
-    fill: "none",
-    stroke: C.ink,
-    strokeWidth: 1.4,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-  };
-  switch (kind) {
-    case "guide":
-      return (
-        <svg {...common} aria-hidden>
-          <path d="M2 3.2c1.6-.9 3.4-.9 5 0v9.6c-1.6-.9-3.4-.9-5 0z" />
-          <path d="M13 3.2c-1.6-.9-3.4-.9-5 0v9.6c1.6-.9 3.4-.9 5 0z" />
-        </svg>
-      );
-    case "compare":
-      return (
-        <svg {...common} aria-hidden>
-          <path d="M2.5 5.5h9M9 3l2.5 2.5L9 8" />
-          <path d="M13.5 10.5h-9M7 8l-2.5 2.5L7 13" />
-        </svg>
-      );
-    case "stance":
-      return (
-        <svg {...common} aria-hidden>
-          <rect x="2.25" y="2.25" width="9" height="11.5" rx="1" />
-          <line x1="4.25" y1="5.25" x2="9.25" y2="5.25" />
-          <line x1="4.25" y1="7.75" x2="9.25" y2="7.75" />
-          <circle cx="11.75" cy="11" r="2.25" />
-        </svg>
-      );
-    case "money":
-      return (
-        <svg {...common} aria-hidden>
-          <rect x="1.5" y="4" width="13" height="8.5" rx="1.25" />
-          <circle cx="8" cy="8.25" r="2" />
-          <line x1="3.5" y1="6" x2="3.5" y2="6" />
-          <line x1="12.5" y1="10.5" x2="12.5" y2="10.5" />
-        </svg>
-      );
-  }
-}
 
 /**
  * Static navigation into HUSH's other surfaces -- three of four go to real,
  * working pages today; Follow the Money is new (see FollowTheMoneyView.tsx).
- * Icons follow TypeIcon's own convention (flat single-stroke ink line
- * glyphs, 16x16 viewBox, no per-category color) rather than a second icon
- * style for this one section.
+ * Editorial two-zone card (dark header, light body) rather than the old
+ * generic icon-kicker-title-body-link stack -- no icon anymore, per spec.
+ * Every text piece in the dark header reserves its own minimum height
+ * (same technique the old version used) so all four headers line up even
+ * though the four descriptions are different lengths; each info row does
+ * the same so the CTA row lands in the same place on every card.
  */
 function ExploreHushSection() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       <Kicker>Explore HUSH</Kicker>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10 }}>
+      <div
+        className="explore-hush-grid"
+        style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 14 }}
+      >
         {EXPLORE_TILES.map((t) => (
-          <Card key={t.href} style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
-            <ExploreIcon kind={t.icon} />
-            {/* Fixed 2-line height (lineHeight * minHeight, both in em on
-                this span) rather than letting the kicker's own length decide
-                -- a short kicker like "Campaign finance" would otherwise stay
-                on one line while a longer one like "Research your ballot"
-                wraps to two, pushing that card's title down and leaving the
-                row of titles across all 4 tiles misaligned. */}
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: C.muted,
-                lineHeight: 1.4,
-                minHeight: "2.8em",
-                display: "block",
-              }}
-            >
-              {t.kicker}
-            </span>
-            {/* Same fixed-height idea as the kicker above, this time on the
-                title -- "Follow the Money" is long enough to wrap to a
-                second line at this column width while the other three stay
-                on one, which was enough on its own to knock the paragraph
-                below out of alignment even with the kicker and paragraph
-                heights already pinned. Reserving 2 lines here regardless of
-                actual wrap is what makes every paragraph start at the same
-                height, not just end at the same height. */}
-            <Display size={18} style={{ lineHeight: 1.15, minHeight: "2.3em", display: "block" }}>
-              {t.title}
-            </Display>
-            {/* Same fixed-height treatment as the kicker above -- 3 lines'
-                worth, sized for the longest body copy (Follow the Money's) --
-                rather than `flex: 1`, which sized each paragraph's own box to
-                match card height but left the actual text sitting at
-                different heights depending on how many lines it wrapped to. */}
-            <span
-              style={{
-                fontSize: 12.5,
-                color: C.body,
-                lineHeight: 1.5,
-                minHeight: "4.5em",
-                display: "block",
-              }}
-            >
-              {t.body}
-            </span>
-            {/* marginTop: auto pins the CTA to the bottom of the card --
-                Card is a flex column, and every card in the row is already
-                stretched to the same height by the grid above it, so this
-                is what makes the link flush with the bottom edge of every
-                box rather than trailing right behind whatever the fixed-
-                height kicker/title/paragraph reservations above added up to
-                for that one tile. */}
-            <Link href={t.href} style={{ fontSize: 12.5, color: C.rust, marginTop: "auto" }}>
-              {t.cta}
-            </Link>
+          <Card
+            key={t.href}
+            style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}
+          >
+            {/* Dark header -- eyebrow, title, description. */}
+            <div style={{ background: C.ink, padding: "24px 22px", display: "flex", flexDirection: "column", gap: 9 }}>
+              <Kicker color={C.rust} style={{ minHeight: "1.4em", display: "block" }}>
+                {t.eyebrow}
+              </Kicker>
+              <Display
+                size={22}
+                color={C.onDark}
+                style={{ lineHeight: 1.15, minHeight: "2.4em", display: "block" }}
+              >
+                {t.title}
+              </Display>
+              <span
+                style={{
+                  fontSize: 13,
+                  color: C.onDark,
+                  lineHeight: 1.5,
+                  minHeight: "5.6em",
+                  display: "block",
+                }}
+              >
+                {t.body}
+              </span>
+            </div>
+
+            {/* Light body -- three label/value rows, then the CTA. */}
+            <div style={{ background: C.cream, padding: "18px 22px 20px", display: "flex", flexDirection: "column", flex: 1 }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {t.rows.map((row, i) => (
+                  <div
+                    key={row.label}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 12,
+                      padding: "10px 0",
+                      borderTop: i === 0 ? "none" : `1px solid ${C.lineSoft}`,
+                      minHeight: "2.6em",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        color: C.muted,
+                        flex: "0 0 auto",
+                      }}
+                    >
+                      {row.label}
+                    </span>
+                    <span style={{ fontSize: 12, color: C.body, textAlign: "right" }}>{row.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Link
+                href={t.href}
+                style={
+                  t.ctaStyle === "filled"
+                    ? {
+                        marginTop: "auto",
+                        alignSelf: "flex-start",
+                        border: 0,
+                        padding: "11px 18px",
+                        borderRadius: 8,
+                        background: C.rust,
+                        color: C.sand,
+                        fontWeight: 600,
+                        fontSize: 12.5,
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        textDecoration: "none",
+                      }
+                    : {
+                        marginTop: "auto",
+                        alignSelf: "flex-start",
+                        border: `1px solid ${C.rust}`,
+                        padding: "11px 18px",
+                        borderRadius: 8,
+                        background: "transparent",
+                        color: C.rust,
+                        fontWeight: 600,
+                        fontSize: 12.5,
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        textDecoration: "none",
+                      }
+                }
+              >
+                {t.cta}
+              </Link>
+            </div>
           </Card>
         ))}
       </div>
