@@ -22,6 +22,22 @@ export function BillsSection({ bills }: { bills: Bill[] }) {
         <Display size={22}>What you&apos;ll actually be voting on</Display>
       </div>
 
+      {bills.length === 0 ? (
+        <EmptyState>No bills in Hush&apos;s seed dataset yet.</EmptyState>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))",
+            gap: 16,
+          }}
+        >
+          {bills.map((bill) => (
+            <BillCard key={bill.id} bill={bill} />
+          ))}
+        </div>
+      )}
+
       <Card style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
         <p style={{ margin: 0, fontSize: 12.5, color: C.body, lineHeight: 1.6 }}>
           These are the statewide and local measures on your ballot this election — amendments and
@@ -46,22 +62,6 @@ export function BillsSection({ bills }: { bills: Bill[] }) {
           </mark>
         </p>
       </Card>
-
-      {bills.length === 0 ? (
-        <EmptyState>No bills in Hush&apos;s seed dataset yet.</EmptyState>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))",
-            gap: 16,
-          }}
-        >
-          {bills.map((bill) => (
-            <BillCard key={bill.id} bill={bill} />
-          ))}
-        </div>
-      )}
     </section>
   );
 }
