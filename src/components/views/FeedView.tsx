@@ -561,7 +561,7 @@ function ElectionCard({ days, raceCount }: { days: number | null; raceCount: num
   const earlyVoting = KEY_DATES.find((k) => k.label === "Early voting");
   return (
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
-      <Display size={16}>Your Election</Display>
+      <Display size={16} color={C.rust}>Your Election</Display>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
         <span style={{ fontFamily: cond, fontSize: 34, lineHeight: 1, color: C.ink }}>
           {days === null ? "—" : days}
@@ -597,7 +597,7 @@ function TopIssuesCard({ topics }: { topics: string[] }) {
   const shown = topics.slice(0, 3);
   return (
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
-      <Display size={16}>Your Top Issues</Display>
+      <Display size={16} color={C.rust}>Your Top Issues</Display>
       {topics.length === 0 ? (
         <span style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.5 }}>
           Nothing ranked yet —{" "}
@@ -1061,7 +1061,17 @@ function ExploreHushSection() {
             >
               {t.kicker}
             </span>
-            <Display size={18}>{t.title}</Display>
+            {/* Same fixed-height idea as the kicker above, this time on the
+                title -- "Follow the Money" is long enough to wrap to a
+                second line at this column width while the other three stay
+                on one, which was enough on its own to knock the paragraph
+                below out of alignment even with the kicker and paragraph
+                heights already pinned. Reserving 2 lines here regardless of
+                actual wrap is what makes every paragraph start at the same
+                height, not just end at the same height. */}
+            <Display size={18} style={{ lineHeight: 1.15, minHeight: "2.3em", display: "block" }}>
+              {t.title}
+            </Display>
             {/* Same fixed-height treatment as the kicker above -- 3 lines'
                 worth, sized for the longest body copy (Follow the Money's) --
                 rather than `flex: 1`, which sized each paragraph's own box to
