@@ -743,25 +743,28 @@ function GuideAtAGlanceStrip({
                 Edit
               </button>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-              {topics.slice(0, 3).map((name, idx) => (
-                <div key={name} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12.5, color: C.ink }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {topics.slice(0, 4).map((name, idx) => (
+                <div
+                  key={name}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 7,
+                    minWidth: 0,
+                    padding: "7px 10px",
+                    borderRadius: 8,
+                    border: `${idx === 0 ? 2 : 1.5}px solid ${idx === 0 ? C.rust : C.line}`,
+                    background: idx === 0 ? C.rustFill : C.white,
+                  }}
+                >
                   <span
-                    aria-hidden
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: "50%",
-                      flex: "0 0 24px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      flex: "0 0 auto",
                       fontFamily: cond,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      background: idx === 0 ? C.rust : C.white,
-                      color: idx === 0 ? C.white : C.ink,
-                      border: idx === 0 ? "none" : `1.5px solid ${C.line}`,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: idx === 0 ? C.rust : C.muted,
                     }}
                   >
                     {idx + 1}
@@ -773,6 +776,8 @@ function GuideAtAGlanceStrip({
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
+                      fontSize: 12.5,
+                      color: C.ink,
                       fontWeight: idx === 0 ? 600 : 400,
                     }}
                   >
@@ -791,7 +796,7 @@ function GuideAtAGlanceStrip({
               version is unaffected. */}
           <RepresentativesCard
             politicians={representatives}
-            limit={3}
+            limit={4}
             style={{ flex: 1, border: "none", borderRadius: 0, background: "transparent", padding: "14px 20px" }}
           />
         </div>
