@@ -358,3 +358,20 @@ input::placeholder {
     height: 560px;
   }
 }
+
+/* Feed's "Explore HUSH" grid: the only 4-up grid in the app that needs a
+   2-column middle step rather than jumping straight from 4 to 1 -- the new
+   editorial two-zone cards (dark header + light body, see FeedView.tsx)
+   are too content-dense to skip a step the way the old icon-kicker cards
+   could. Reuses the app's existing breakpoints (1100px, 640px) rather than
+   introducing new ones. */
+@media (max-width: 1100px) {
+  .explore-hush-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 640px) {
+  .explore-hush-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
