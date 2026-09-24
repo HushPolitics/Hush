@@ -321,6 +321,18 @@ input::placeholder {
     display: none !important;
   }
 
+  /* Generic helper for a fixed-column CSS grid whose cells are full Cards
+     or sections (Feed's orientation strip, its "Worth Knowing" tiles,
+     Profile Settings' section grid) rather than single-line table fields.
+     Unlike .stack-grid above, cells keep their full row width and normal
+     reading gap once stacked -- a settings Card shrunk to `justify-self:
+     start` would collapse to its narrowest child's width instead of
+     spanning the row, which is what .stack-grid's own children want but
+     this pattern's don't. */
+  .stack-cards {
+    grid-template-columns: 1fr !important;
+  }
+
   .header-avatar {
     width: 40px !important;
     height: 40px !important;
@@ -356,6 +368,24 @@ input::placeholder {
      flip faces from clipping their content. */
   .flip-card {
     height: 560px;
+  }
+
+  /* PoliticiansView's floating "Compare N" bar sticks near the bottom of
+     the scroll container from the moment 2+ picks exist (see that file's
+     own comment) -- on phone widths the party filter chips wrap onto an
+     extra row, which can land them in the same bottom strip the bar
+     hovers over, reading as a stray overlap rather than a toolbar. Pins it
+     to the actual viewport edge with a solid backing band instead, so it
+     always reads as intentional chrome no matter what's scrolled beneath. */
+  .compare-toolbar {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    padding: 12px 16px !important;
+    background: #f7f3ec !important; /* C.cream */
+    border-top: 1px solid rgba(28, 25, 23, 0.07) !important; /* C.lineSoft */
+    z-index: 20 !important;
   }
 }
 
