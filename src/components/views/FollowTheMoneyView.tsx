@@ -63,7 +63,28 @@ export default function FollowTheMoneyView({
                   <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>{p.name}</span>
                   <span style={{ fontSize: 12, color: C.muted }}>{p.office}</span>
                 </div>
-                <Pill bg={status.tone === "ink" ? C.shell : "transparent"} fg={status.tone === "ink" ? C.ink : C.muted}>
+                {/* Overrides Pill's own `whiteSpace: nowrap` -- some status
+                    phrases here ("Funding data unavailable right now") are
+                    long enough that refusing to wrap forced this whole row's
+                    flex layout to starve the name column for space instead.
+                    Wrapping alone isn't enough, though: the name column's
+                    `flex: 1` gives it a 0% flex-basis, so with the Pill's
+                    own flex-basis left at its default `auto` (~its full
+                    unwrapped text width), the row's total content still
+                    fits without ever entering the shrink phase -- the Pill
+                    renders at full width uncontested and the name is left
+                    to grow into whatever's left over, often just a few
+                    pixels. Setting the Pill's own flexBasis to 0 puts it in
+                    the same position the name is already in: it now only
+                    gets its automatic min-content floor (the width of its
+                    longest word, since whiteSpace stays "normal" and
+                    minWidth stays at its default "auto", not 0), and the
+                    name's flex-grow claims the rest. */}
+                <Pill
+                  bg={status.tone === "ink" ? C.shell : "transparent"}
+                  fg={status.tone === "ink" ? C.ink : C.muted}
+                  style={{ whiteSpace: "normal", textAlign: "right", flexBasis: 0 }}
+                >
                   {status.label}
                 </Pill>
                 <span aria-hidden style={{ color: C.muted }}>

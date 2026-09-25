@@ -62,6 +62,7 @@ function StatusLine({ status, message }: { status: "idle" | "saving" | "saved" |
 export default function ProfileSettingsView({ topicPool }: { topicPool: string[] }) {
   return (
     <div
+      className="stack-cards"
       style={{
         padding: "24px 28px",
         display: "grid",
