@@ -470,7 +470,7 @@ function TileGrid({
                     <span style={{ fontSize: 12, color: C.rust, display: "block" }}>{district}</span>
                   ) : null}
                 </div>
-                <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, flex: 1, background: C.cream }}>
+                <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, flex: 1, background: C.white }}>
                 {top ? (
                   <>
                     <Kicker size={11}>Your #{top.rank} issue: {top.issue}</Kicker>
