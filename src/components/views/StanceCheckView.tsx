@@ -401,13 +401,12 @@ export default function StanceCheckView({
               <div
                 style={{
                   padding: "10px 16px",
-                  background: C.shell,
-                  borderBottom: `1px solid ${C.line}`,
+                  background: C.ink,
                 }}
               >
-                <Kicker color={C.muted}>{issue}</Kicker>
+                <Kicker color={C.rust}>{issue}</Kicker>
               </div>
-              <div style={{ padding: "26px 24px 22px", display: "flex", flexDirection: "column", gap: 18 }}>
+              <div style={{ padding: "26px 24px 22px", display: "flex", flexDirection: "column", gap: 18, background: C.white }}>
                 {/* 22 -> 26px is +18%, inside the requested 15-20% range, and
                     now clearly the largest text on the question screen */}
                 <Display size={26} style={{ lineHeight: 1.3 }}>

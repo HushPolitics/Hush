@@ -348,8 +348,7 @@ export default function FeedView({
         <Kicker>Feed</Kicker>
         <Display size={25}>What&apos;s happened</Display>
         <span style={{ fontSize: 13, color: C.body, maxWidth: 640, lineHeight: 1.5 }}>
-          Votes, bills, and fact checks as they happen — filter by type, or narrow to My Ballot, My
-          Issues, or Following below.
+          Votes, bills, and fact checks — filter by type, or narrow to My Ballot, My Issues, or Following.
         </span>
       </div>
 
@@ -1055,7 +1054,7 @@ const EXPLORE_TILES = [
 function ExploreHushSection() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <Kicker>Explore HUSH</Kicker>
+      <Kicker>Explore HUSH.</Kicker>
       <div
         className="explore-hush-grid"
         style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 14 }}
