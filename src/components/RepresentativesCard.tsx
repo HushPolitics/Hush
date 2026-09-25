@@ -34,11 +34,17 @@ export default function RepresentativesCard({
   limit = 4,
   style,
   header = "kicker",
+  variant = "arrow",
 }: {
   politicians: Politician[];
   limit?: number;
   style?: CSSProperties;
   header?: "kicker" | "display";
+  /** "arrow" (default) keeps the top-right arrow into /politicians -- every
+   *  existing call site. "seeMore" drops that arrow and adds a bottom-left
+   *  "See More →" link instead, matching ElectionCard/TopIssuesCard's own
+   *  footer-link convention on the Feed's orientation strip. */
+  variant?: "arrow" | "seeMore";
 }) {
   const shown = politicians.slice(0, limit);
   return (
@@ -51,71 +57,86 @@ export default function RepresentativesCard({
         ) : (
           <Kicker>Your Representatives</Kicker>
         )}
-        <Link
-          href="/politicians"
-          aria-label="See the full politician directory"
-          style={{ marginLeft: "auto", fontSize: 15, color: C.muted }}
-        >
-          →
-        </Link>
+        {variant === "arrow" ? (
+          <Link
+            href="/politicians"
+            aria-label="See the full politician directory"
+            style={{ marginLeft: "auto", fontSize: 15, color: C.muted }}
+          >
+            →
+          </Link>
+        ) : null}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        {shown.map((p) => {
-          const initials = p.name
-            .split(" ")
-            .filter(Boolean)
-            .map((w) => w[0])
-            .slice(0, 2)
-            .join("")
-            .toUpperCase();
-          return (
-            <Link
-              key={p.id}
-              href={`/politician/${p.id}`}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                minWidth: 0,
-                padding: "7px 9px",
-                borderRadius: 8,
-                border: `1.5px solid ${C.line}`,
-                fontSize: 12.5,
-                color: C.ink,
-              }}
-            >
-              <span
-                aria-hidden
+      {/* flex: 1 + a centered column, same technique TopIssuesCard already
+          uses right next to this card on the Feed -- vertically centers
+          the representative boxes in whatever height this card gets
+          stretched to as a CSS Grid row sibling, rather than always
+          sitting flush under the header with empty space left at the
+          bottom. */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {shown.map((p) => {
+            const initials = p.name
+              .split(" ")
+              .filter(Boolean)
+              .map((w) => w[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase();
+            return (
+              <Link
+                key={p.id}
+                href={`/politician/${p.id}`}
                 style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: "50%",
-                  flex: "0 0 24px",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  fontFamily: cond,
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: PARTY[p.party],
-                  background: C.shell,
-                  border: `1.5px solid ${PARTY[p.party]}`,
+                  gap: 8,
+                  minWidth: 0,
+                  padding: "7px 9px",
+                  borderRadius: 8,
+                  border: `1.5px solid ${C.line}`,
+                  fontSize: 12.5,
+                  color: C.ink,
                 }}
               >
-                {initials}
-              </span>
-              <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 1 }}>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 500 }}>
-                  {p.name}
+                <span
+                  aria-hidden
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: "50%",
+                    flex: "0 0 24px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily: cond,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: PARTY[p.party],
+                    background: C.shell,
+                    border: `1.5px solid ${PARTY[p.party]}`,
+                  }}
+                >
+                  {initials}
                 </span>
-                <span style={{ fontSize: 10.5, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {p.office}
+                <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 1 }}>
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 500 }}>
+                    {p.name}
+                  </span>
+                  <span style={{ fontSize: 10.5, color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {p.office}
+                  </span>
                 </span>
-              </span>
-            </Link>
-          );
-        })}
+              </Link>
+            );
+          })}
+        </div>
       </div>
+      {variant === "seeMore" ? (
+        <Link href="/politicians" style={{ fontSize: 12, color: C.rust, alignSelf: "flex-start" }}>
+          See More →
+        </Link>
+      ) : null}
     </Card>
   );
 }
