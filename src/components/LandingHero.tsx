@@ -117,7 +117,13 @@ function HomeHeader() {
   };
 
   return (
-    <header style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 3, padding: "30px 34px" }}>
+    // No longer position: absolute -- this now takes its own real space at
+    // the top of the page instead of overlaying the hero. Still fully
+    // transparent (no background, no border) so it reads identically
+    // against the continuous Ink background; the only difference is the
+    // hero content is now guaranteed to start below it instead of
+    // vertically centering into the same space it occupies.
+    <header style={{ padding: "30px 34px" }}>
       <div
         className="home-header-row"
         style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 16 }}
@@ -272,7 +278,20 @@ function HomeHeader() {
 
 function HomeHero() {
   return (
-    <div style={{ position: "relative", minHeight: "max(760px, 100vh)", width: "100%", background: C.ink, display: "flex", alignItems: "center" }}>
+    // minHeight subtracts the header's own rendered height (~112px: 30px
+    // padding top + bottom plus its tallest row content) so the header +
+    // hero together still land at roughly one full viewport, now that the
+    // header takes real space above this instead of floating over it.
+    <div
+      style={{
+        position: "relative",
+        minHeight: "calc(max(760px, 100vh) - 112px)",
+        width: "100%",
+        background: C.ink,
+        display: "flex",
+        alignItems: "center",
+      }}
+    >
       <div
         style={{
           position: "relative",
@@ -295,7 +314,11 @@ function HomeHero() {
           </span>
         </div>
 
-        <h1 style={{ margin: "18px 0 0", fontFamily: cond, fontWeight: 400, fontSize: "clamp(56px, 9vw, 140px)", lineHeight: 0.9, color: C.onDark }}>
+        {/* Headline: was clamp(56px, 9vw, 140px) -- maxed out around 130-140px
+            on an ordinary browser window, which is what read as "way too
+            big." New range tops out at 92px instead, same scaling behavior
+            (a percentage of window width, floored on small screens). */}
+        <h1 style={{ margin: "18px 0 0", fontFamily: cond, fontWeight: 400, fontSize: "clamp(40px, 6vw, 92px)", lineHeight: 0.9, color: C.onDark }}>
           POLITICS
           <br />
           IS NOISY.
@@ -312,7 +335,9 @@ function HomeHero() {
             padding: "8px 32px 22px",
           }}
         >
-          <span style={{ display: "block", fontFamily: cond, fontWeight: 400, fontSize: "clamp(42px, 6.9vw, 108px)", lineHeight: 0.94, color: C.ink }}>
+          {/* Was clamp(42px, 6.9vw, 108px) -- same proportional reduction as
+              the headline above. */}
+          <span style={{ display: "block", fontFamily: cond, fontWeight: 400, fontSize: "clamp(32px, 4.6vw, 72px)", lineHeight: 0.94, color: C.ink }}>
             YOUR VOTE
             <br />
             SHOULDN&apos;T BE.
