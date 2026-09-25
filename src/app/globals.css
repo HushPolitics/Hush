@@ -405,3 +405,61 @@ input::placeholder {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Home v11 -- public marketing home page (LandingHero.tsx). Hover states
+   live here rather than as inline JS handlers, matching the app's existing
+   .btn-rust / .link-quiet / .btn-highlighter convention. */
+.home-nav-link:hover {
+  color: var(--rust) !important;
+}
+.home-dropdown-item:hover {
+  background: #2a2620 !important;
+  color: var(--rust) !important;
+}
+.home-btn-primary:hover {
+  background: var(--cream) !important;
+}
+.home-link-underline:hover {
+  color: var(--rust) !important;
+  border-bottom-color: var(--rust) !important;
+}
+.home-footer-link:hover {
+  color: var(--rust) !important;
+}
+.home-social-icon:hover {
+  border-color: var(--rust) !important;
+  color: var(--rust) !important;
+}
+
+/* Home v11 responsive collapse. The logged-in app's own top bar collapses
+   its nav to a menu at 820px (see the .topbar-nav-toggle rules above) --
+   v11 uses its own ~900px floor per your spec instead of that number, since
+   it's judged against this page's much larger type and button padding, not
+   the app shell's denser bar. Same toggle-visibility technique as
+   .topbar-nav-toggle: both pieces always mount in JSX, only this CSS
+   decides which one shows. */
+.home-nav-toggle {
+  display: none;
+}
+@media (max-width: 900px) {
+  .home-nav-desktop,
+  .home-header-actions {
+    display: none !important;
+  }
+  .home-nav-toggle {
+    display: flex !important;
+  }
+  .home-header-row {
+    grid-template-columns: 1fr auto !important;
+  }
+  .home-footer-row1,
+  .home-footer-row2 {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+}
+@media (min-width: 901px) {
+  .home-mobile-menu {
+    display: none !important;
+  }
+}
