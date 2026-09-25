@@ -402,8 +402,9 @@ function Row({
           borderBottom: `1px solid ${C.lineSoft}`,
           background: C.hover,
           display: "flex",
-          alignItems: "center",
-          gap: 8,
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: 4,
         }}
       >
         <span
@@ -428,7 +429,7 @@ function Row({
               color: C.rust,
             }}
           >
-            Your #{rank}
+            Your #{rank} Issue
           </span>
         ) : null}
       </span>

@@ -363,7 +363,7 @@ export default function FeedView({
       >
         <ElectionCard days={days} raceCount={races.length} />
         <TopIssuesCard topics={topics} />
-        <RepresentativesCard politicians={ballotPoliticians} header="display" />
+        <RepresentativesCard politicians={ballotPoliticians} header="display" variant="seeMore" />
       </div>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -1091,7 +1091,7 @@ function ExploreHushSection() {
             </div>
 
             {/* Light body -- three label/value rows, then the CTA. */}
-            <div style={{ background: C.cream, padding: "18px 22px 20px", display: "flex", flexDirection: "column", flex: 1 }}>
+            <div style={{ background: C.cream, padding: "18px 22px 20px", display: "flex", flexDirection: "column", flex: 1, gap: 18 }}>
               <div style={{ display: "flex", flexDirection: "column" }}>
                 {t.rows.map((row, i) => (
                   <div
