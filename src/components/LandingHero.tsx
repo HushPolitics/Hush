@@ -278,7 +278,6 @@ function HomeHero() {
           position: "relative",
           zIndex: 2,
           maxWidth: 1000,
-          margin: "0 auto",
           width: "100%",
           padding: "26px 34px 80px",
           display: "flex",
