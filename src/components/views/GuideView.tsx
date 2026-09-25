@@ -462,16 +462,15 @@ function TileGrid({
                     minHeight: 62,
                     boxSizing: "border-box",
                     padding: "10px 16px",
-                    background: C.shell,
-                    borderBottom: `1px solid ${C.line}`,
+                    background: C.ink,
                   }}
                 >
-                  <span style={{ fontFamily: cond, fontSize: 19, lineHeight: 1.15 }}>{office}</span>
+                  <span style={{ fontFamily: cond, fontSize: 19, lineHeight: 1.15, color: C.onDark }}>{office}</span>
                   {district ? (
-                    <span style={{ fontSize: 12, color: C.muted, display: "block" }}>{district}</span>
+                    <span style={{ fontSize: 12, color: C.rust, display: "block" }}>{district}</span>
                   ) : null}
                 </div>
-                <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
+                <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, flex: 1, background: C.cream }}>
                 {top ? (
                   <>
                     <Kicker size={11}>Your #{top.rank} issue: {top.issue}</Kicker>
