@@ -109,8 +109,13 @@ function HomeHeader() {
     closeTimer.current = setTimeout(() => setHowOpen(false), 120);
   }
 
+  // Stepped down one size to match "Join the Movement" (the button sitting
+  // directly next to these links in the header) rather than inventing a new
+  // number. Mobile menu links use their own separate `mobileLinkStyle`
+  // (fixed 16px) and are unaffected -- mobile nav is sized for tap targets,
+  // not to mirror this desktop clamp.
   const navLinkStyle: CSSProperties = {
-    fontSize: "clamp(16px, 1.3vw, 19px)",
+    fontSize: "clamp(15px, 1.1vw, 16px)",
     fontWeight: 500,
     color: C.onDark,
     textDecoration: "none",
@@ -345,7 +350,10 @@ function HomeHero() {
         </div>
 
         <p style={{ marginTop: 40, maxWidth: "46ch", fontWeight: 400, fontSize: "clamp(18px, 1.6vw, 23px)", lineHeight: 1.58, color: V11.bodyMuted }}>
-          HUSH gives you direct quotes, verified sources, and a clear way to compare candidates — so
+          {/* "HUSH." as a standalone brand mark, same construction as
+              "HUSH. Guide" / "HUSH. Score" elsewhere -- so this reads as
+              "HUSH. give you direct quotes..." rather than "gives." */}
+          HUSH. give you direct quotes, verified sources, and a clear way to compare candidates — so
           you can make an informed vote, without the noise.
         </p>
 
