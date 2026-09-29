@@ -24,7 +24,7 @@ const HOW_IT_WORKS_ITEMS = [
 const FOOTER_NAV = [
   { label: "Our Story", href: "/our-story" },
   { label: "How It Works", href: "/how-it-works" },
-  { label: "Fund HUSH", href: "/fund" },
+  { label: "Fund HUSH.", href: "/fund" },
 ];
 
 // "Our Methodology" points at "#" -- not built yet, per the brief. The rest
@@ -196,7 +196,7 @@ function HomeHeader() {
           </div>
 
           <Link href="/fund" className="home-nav-link" style={navLinkStyle}>
-            Fund HUSH
+            Fund HUSH.
           </Link>
         </nav>
 
@@ -261,7 +261,7 @@ function HomeHeader() {
             What&apos;s Included?
           </Link>
           <Link href="/fund" className="home-nav-link" style={mobileLinkStyle} onClick={() => setMobileOpen(false)}>
-            Fund HUSH
+            Fund HUSH.
           </Link>
           <div style={{ height: 1, background: V11.rule, margin: "6px 4px" }} />
           <Link href="/login" className="home-nav-link" style={mobileLinkStyle} onClick={() => setMobileOpen(false)}>
@@ -406,10 +406,10 @@ function HomeFooter() {
         </nav>
 
         <form style={{ display: "flex", flexDirection: "column", gap: 8 }} onSubmit={(e) => e.preventDefault() /* no signup backend yet -- see build notes */}>
-          <span style={{ fontWeight: 700, fontSize: 11, textTransform: "uppercase", color: C.rust }}>THE BRIEF</span>
+          <span style={{ fontWeight: 700, fontSize: 11, textTransform: "uppercase", color: C.rust }}>THE MOVEMENT</span>
           <div style={{ display: "flex", gap: 8 }}>
             <label htmlFor="home-brief-email" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}>
-              Email for the HUSH Brief
+              Email for the HUSH Movement
             </label>
             <input
               id="home-brief-email"
