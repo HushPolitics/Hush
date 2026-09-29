@@ -406,10 +406,13 @@ function HomeFooter() {
         </nav>
 
         <form style={{ display: "flex", flexDirection: "column", gap: 8 }} onSubmit={(e) => e.preventDefault() /* no signup backend yet -- see build notes */}>
-          <span style={{ fontWeight: 700, fontSize: 11, textTransform: "uppercase", color: C.rust }}>THE MOVEMENT</span>
+          <span style={{ fontWeight: 700, fontSize: 11, textTransform: "uppercase", color: C.rust }}>JOIN THE MOVEMENT</span>
           <div style={{ display: "flex", gap: 8 }}>
+            {/* Mirrors the visible label's intent ("JOIN THE MOVEMENT") rather
+                than repeating it verbatim, which would read awkwardly as
+                "Email for the HUSH Join the Movement". */}
             <label htmlFor="home-brief-email" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}>
-              Email for the HUSH Movement
+              Email to join the HUSH Movement
             </label>
             <input
               id="home-brief-email"
