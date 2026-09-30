@@ -1386,7 +1386,7 @@ function ExploreHushSection() {
                   t.ctaStyle === "filled"
                     ? {
                         marginTop: "auto",
-                        alignSelf: "flex-start",
+                        textAlign: "center",
                         border: 0,
                         padding: "11px 18px",
                         borderRadius: 8,
@@ -1400,7 +1400,7 @@ function ExploreHushSection() {
                       }
                     : {
                         marginTop: "auto",
-                        alignSelf: "flex-start",
+                        textAlign: "center",
                         border: `1px solid ${C.rust}`,
                         padding: "11px 18px",
                         borderRadius: 8,
