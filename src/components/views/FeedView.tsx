@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { C, VERDICT_STYLE, cond } from "@/lib/theme";
+import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
@@ -610,7 +611,7 @@ function FeedHero() {
       }}
     >
       <img
-        src="/images/feed-hero.jpg"
+        src={versionedAsset("/images/feed-hero.jpg")}
         alt=""
         aria-hidden
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}

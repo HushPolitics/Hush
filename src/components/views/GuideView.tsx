@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
+import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
@@ -588,7 +589,7 @@ function GuideHero() {
       }}
     >
       <img
-        src="/images/capitol-hero.jpg"
+        src={versionedAsset("/images/capitol-hero.jpg")}
         alt=""
         aria-hidden
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
