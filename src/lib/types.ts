@@ -85,6 +85,8 @@ export interface Politician {
   name: string;
   office: string;
   district: string;
+  /** Full state name (e.g. "Florida"). Every seed politician today is Jacksonville/Florida-area, so this is the same value on all of them for now -- here so the Politicians directory's State filter has something real to key off, ready for politicians from other states later. */
+  state: string;
   level: Level;
   party: Party;
   since: number;
