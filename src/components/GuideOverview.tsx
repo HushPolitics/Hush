@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { MK } from "@/lib/marketingTheme";
 import { MarketingHeader } from "@/components/marketing/MarketingHeader";
@@ -6,22 +5,8 @@ import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { MarketingTitleBar } from "@/components/marketing/TitleBar";
 import { ClosingQuote } from "@/components/marketing/ClosingQuote";
 import { SectionLabel } from "@/components/marketing/SectionLabel";
-
-// Colors specific to the "logged-in app" samples on this page (a laptop
-// preview, an address form, an issue ranker, a stance grid, ballot-measure
-// cards) -- the spec calls for these to look like the real app, not the
-// marketing site, so they get their own small palette rather than reusing
-// MK's marketing tokens. Kept page-local since nothing else needs them.
-const APP = {
-  bg: "#F6F3EE",
-  border: "#E3DDD2",
-  tag: "#E6E1D8",
-  fieldFill: "#EAE5DF",
-  fieldBorder: "#CFC9BD",
-  searchPlaceholder: "#A39B8B",
-  dragHandle: "#9A9285",
-  stepRule: "#C9C1B2",
-};
+import { APP_SAMPLE as APP } from "@/lib/appSampleTheme";
+import { SampleCaption, SampleCard, SampleKicker } from "@/components/marketing/AppSample";
 
 const RACES = [
   { name: "U.S. Senate", sub: "2 candidates" },
@@ -138,34 +123,6 @@ const BILLS = [
     passes: "a simple majority to pass",
   },
 ];
-
-function SampleCaption({ text }: { text: string }) {
-  return (
-    <span style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12, fontSize: 12, color: MK.muted }}>
-      <span aria-hidden style={{ width: 7, height: 7, background: C.rust, display: "block" }} />
-      {text}
-    </span>
-  );
-}
-
-function SampleCard({ children }: { children: ReactNode }) {
-  return (
-    <div style={{ background: APP.bg, border: `1px solid ${MK.rule}`, boxShadow: "0 12px 30px -18px rgba(28,25,23,0.25)", padding: "18px 16px 16px" }}>
-      {children}
-    </div>
-  );
-}
-
-function SampleKicker({ label, title }: { label: string; title: string }) {
-  return (
-    <>
-      <span style={{ display: "block", fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: C.rust }}>{label}</span>
-      <span style={{ display: "block", marginTop: 6, fontSize: 17, lineHeight: 1.15, fontFamily: cond, fontWeight: 400, letterSpacing: "0.005em", color: C.ink }}>
-        {title}
-      </span>
-    </>
-  );
-}
 
 // ---------------------------------------------------------------------
 // Section 1: title bar is rendered directly in GuideOverview() below,
