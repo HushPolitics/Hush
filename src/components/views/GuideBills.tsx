@@ -41,9 +41,9 @@ export function BillsSection({ bills }: { bills: Bill[] }) {
       <Card style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
         <p style={{ margin: 0, fontSize: 12.5, color: C.body, lineHeight: 1.6, fontStyle: "italic" }}>
           These are the statewide and local measures on your ballot this election — amendments and
-          questions you vote yes or no on directly, not bills your representatives vote on. HUSH
+          questions you vote yes or no on directly, not bills your representatives vote on. HUSH.
           translates the legal language into plain English. These explanations are paraphrased by
-          HUSH and are not the official ballot language. Always review the official amendment text
+          HUSH. and are not the official ballot language. Always review the official amendment text
           and your sample ballot before voting.
         </p>
         <p style={{ margin: 0, fontSize: 12.5, color: C.ink, lineHeight: 1.8, fontWeight: 600 }}>
@@ -57,7 +57,7 @@ export function BillsSection({ bills }: { bills: Bill[] }) {
               WebkitBoxDecorationBreak: "clone",
             }}
           >
-            HUSH doesn&apos;t tell you how to vote. We explain what the legislation says so you can
+            HUSH. doesn&apos;t tell you how to vote. We explain what the legislation says so you can
             decide for yourself.
           </mark>
         </p>
@@ -137,7 +137,7 @@ function BillCard({ bill }: { bill: Bill }) {
           className="flip-card-face card-hover lift"
           role="button"
           tabIndex={0}
-          aria-label={`${bill.number}: ${bill.title}. Tap to see HUSH's plain-English explanation.`}
+          aria-label={`${bill.number}: ${bill.title}. Tap to see HUSH.'s plain-English explanation.`}
           onClick={flip}
           onKeyDown={onKeyDown}
           style={{
@@ -219,7 +219,7 @@ function BillCard({ bill }: { bill: Bill }) {
           </span>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            <Kicker>HUSH&apos;s paraphrase</Kicker>
+            <Kicker>HUSH.&apos;s paraphrase</Kicker>
             <span style={{ fontFamily: cond, fontSize: 15, lineHeight: 1.2 }}>
               What does this bill do?
             </span>
@@ -230,9 +230,9 @@ function BillCard({ bill }: { bill: Bill }) {
 
           {bill.explainerTooComplex ? (
             <p style={{ margin: 0, fontSize: 13, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
-              This bill is dense and heavily amended enough that HUSH can&apos;t confidently
+              This bill is dense and heavily amended enough that HUSH. can&apos;t confidently
               simplify it without risking losing important detail. Read the original bill below
-              rather than relying on a HUSH summary for this one.
+              rather than relying on a HUSH. summary for this one.
             </p>
           ) : (
             <>

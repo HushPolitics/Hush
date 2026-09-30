@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { C, GUIDE_SOURCE_KIND, PARTY_LABEL, STATUS_STYLE, cond, progressColor, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { TRUST_WEIGHTS, promiseSplit } from "@/lib/scoring";
+import { promiseSplit } from "@/lib/scoring";
 import { useRegisterSectionNav } from "@/lib/sectionNav";
 import { isCustomCompareEligible } from "@/lib/compare";
 import type { FactCheck, FundingSummary, IssuePosition, Politician, PromiseStatus, StanceCell } from "@/lib/types";
@@ -83,115 +83,98 @@ export default function PoliticianView({
   }
 
   return (
-    <div className="split" style={{ display: "flex", minHeight: "100%" }}>
-      {/* 1. Header / identity rail */}
-      <div
-        style={{
-          width: 348,
-          flex: "0 0 348px",
-          borderRight: `1px solid ${C.line}`,
-          padding: 24,
-          display: "flex",
-          flexDirection: "column",
-          gap: 16,
-          background: C.sandDeep,
-        }}
-      >
-        <div
-          style={{
-            height: 200,
-            borderRadius: 10,
-            background: C.tan,
-            display: "flex",
-            alignItems: "flex-end",
-            padding: 14,
-          }}
-        >
-          <span
+    <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 24 }}>
+      {/* 1. Header -- identity strip, no longer a side rail */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <div
             style={{
-              fontWeight: 600,
-              fontSize: 12,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              background: C.sand,
-              padding: "4px 8px",
-              borderRadius: 4,
+              width: 96,
+              height: 96,
+              flex: "0 0 96px",
+              borderRadius: 10,
+              background: C.tan,
+              display: "flex",
+              alignItems: "flex-end",
+              padding: 8,
             }}
           >
-            Official portrait
-          </span>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1.05 }}>{p.name}</span>
-          <span style={{ fontSize: 13, color: C.body }}>
-            {p.office}, {p.district} · {PARTY_LABEL[p.party]}
-          </span>
-          <span style={{ fontSize: 13, color: C.muted }}>
-            In office since {p.since} · next election Nov 3, 2026
-          </span>
-        </div>
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-          {p.tags.map((t) => (
             <span
-              key={t}
               style={{
-                padding: "5px 10px",
-                borderRadius: 16,
-                background: C.shell,
-                fontSize: 12,
-                color: C.body,
-                whiteSpace: "nowrap",
+                fontWeight: 600,
+                fontSize: 10,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                background: C.sand,
+                padding: "3px 6px",
+                borderRadius: 4,
               }}
             >
-              {t}
+              Portrait
             </span>
-          ))}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 220 }}>
+            <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1.05 }}>{p.name}</span>
+            <span style={{ fontSize: 13, color: C.body }}>
+              {p.office}, {p.district} · {PARTY_LABEL[p.party]}
+            </span>
+            <span style={{ fontSize: 13, color: C.muted }}>
+              In office since {p.since} · next election Nov 3, 2026
+            </span>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
+              {p.tags.map((t) => (
+                <span
+                  key={t}
+                  style={{
+                    padding: "5px 10px",
+                    borderRadius: 16,
+                    background: C.shell,
+                    fontSize: 12,
+                    color: C.body,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: "0 0 200px" }}>
+            <InkButton type="button" onClick={() => toggleSaved(p.id)}>
+              {isSaved ? "Remove from my list" : "Save to my list"}
+            </InkButton>
+            {compareEligible ? (
+              <GhostButton onClick={compareWith}>Compare with…</GhostButton>
+            ) : (
+              <span
+                title={`HUSH. needs a full stance record and at least one tracked promise for ${p.name} before offering a comparison.`}
+                style={{
+                  padding: 12,
+                  borderRadius: 7,
+                  border: `1px solid ${C.line}`,
+                  fontWeight: 600,
+                  fontSize: 14,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  textAlign: "center",
+                  color: C.muted,
+                }}
+              >
+                Compare with… (not enough data)
+              </span>
+            )}
+          </div>
         </div>
 
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.body, textWrap: "pretty" }}>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.body, textWrap: "pretty", maxWidth: 720 }}>
           {p.bio}
         </p>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: "auto" }}>
-          <InkButton type="button" onClick={() => toggleSaved(p.id)}>
-            {isSaved ? "Remove from my list" : "Save to my list"}
-          </InkButton>
-          {compareEligible ? (
-            <GhostButton onClick={compareWith}>Compare with…</GhostButton>
-          ) : (
-            <span
-              title={`HUSH needs a full stance record and at least one tracked promise for ${p.name} before offering a comparison.`}
-              style={{
-                padding: 12,
-                borderRadius: 7,
-                border: `1px solid ${C.line}`,
-                fontWeight: 600,
-                fontSize: 14,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                textAlign: "center",
-                color: C.muted,
-              }}
-            >
-              Compare with… (not enough data)
-            </span>
-          )}
-        </div>
       </div>
 
       {/* Sections 2-7 */}
-      <div
-        style={{
-          flex: 1,
-          padding: "24px 28px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 28,
-          minWidth: 0,
-        }}
-      >
+      <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
         {/* 2. The score, with its breakdown */}
         <section id="score" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div className="stack-row" style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
@@ -226,11 +209,6 @@ export default function PoliticianView({
             >
               <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                 <span style={{ fontFamily: cond, fontSize: 18 }}>Promise breakdown</span>
-                <span style={{ marginLeft: "auto", fontSize: 12, color: C.muted }}>
-                  Weighted {Math.round(TRUST_WEIGHTS.kept * 100)}% delivered ·{" "}
-                  {Math.round(TRUST_WEIGHTS.recency * 100)}% recency ·{" "}
-                  {Math.round(TRUST_WEIGHTS.significance * 100)}% significance
-                </span>
               </div>
 
               {/*
@@ -255,26 +233,20 @@ export default function PoliticianView({
                 <span style={{ width: `${split.brokenPct}%`, background: C.faint }} />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[
-                  { label: "Delivered", value: p.kept, color: C.ink },
-                  { label: "In progress", value: p.prog, color: C.body },
-                  { label: "No movement", value: p.broken, color: C.faint },
+                  { points: 100, label: "Delivered legislation in alignment with what they ran on", value: p.kept, color: C.ink },
+                  { points: 50, label: "No clear action", value: p.prog, color: C.body },
+                  { points: 0, label: "Contradicts what they said", value: p.broken, color: C.faint },
                 ].map((s) => (
-                  <div key={s.label} style={{ display: "flex", flexDirection: "column" }}>
-                    <span
-                      style={{
-                        fontSize: 12,
-                        color: C.muted,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                      }}
-                    >
-                      <span style={{ width: 8, height: 8, borderRadius: 2, background: s.color }} />
+                  <div key={s.label} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: s.color, marginTop: 5, flex: "0 0 8px" }} />
+                    <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.45, flex: 1 }}>
+                      <span style={{ fontFamily: cond, fontSize: 13, color: C.ink }}>{s.points}</span>
+                      {" — "}
                       {s.label}
                     </span>
-                    <span style={{ fontFamily: cond, fontSize: 26 }}>{s.value}</span>
+                    <span style={{ fontFamily: cond, fontSize: 22, flex: "0 0 auto" }}>{s.value}</span>
                   </div>
                 ))}
               </div>
@@ -472,7 +444,7 @@ export default function PoliticianView({
                           No public position found
                         </span>
                         <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.4 }}>
-                          HUSH couldn&apos;t find a stated position on this issue in the sources we track.
+                          HUSH. couldn&apos;t find a stated position on this issue in the sources we track.
                         </span>
                       </div>
                     )}
@@ -709,7 +681,7 @@ function FundingSection({ funding, politicianName }: { funding: FundingSummary |
       <section id="funding" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {header}
         <EmptyState>
-          Campaign finance disclosure through the FEC only covers federal candidates. HUSH doesn&apos;t have an FEC
+          Campaign finance disclosure through the FEC only covers federal candidates. HUSH. doesn&apos;t have an FEC
           match for {politicianName}&apos;s office.
         </EmptyState>
       </section>
@@ -722,7 +694,7 @@ function FundingSection({ funding, politicianName }: { funding: FundingSummary |
       <section id="funding" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {header}
         <EmptyState>
-          HUSH is tracking {politicianName}&apos;s FEC filings, but nothing has synced from the FEC yet. Check back
+          HUSH. is tracking {politicianName}&apos;s FEC filings, but nothing has synced from the FEC yet. Check back
           soon.
         </EmptyState>
       </section>
@@ -767,7 +739,7 @@ function FundingSection({ funding, politicianName }: { funding: FundingSummary |
         </div>
 
         <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
-          &ldquo;From individuals&rdquo; is a total only -- HUSH never publishes individual donor names or employers.
+          &ldquo;From individuals&rdquo; is a total only -- HUSH. never publishes individual donor names or employers.
         </p>
 
         {latest.contributors.length > 0 ? (

@@ -285,7 +285,7 @@ function VotingLocationSection() {
       <SectionHeader
         kicker="Ballot"
         title="Voting Location"
-        subtitle="Where HUSH looks up your districts, races and polling place."
+        subtitle="Where HUSH. looks up your districts, races and polling place."
       />
       <form onSubmit={save} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <label style={labelStyle}>
@@ -350,7 +350,7 @@ function HushPreferencesSection({ topicPool }: { topicPool: string[] }) {
     <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 4, borderTop: `2px solid ${C.rust}` }}>
       <SectionHeader
         kicker="Personalization"
-        title="HUSH Preferences"
+        title="HUSH. Preferences"
         subtitle="These live in the account menu's My issues and Following — edit them there, they'll show up here too."
       />
       <div style={{ marginTop: 10 }}>
@@ -420,7 +420,7 @@ const EMAIL_PREF_ROWS: { key: keyof EmailPrefs; label: string; desc: string }[] 
   { key: "electionUpdates", label: "Election updates", desc: "Upcoming elections, deadlines and what's newly on your ballot." },
   { key: "issueUpdates", label: "Issue updates", desc: "Movement on the issues you've ranked or followed." },
   { key: "politicianUpdates", label: "Politician updates", desc: "News on the politicians you follow." },
-  { key: "hushAnnouncements", label: "HUSH announcements", desc: "New features and how HUSH is doing." },
+  { key: "hushAnnouncements", label: "HUSH. announcements", desc: "New features and how HUSH. is doing." },
 ];
 
 function EmailPreferencesSection() {
@@ -491,7 +491,7 @@ function PrivacySection() {
         </PrivacyItem>
         <PrivacyItem>
           <strong style={{ color: C.ink }}>Your top issues and the topics you follow</strong> shape what
-          HUSH shows you first and how it scores how well a politician matches you — they&apos;re a
+          HUSH. shows you first and how it scores how well a politician matches you — they&apos;re a
           personalization signal, not a political label attached to your account.
         </PrivacyItem>
         <PrivacyItem>You can update or clear any of this any time from this page or the account menu.</PrivacyItem>

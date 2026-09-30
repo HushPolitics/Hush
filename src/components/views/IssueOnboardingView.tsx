@@ -32,11 +32,11 @@ export default function IssueOnboardingView({ next }: { topicPool: string[]; nex
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-        <Kicker>{next ? "Step 2 of 2 · HUSH Guide" : "My issues"}</Kicker>
+        <Kicker>{next ? "Step 2 of 2 · HUSH. Guide" : "My issues"}</Kicker>
         <Display size={25}>How do you want to find your top issues?</Display>
         <span style={{ fontSize: 13, color: C.body, maxWidth: 620, lineHeight: 1.5 }}>
           Either way you end up with the same ranked list — this is the one shared list that
-          drives HUSH Guide, Stance Check, and the Feed. Pick whichever sounds faster.
+          drives HUSH. Guide, Stance Check, and the Feed. Pick whichever sounds faster.
         </span>
       </div>
 

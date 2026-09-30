@@ -5,33 +5,26 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { C, PARTY, PARTY_LABEL } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
-import { ballotPoliticianIds } from "@/lib/feed";
 import { initials } from "@/lib/scoring";
 import { usePrefs } from "@/lib/prefs";
 import { isCustomCompareEligible, matchesPickLevel } from "@/lib/compare";
 import { Avatar, Chip, Display, EmptyState, Kicker, SearchField } from "@/components/ui";
 import type { Level, Party, Politician, Race, StanceCell } from "@/lib/types";
 
-type BallotFilter = "all" | "onBallot";
-
-const BALLOT_FILTERS: { key: BallotFilter; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "onBallot", label: "On my ballot" },
-];
-
 const LEVEL_FILTERS: (Level | "All")[] = ["All", "Federal", "State", "Local"];
 const PARTY_FILTERS: (Party | "All")[] = ["All", "D", "R", "I"];
+const STATE_FILTERS: string[] = ["All", "Florida"];
 
-// Avatar / Name / Party / Office / District / On your ballot / Compare. All
-// four data columns are proportional (not a fixed width mixed in) so they
-// grow at a consistent rate and read as evenly spaced instead of Name and
-// Office ballooning past a cramped, fixed-width Party column. Office keeps
-// the largest share and District close behind -- a few entries run long
-// there ("Florida State College at Jacksonville" as a district), so they
-// need room to wrap onto a second line rather than getting clipped. The
-// trailing Compare column (entry point 3 for custom Compare, see
-// lib/compare.ts) is a fixed width matching its chip's natural size.
-const ROW_GRID = "40px 1fr 0.8fr 1.2fr 1fr 90px 118px";
+// Avatar / Name / Party / Office / District / Compare. All three proportional
+// data columns (not a fixed width mixed in) grow at a consistent rate and
+// read as evenly spaced instead of Name and Office ballooning past a
+// cramped, fixed-width Party column. Office keeps the largest share and
+// District close behind -- a few entries run long there ("Florida State
+// College at Jacksonville" as a district), so they need room to wrap onto a
+// second line rather than getting clipped. The trailing Compare column
+// (entry point 3 for custom Compare, see lib/compare.ts) is a fixed width
+// matching its chip's natural size.
+const ROW_GRID = "40px 1fr 0.8fr 1.2fr 1fr 118px";
 
 /**
  * Politicians' hero banner -- same shell and scrim device as Feed's
@@ -68,12 +61,11 @@ function PoliticiansHero() {
 /**
  * Everyone in the system, not just who's on your ballot -- the broader
  * companion to the Feed/Guide "Your Representatives" card, which now links
- * here instead of the retired /representatives page. Defaults to "On my
- * ballot" so it opens looking like /representatives did; switching that
- * filter is what makes this a real directory instead of a ballot-only
- * index. No HUSH. Score anywhere on this page, same convention the old
- * /representatives used -- a score belongs on a politician's own page, one
- * click away.
+ * here instead of the retired /representatives page. Defaults to showing
+ * everyone, with no ballot-only toggle -- this is meant to read as a real
+ * directory, not a ballot-scoped list with an escape hatch. No HUSH. Score
+ * anywhere on this page, same convention the old /representatives used -- a
+ * score belongs on a politician's own page, one click away.
  */
 export default function PoliticiansView({
   politicians,
@@ -88,12 +80,10 @@ export default function PoliticiansView({
   const router = useRouter();
   const { picks, setPicks } = usePrefs();
   const [q, setQ] = useState("");
-  const [ballotFilter, setBallotFilter] = useState<BallotFilter>("onBallot");
   const [levelFilter, setLevelFilter] = useState<Level | "All">("All");
   const [partyFilter, setPartyFilter] = useState<Party | "All">("All");
   const [officeFilter, setOfficeFilter] = useState<string>("All");
-
-  const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
+  const [stateFilter, setStateFilter] = useState<string>("All");
 
   // The politicians currently picked for a custom comparison, resolved from
   // `picks` -- used to enforce the same-office-level constraint as a new row
@@ -121,10 +111,10 @@ export default function PoliticiansView({
       .filter((p) => levelFilter === "All" || p.level === levelFilter)
       .filter((p) => partyFilter === "All" || p.party === partyFilter)
       .filter((p) => officeFilter === "All" || p.office === officeFilter)
-      .filter((p) => ballotFilter === "all" || (ballotFilter === "onBallot") === ballotIds.has(p.id))
+      .filter((p) => stateFilter === "All" || p.state === stateFilter)
       .filter((p) => !query || `${p.name} ${p.office}`.toLowerCase().includes(query))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [politicians, levelFilter, partyFilter, officeFilter, ballotFilter, q, ballotIds]);
+  }, [politicians, levelFilter, partyFilter, officeFilter, stateFilter, q]);
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -141,22 +131,6 @@ export default function PoliticiansView({
 
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
         <SearchField value={q} onChange={setQ} placeholder="Search name or office…" style={{ width: 240 }} />
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {BALLOT_FILTERS.map((f) => (
-            <Chip
-              key={f.key}
-              on={ballotFilter === f.key}
-              onClick={() => setBallotFilter(f.key)}
-              activeBg={C.rust}
-              activeFg={C.cream}
-            >
-              {f.label}
-            </Chip>
-          ))}
-        </div>
-        {/* Divider: separates the two primary actions (search, on my
-            ballot) from the secondary refinement filters that follow */}
-        <div aria-hidden style={{ width: 1, alignSelf: "stretch", background: C.line }} />
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {LEVEL_FILTERS.map((lvl) => (
             <Chip
@@ -182,6 +156,13 @@ export default function PoliticiansView({
               activeFg={C.sand}
             >
               {party === "All" ? "All parties" : PARTY_LABEL[party]}
+            </Chip>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {STATE_FILTERS.map((st) => (
+            <Chip key={st} on={stateFilter === st} onClick={() => setStateFilter(st)}>
+              {st}
             </Chip>
           ))}
         </div>
@@ -240,13 +221,11 @@ export default function PoliticiansView({
         <span>Party</span>
         <span>Office</span>
         <span>District</span>
-        <span>On your ballot</span>
         <span>Compare</span>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingBottom: picks.length >= 2 ? 80 : 0 }}>
         {filtered.map((p) => {
-          const onBallot = ballotIds.has(p.id);
           const isPicked = picks.includes(p.id);
           const eligible = isCustomCompareEligible(p, stances);
           const levelOk = matchesPickLevel(p, pickedPoliticians);
@@ -254,7 +233,7 @@ export default function PoliticiansView({
           let compareTitle: string | undefined;
           if (!isPicked) {
             if (!eligible) {
-              compareTitle = `HUSH needs a full stance record and at least one tracked promise for ${p.name} before offering a comparison.`;
+              compareTitle = `HUSH. needs a full stance record and at least one tracked promise for ${p.name} before offering a comparison.`;
             } else if (!levelOk) {
               compareTitle = "Your current comparison is all one office level -- pick someone at that same level.";
             } else if (picks.length >= 3) {
@@ -292,9 +271,6 @@ export default function PoliticiansView({
               </span>
               <span style={{ fontSize: 13, color: C.body }}>{p.office}</span>
               <span style={{ fontSize: 13, color: C.body }}>{p.district}</span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: onBallot ? C.rust : C.faint }}>
-                {onBallot ? "Yes" : "No"}
-              </span>
               {isPicked ? (
                 <button
                   type="button"
