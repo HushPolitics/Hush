@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Exposes Vercel's build-time commit SHA to client bundles (it's normally
+  // server-only) so src/lib/assetVersion.ts can cache-bust the hero photos
+  // under /public/images -- see that file's doc comment for why.
+  env: {
+    VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA,
+  },
   async redirects() {
     return [
       // /saved's content lived on /profile, which is retired (app IA
