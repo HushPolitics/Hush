@@ -757,3 +757,25 @@ html {
     row-gap: 10px;
   }
 }
+
+/* File a Dispute + Contact (Step 8) -- shared form-field focus state. Can't
+   be expressed with FormField's inline FIELD_STYLE since inline styles
+   have no :focus, so every input/textarea/select on both pages also gets
+   className="form-field" to pick this up. */
+.form-field:focus {
+  border-color: var(--ink) !important;
+}
+
+/* The name/email pair at the top of both forms. Side by side down to
+   narrow phone widths, where two 15px-padded fields get too cramped to
+   type in comfortably. */
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+@media (max-width: 480px) {
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
