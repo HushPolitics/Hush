@@ -179,11 +179,11 @@ function HushScoreInfoModal({
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span style={{ fontSize: 13, color: C.body }}>
             <span style={{ fontFamily: cond, fontSize: 15, color: C.ink }}>100</span>
-            {" — Aligned with what they said."}
+            {" — Delivered legislation in alignment with what they ran on."}
           </span>
           <span style={{ fontSize: 13, color: C.body }}>
             <span style={{ fontFamily: cond, fontSize: 15, color: C.olive }}>50</span>
-            {" — No clear action to evaluate."}
+            {" — No clear action."}
           </span>
           <span style={{ fontSize: 13, color: C.body }}>
             <span style={{ fontFamily: cond, fontSize: 15, color: C.rust }}>0</span>

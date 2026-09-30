@@ -35,6 +35,7 @@ export default function RepresentativesCard({
   style,
   header = "kicker",
   variant = "arrow",
+  title = "Your Representatives",
 }: {
   politicians: Politician[];
   limit?: number;
@@ -45,6 +46,10 @@ export default function RepresentativesCard({
    *  "See More →" link instead, matching ElectionCard/TopIssuesCard's own
    *  footer-link convention on the Feed's orientation strip. */
   variant?: "arrow" | "seeMore";
+  /** Overrides this card's header text -- defaults to "Your Representatives"
+   *  everywhere except the Feed's orientation strip, which wants its own
+   *  wording without relabeling the identical card on HUSH. Guide's sidebar. */
+  title?: string;
 }) {
   const shown = politicians.slice(0, limit);
   return (
@@ -52,10 +57,10 @@ export default function RepresentativesCard({
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {header === "display" ? (
           <Display size={16} color={C.rust}>
-            Your Representatives
+            {title}
           </Display>
         ) : (
-          <Kicker>Your Representatives</Kicker>
+          <Kicker>{title}</Kicker>
         )}
         {variant === "arrow" ? (
           <Link
