@@ -600,3 +600,47 @@ input::placeholder {
     margin-top: 28px;
   }
 }
+
+/* What's Included (Step 5) -- the three CTAs that share one hover
+   treatment (GuideOverview callout, Feed's "Sign up to see your feed",
+   Stance Check's "Try 3 questions"): ink-on-cream inverting to
+   persimmon-on-ink, the mirror image of guide-cta-light above. */
+.wi-cta-dark:hover {
+  background: var(--rust) !important;
+  color: var(--ink) !important;
+}
+
+/* The Stance Check pop-up's Disagree/Neutral/Agree choices (asking view
+   only -- the in-page sample's own scale buttons have no declared hover
+   in the spec, since they're driven by click state, not hover). */
+.wi-popup-choice:hover {
+  background: var(--ink) !important;
+  color: #ffffff !important;
+  border-color: var(--ink) !important;
+}
+
+/* Stance Check sample row: sample left / text right on desktop, but
+   (per spec) text first when it stacks -- the opposite source-order need
+   from every other two-column section on this page, which is why it gets
+   its own class instead of reusing .story-two-col. grid-template-areas
+   lets the DOM keep "text" first (so it stacks above the sample) while
+   still painting to its right at desktop width. */
+.wi-stance-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  grid-template-areas: "sample text";
+  gap: 56px;
+  align-items: center;
+}
+.wi-stance-row > .wi-stance-sample {
+  grid-area: sample;
+}
+.wi-stance-row > .wi-stance-text {
+  grid-area: text;
+}
+@media (max-width: 900px) {
+  .wi-stance-row {
+    grid-template-columns: 1fr;
+    grid-template-areas: "text" "sample";
+  }
+}
