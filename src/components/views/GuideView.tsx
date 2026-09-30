@@ -567,11 +567,12 @@ function TileGrid({
 // ---------------------------------------------------------------------------
 
 /**
- * HUSH Guide's hero banner -- a full-bleed U.S. Capitol photograph (dusk,
- * lit dome, one warm accent low in the sky) with a dark scrim behind the
- * title text for legibility. The photo is already monochrome with that one
- * warm accent, so no grayscale/desaturation filter is applied on top of it --
- * a filter would flatten the accent out rather than improve anything.
+ * HUSH Guide's hero banner -- a full-bleed U.S. Capitol photograph (storm
+ * clouds overhead, low wide-angle framing, wet plaza reflecting the dome)
+ * with a dark scrim behind the title text for legibility. The photo is a
+ * true black-and-white shot (zero color saturation throughout), so no
+ * grayscale/desaturation filter is applied on top of it -- there's no color
+ * left to strip out.
  * Replaces the flat single-stroke capitol glyph this banner used as a
  * placeholder before a real photograph was licensed for the site.
  */
