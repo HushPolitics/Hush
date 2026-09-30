@@ -693,3 +693,67 @@ html {
     grid-template-columns: 1fr;
   }
 }
+
+/* Our Methodology (Step 7) -- "Three places. Nothing secondhand." Three
+   equal source columns; columns 2 and 3 get a left rule the first column
+   doesn't. Below 900px it's the .principles-grid pattern collapsed to one
+   column: the left rule becomes a top rule instead (skipped on the first
+   item, which has nothing above it to divide from). */
+.method-sources-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 2px solid var(--ink);
+}
+.method-sources-grid > div {
+  padding: 28px 24px 8px 24px;
+  border-left: 1px solid #d9d2c4;
+}
+.method-sources-grid > div:first-child {
+  padding-left: 0;
+  border-left: none;
+}
+@media (max-width: 900px) {
+  .method-sources-grid {
+    grid-template-columns: 1fr;
+  }
+  .method-sources-grid > div {
+    border-left: none !important;
+    padding-left: 0 !important;
+  }
+  .method-sources-grid > div:not(:first-child) {
+    border-top: 1px solid #d9d2c4;
+    padding-top: 24px;
+  }
+}
+
+/* "Six steps, every time." rows: number / title / description on desktop.
+   Below 900px the number and title share one baseline row and the
+   description drops to its own full-width row underneath, per the spec --
+   grid-template-areas (same technique as .wi-stance-row) lets the same
+   three elements just get reassigned to a different layout rather than
+   needing a DOM reorder. */
+.method-step-row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 300px) minmax(0, 1fr);
+  grid-template-areas: "num title desc";
+  gap: 28px;
+  align-items: baseline;
+  padding: 24px 0;
+  border-bottom: 1px solid #d9d2c4;
+}
+.method-step-row > .method-step-num {
+  grid-area: num;
+}
+.method-step-row > .method-step-title {
+  grid-area: title;
+}
+.method-step-row > .method-step-desc {
+  grid-area: desc;
+}
+@media (max-width: 900px) {
+  .method-step-row {
+    grid-template-columns: 84px 1fr;
+    grid-template-areas: "num title" "desc desc";
+    row-gap: 10px;
+  }
+}
