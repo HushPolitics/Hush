@@ -779,3 +779,37 @@ html {
     grid-template-columns: 1fr;
   }
 }
+
+/* Privacy & Terms (Step 9) -- sticky table-of-contents / content split.
+   Distinct column widths (260px sidebar, not a proportional split) and a
+   "sidebar goes non-sticky and moves above the content" collapse, unlike
+   any earlier two-column page, so this gets its own class rather than
+   reusing .story-two-col. */
+.legal-toc-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  gap: 64px;
+  align-items: start;
+}
+.legal-toc-nav {
+  position: sticky;
+  top: 150px;
+}
+@media (max-width: 900px) {
+  .legal-toc-grid {
+    grid-template-columns: 1fr;
+  }
+  .legal-toc-nav {
+    position: static;
+  }
+}
+
+/* Privacy/Terms tab row: inactive tabs are muted and hover to ink (the
+   opposite direction of the TOC links below, which start ink/body-colored
+   and hover to persimmon). */
+.legal-tab:hover {
+  color: var(--ink) !important;
+}
+.legal-toc-link:hover {
+  color: var(--rust) !important;
+}

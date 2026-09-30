@@ -251,7 +251,17 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
                 aria-label="Agree to Terms of Service and Privacy Policy"
                 style={{ marginTop: 2, width: 15, height: 15, flex: "0 0 15px", accentColor: C.rust, cursor: "pointer" }}
               />
-              <span>I agree to HUSH&apos;s Terms of Service and Privacy Policy.</span>
+              <span>
+                I agree to HUSH&apos;s{" "}
+                <Link href="/privacy-terms#terms" style={{ color: C.rust }}>
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy-terms#privacy" style={{ color: C.rust }}>
+                  Privacy Policy
+                </Link>
+                .
+              </span>
             </label>
 
             <RustButton type="submit">
@@ -260,6 +270,22 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
             {accountStatus === "error" ? (
               <span style={{ fontSize: 12, color: C.rust, lineHeight: 1.5 }}>{accountMessage}</span>
             ) : null}
+
+            {/* Passive notice required by 09-privacy-and-terms.md, in
+                addition to (not instead of) the required checkbox above --
+                the spec's line goes under the submit button regardless of
+                the consent mechanism already in place. */}
+            <span style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.5 }}>
+              By creating an account, you agree to our{" "}
+              <Link href="/privacy-terms#terms" style={{ color: C.rust }}>
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy-terms#privacy" style={{ color: C.rust }}>
+                Privacy Policy
+              </Link>
+              .
+            </span>
           </form>
 
           <span style={{ fontSize: 12, color: C.muted }}>
