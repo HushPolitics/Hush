@@ -18,7 +18,7 @@ import "./globals.css";
 // v1 pass, is now IBM Plex Mono -- reserved for sourcing/citations only.
 const barlow = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-barlow",
   display: "swap",
 });
