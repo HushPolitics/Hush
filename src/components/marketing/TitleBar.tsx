@@ -3,16 +3,21 @@ import { MK } from "@/lib/marketingTheme";
 
 // Shared title-bar pattern for every inner page (first built for Our Story,
 // Step 2): a small eyebrow label with a persimmon square standing in for
-// the period, then one headline line with a highlighted final word/phrase
-// in the same sticker treatment.
+// the period, then one headline line with a highlighted word/phrase in the
+// same sticker treatment. `before`/`after` are both optional since the
+// highlight sits at the end for Our Story/How It Works ("Why we built
+// HUSH.", "...finally made clear.") but at the very start for HUSH. Guide
+// ("Every race on your ballot.") -- pass whichever side(s) the copy needs.
 export function MarketingTitleBar({
   eyebrow,
   before,
   highlight,
+  after,
 }: {
   eyebrow: string;
-  before: string;
+  before?: string;
   highlight: string;
+  after?: string;
 }) {
   return (
     <section style={{ background: C.ink, padding: "40px 34px 46px", borderBottom: `1px solid ${MK.ruleDark}` }}>
@@ -31,7 +36,7 @@ export function MarketingTitleBar({
           color: C.onDark,
         }}
       >
-        {before}{" "}
+        {before ? <>{before}{" "}</> : null}
         <span
           style={{
             display: "inline-block",
@@ -44,6 +49,7 @@ export function MarketingTitleBar({
         >
           {highlight}
         </span>
+        {after ? <>{" "}{after}</> : null}
       </h1>
     </section>
   );

@@ -548,9 +548,10 @@ input::placeholder {
   color: var(--ink) !important;
 }
 
-/* "Our methodology" link: both the text and its underline (a border-bottom,
-   not text-decoration) go persimmon on hover. */
-.hiw-methodology-link:hover {
+/* A link whose underline is a border-bottom, not text-decoration (e.g. "Our
+   methodology", "See pricing"): both the text and the underline go
+   persimmon on hover. */
+.marketing-underline-link:hover {
   color: var(--rust) !important;
   border-color: var(--rust) !important;
 }
@@ -558,4 +559,44 @@ input::placeholder {
 /* FAQ question row hovers to persimmon, same direction as a nav link. */
 .hiw-faq-toggle:hover {
   color: var(--rust) !important;
+}
+
+/* HUSH. Guide page (Step 4) -- two "Start your guide" CTA treatments that
+   swap their whole background/text pair on hover, in opposite directions:
+   guide-cta-light starts persimmon-on-ink and inverts to ink-on-cream (used
+   on the page's light sections); guide-cta-band starts ink-on-cream and
+   inverts to cream-on-ink (used inside the persimmon band, where the base
+   colors are already flipped). */
+.guide-cta-light:hover {
+  background: var(--ink) !important;
+  color: var(--cream) !important;
+}
+.guide-cta-band:hover {
+  background: var(--cream) !important;
+  color: var(--ink) !important;
+}
+
+/* HUSH. Guide "How it works" step rows: 84px number column / text column /
+   sample column on desktop. Below ~900px the sample drops to its own full-
+   width row under the number+text pair, per the spec ("number + text on
+   top, sample below, full width") -- the samples themselves are left to
+   shrink with their container rather than reflow internally. */
+.guide-step-row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 36px;
+  align-items: center;
+  padding: 40px 0;
+}
+.guide-step-row + .guide-step-row {
+  border-top: 1px solid #d9d2c4;
+}
+@media (max-width: 900px) {
+  .guide-step-row {
+    grid-template-columns: 84px 1fr;
+  }
+  .guide-step-row > :last-child {
+    grid-column: 1 / -1;
+    margin-top: 28px;
+  }
 }

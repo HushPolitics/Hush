@@ -5,6 +5,7 @@ import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { MarketingTitleBar } from "@/components/marketing/TitleBar";
 import { ClosingQuote } from "@/components/marketing/ClosingQuote";
 import { FaqAccordion, type FaqItem } from "@/components/marketing/FaqAccordion";
+import { SectionLabel } from "@/components/marketing/SectionLabel";
 
 const PRINCIPLES = [
   { title: "No endorsements.", body: "We don’t tell you who deserves your vote. The guide ends where the evidence ends." },
@@ -81,18 +82,10 @@ const FAQS: FaqItem[] = [
   },
 ];
 
-function sectionLabel(text: string) {
-  return (
-    <span style={{ display: "block", fontSize: 12, fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: C.ink }}>
-      {text}
-    </span>
-  );
-}
-
 function OurPrinciples() {
   return (
     <section id="principles" style={{ background: MK.paperAlt, padding: "84px 34px", borderBottom: `1px solid ${MK.rule}` }}>
-      {sectionLabel("Our principles")}
+      <SectionLabel>Our principles</SectionLabel>
       <h2
         style={{
           margin: "18px 0 0",
@@ -124,7 +117,7 @@ function OurPrinciples() {
 function HowWeBuild() {
   return (
     <section id="build" style={{ background: MK.paper, padding: "84px 34px", borderBottom: `1px solid ${MK.rule}` }}>
-      {sectionLabel("How we build HUSH.")}
+      <SectionLabel>How we build HUSH.</SectionLabel>
       <h2
         style={{
           margin: "18px 0 0",
@@ -165,7 +158,7 @@ function HowWeBuild() {
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <a
               href="/methodology"
-              className="hiw-methodology-link"
+              className="marketing-underline-link"
               style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 8, fontSize: 15, fontWeight: 700, color: C.ink, borderBottom: `1.5px solid ${C.ink}`, paddingBottom: 2, textDecoration: "none" }}
             >
               Our methodology →
@@ -181,7 +174,7 @@ function HowWeBuild() {
 function SignInGrid() {
   return (
     <section style={{ background: MK.paperAlt, padding: "84px 34px 92px", borderBottom: `1px solid ${MK.rule}` }}>
-      {sectionLabel("What’s behind the sign-in")}
+      <SectionLabel>What’s behind the sign-in</SectionLabel>
       <span aria-hidden style={{ display: "block", marginTop: 12, width: 44, height: 3, background: C.rust }} />
       <h2
         style={{
@@ -245,7 +238,7 @@ function QuickAnswers() {
     <section id="faq" style={{ background: MK.paper, padding: "84px 34px", borderBottom: `1px solid ${MK.rule}` }}>
       <div className="story-two-col" style={{ gridTemplateColumns: "minmax(0,0.7fr) minmax(0,1.3fr)", gap: 64, alignItems: "start" }}>
         <div>
-          {sectionLabel("Before you sign up")}
+          <SectionLabel>Before you sign up</SectionLabel>
           <h2
             style={{
               margin: "18px 0 0",
