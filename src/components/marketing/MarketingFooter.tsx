@@ -86,7 +86,7 @@ export function MarketingFooter() {
                 than repeating it verbatim, which would read awkwardly as
                 "Email for the HUSH Join the Movement". */}
             <label htmlFor="footer-brief-email" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}>
-              Email to join the HUSH Movement
+              Email to join the HUSH. Movement
             </label>
             <input
               id="footer-brief-email"
