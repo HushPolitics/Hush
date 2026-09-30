@@ -24,7 +24,7 @@ const HOW_IT_WORKS_ITEMS = [
 const FOOTER_NAV = [
   { label: "Our Story", href: "/our-story" },
   { label: "How It Works", href: "/how-it-works" },
-  { label: "Fund HUSH.", href: "/fund" },
+  { label: "Fund HUSH.", href: "/fund-hush" },
 ];
 
 // "Our Methodology" points at "#" -- not built yet, per the brief. The rest
@@ -32,8 +32,7 @@ const FOOTER_NAV = [
 const LEGAL_LINKS = [
   { label: "Our Methodology", href: "#" },
   { label: "File a Dispute", href: "/dispute" },
-  { label: "Privacy", href: "/privacy" },
-  { label: "Terms", href: "/terms" },
+  { label: "Privacy & Terms", href: "/privacy" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -50,7 +49,6 @@ const mobileLinkStyle: CSSProperties = {
   fontWeight: 500,
   color: C.onDark,
   textDecoration: "none",
-  borderRadius: 6,
 };
 
 // Square, never a round period -- same device GlobalFooter.tsx already uses
@@ -174,7 +172,6 @@ function HomeHeader() {
                   background: C.ink,
                   border: `1px solid ${V11.ruleStrong}`,
                   borderTop: `3px solid ${C.rust}`,
-                  borderRadius: 8,
                   boxShadow: "0 18px 40px rgba(0,0,0,0.35)",
                   padding: "6px 0",
                   zIndex: 20,
@@ -195,7 +192,7 @@ function HomeHeader() {
             ) : null}
           </div>
 
-          <Link href="/fund" className="home-nav-link" style={navLinkStyle}>
+          <Link href="/fund-hush" className="home-nav-link" style={navLinkStyle}>
             Fund HUSH.
           </Link>
         </nav>
@@ -213,7 +210,6 @@ function HomeHeader() {
               fontWeight: 700,
               fontSize: "clamp(15px, 1.1vw, 16px)",
               padding: "16px 28px",
-              borderRadius: 8,
               textDecoration: "none",
             }}
           >
@@ -231,7 +227,6 @@ function HomeHeader() {
             justifySelf: "end",
             gridColumn: 2,
             border: `1px solid ${V11.ruleStrong}`,
-            borderRadius: 8,
             background: "transparent",
             color: C.onDark,
             width: 44,
@@ -246,7 +241,7 @@ function HomeHeader() {
       {mobileOpen ? (
         <div
           className="home-mobile-menu"
-          style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 4, background: C.ink, border: `1px solid ${V11.ruleStrong}`, borderRadius: 10, padding: 8 }}
+          style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 4, background: C.ink, border: `1px solid ${V11.ruleStrong}`, padding: 8 }}
         >
           <Link href="/our-story" className="home-nav-link" style={mobileLinkStyle} onClick={() => setMobileOpen(false)}>
             Our Story
@@ -260,7 +255,7 @@ function HomeHeader() {
           <Link href="/whats-included" className="home-nav-link" style={{ ...mobileLinkStyle, paddingLeft: 32, fontSize: 14 }} onClick={() => setMobileOpen(false)}>
             What&apos;s Included?
           </Link>
-          <Link href="/fund" className="home-nav-link" style={mobileLinkStyle} onClick={() => setMobileOpen(false)}>
+          <Link href="/fund-hush" className="home-nav-link" style={mobileLinkStyle} onClick={() => setMobileOpen(false)}>
             Fund HUSH.
           </Link>
           <div style={{ height: 1, background: V11.rule, margin: "6px 4px" }} />
@@ -270,7 +265,7 @@ function HomeHeader() {
           <Link
             href="/signup"
             className="home-btn-primary"
-            style={{ margin: 4, textAlign: "center", background: C.rust, color: C.ink, fontWeight: 700, fontSize: 16, padding: "14px 20px", borderRadius: 8, textDecoration: "none" }}
+            style={{ margin: 4, textAlign: "center", background: C.rust, color: C.ink, fontWeight: 700, fontSize: 16, padding: "14px 20px", textDecoration: "none" }}
             onClick={() => setMobileOpen(false)}
           >
             Join the Movement
@@ -334,7 +329,7 @@ function HomeHero() {
             marginTop: 20,
             display: "inline-block",
             backgroundImage:
-              "linear-gradient(to bottom,rgba(228,87,46,0) 0 5%,rgba(228,87,46,0.88) 5% 18%,rgba(228,87,46,1) 18% 52%,rgba(228,87,46,1) 52% 84%,rgba(228,87,46,0.72) 84% 95%,rgba(228,87,46,0.3) 95% 100%),linear-gradient(96deg,rgba(228,87,46,0.5) 0 1.5%,rgba(228,87,46,1) 4% 92%,rgba(228,87,46,0.45) 99% 100%)",
+              "linear-gradient(to bottom,rgba(228,87,46,0) 0 4%,rgba(238,108,70,0.9) 4% 16%,rgba(238,108,70,1) 16% 54%,rgba(206,72,36,1) 54% 86%,rgba(228,87,46,0.7) 86% 96%,rgba(228,87,46,0.28) 96% 100%),linear-gradient(96deg,rgba(228,87,46,0.5) 0 1.5%,rgba(228,87,46,1) 4% 92%,rgba(228,87,46,0.45) 99% 100%)",
             clipPath: "polygon(0.5% 7%, 2% 1.6%, 47% 0.2%, 97% 2.2%, 99.6% 8%, 100% 87%, 97.6% 98%, 45% 100%, 2% 97.6%, 0.2% 89%)",
             transform: "rotate(-0.6deg)",
             padding: "8px 32px 22px",
@@ -350,10 +345,9 @@ function HomeHero() {
         </div>
 
         <p style={{ marginTop: 40, maxWidth: "46ch", fontWeight: 400, fontSize: "clamp(18px, 1.6vw, 23px)", lineHeight: 1.58, color: V11.bodyMuted }}>
-          {/* "HUSH." as a standalone brand mark, same construction as
-              "HUSH. Guide" / "HUSH. Score" elsewhere -- so this reads as
-              "HUSH. give you direct quotes..." rather than "gives." */}
-          HUSH. give you direct quotes, verified sources, and a clear way to compare candidates — so
+          {/* Per the v11 design spec: "HUSH." takes the verb as a singular
+              brand subject ("HUSH. gives you..."), not the plural "give." */}
+          HUSH. gives you direct quotes, verified sources, and a clear way to compare candidates — so
           you can make an informed vote, without the noise.
         </p>
 
@@ -361,7 +355,7 @@ function HomeHero() {
           <Link
             href="/signup"
             className="home-btn-primary"
-            style={{ background: C.rust, color: C.ink, fontWeight: 700, fontSize: "clamp(16px, 1.35vw, 19px)", padding: "24px 38px", borderRadius: 8, textDecoration: "none" }}
+            style={{ background: C.rust, color: C.ink, fontWeight: 700, fontSize: "clamp(16px, 1.35vw, 19px)", padding: "24px 38px", textDecoration: "none" }}
           >
             Join the Movement
           </Link>
@@ -389,11 +383,11 @@ function HomeFooter() {
           <Wordmark size={19} />
           <span aria-hidden style={{ width: 1, alignSelf: "stretch", background: V11.ruleStrong }} />
           <span style={{ fontWeight: 600, fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.14em", color: V11.muted, lineHeight: 1.6 }}>
-            QUESTION EVERYTHING.
+            Quiet the noise.
             <br />
-            SHOW THE RECEIPTS.
+            Read the receipts.
             <br />
-            THINK FOR YOURSELF.
+            Vote with clarity.
           </span>
         </div>
 
@@ -406,7 +400,7 @@ function HomeFooter() {
         </nav>
 
         <form style={{ display: "flex", flexDirection: "column", gap: 8 }} onSubmit={(e) => e.preventDefault() /* no signup backend yet -- see build notes */}>
-          <span style={{ fontWeight: 700, fontSize: 11, textTransform: "uppercase", color: C.rust }}>JOIN THE MOVEMENT</span>
+          <span style={{ fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.14em", color: C.rust }}>JOIN THE MOVEMENT</span>
           <div style={{ display: "flex", gap: 8 }}>
             {/* Mirrors the visible label's intent ("JOIN THE MOVEMENT") rather
                 than repeating it verbatim, which would read awkwardly as
@@ -423,7 +417,7 @@ function HomeFooter() {
             <button
               type="submit"
               className="home-btn-primary"
-              style={{ background: C.rust, color: C.ink, fontWeight: 700, fontSize: 13, padding: "10px 16px", borderRadius: 6, border: "none", cursor: "pointer" }}
+              style={{ background: C.rust, color: C.ink, fontWeight: 700, fontSize: 13, padding: "10px 16px", border: "none", cursor: "pointer" }}
             >
               Sign up
             </button>
@@ -434,7 +428,7 @@ function HomeFooter() {
       <div className="home-footer-row2" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", padding: "16px 34px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <span style={{ fontSize: 12, color: V11.faint }}>© 2026 HUSH.</span>
-          <Link href="/fund" className="home-footer-link" style={{ fontSize: 12, color: V11.bodyMuted, textDecoration: "none" }}>
+          <Link href="/fund-hush" className="home-footer-link" style={{ fontSize: 12, color: V11.bodyMuted, textDecoration: "none" }}>
             Funded by members. No political money.
           </Link>
         </div>
@@ -454,7 +448,7 @@ function HomeFooter() {
                 href={s.href}
                 aria-label={s.label}
                 className="home-social-icon"
-                style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", border: `1.5px solid ${V11.ruleStrong}`, borderRadius: 6, color: C.onDark }}
+                style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", border: `1.5px solid ${V11.ruleStrong}`, color: C.onDark }}
               >
                 {s.label === "Instagram" ? <InstagramIcon /> : s.label === "TikTok" ? <TikTokIcon /> : <XIcon />}
               </a>
