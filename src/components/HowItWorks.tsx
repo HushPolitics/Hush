@@ -79,10 +79,6 @@ const FAQS: FaqItem[] = [
     q: "Is it free?",
     a: "A free account gets you the feed, politician pages, and the Stance Check. The HUSH. Guide, every race on your ballot researched, comes with membership, from $19.99 a year.",
   },
-  {
-    q: "Can I cancel anytime?",
-    a: "Yes. Membership is billed once a year, and you can cancel whenever you like. You keep access until the end of the year you paid for.",
-  },
 ];
 
 function sectionLabel(text: string) {
