@@ -252,7 +252,7 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
                 style={{ marginTop: 2, width: 15, height: 15, flex: "0 0 15px", accentColor: C.rust, cursor: "pointer" }}
               />
               <span>
-                I agree to HUSH&apos;s{" "}
+                I agree to the HUSH.{" "}
                 <Link href="/privacy-terms#terms" style={{ color: C.rust }}>
                   Terms of Service
                 </Link>{" "}
@@ -302,10 +302,10 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <span style={{ fontFamily: cond, fontSize: 24 }}>Where do you live?</span>
             <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
-              This is how HUSH finds your federal, state and local voting districts — what&apos;s
+              This is how HUSH. finds your federal, state and local voting districts — what&apos;s
               actually on your ballot, the legislation moving through your city and state, and the
               elected officials who represent you. You can skip this and add it later; until you
-              do, HUSH shows a general preview district instead of yours.
+              do, HUSH. shows a general preview district instead of yours.
             </span>
           </div>
 
@@ -372,7 +372,7 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
             <span style={{ fontFamily: cond, fontSize: 24 }}>What matters most to you?</span>
             <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
               Pick up to {MAX_RANKED_TOPICS} issues, then use the arrows to put them in the order
-              you care about most. HUSH uses this to match you with politicians and rank what
+              you care about most. HUSH. uses this to match you with politicians and rank what
               shows up in your feed — not to guess your politics or hand you a label.
             </span>
           </div>
@@ -447,9 +447,9 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
       {step === 4 ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span style={{ fontFamily: cond, fontSize: 24 }}>Want HUSH to keep you informed?</span>
+            <span style={{ fontFamily: cond, fontSize: 24 }}>Want HUSH. to keep you informed?</span>
             <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
-              Occasional email about new features, elections coming up, and how HUSH is doing.
+              Occasional email about new features, elections coming up, and how HUSH. is doing.
               You can turn this off any time from Profile Settings.
             </span>
           </div>
@@ -459,10 +459,10 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
               type="checkbox"
               checked={marketingOptIn}
               onChange={(e) => setMarketingOptIn(e.target.checked)}
-              aria-label="Send me HUSH updates"
+              aria-label="Send me HUSH. updates"
               style={{ marginTop: 2, width: 15, height: 15, flex: "0 0 15px", accentColor: C.rust, cursor: "pointer" }}
             />
-            <span>Send me HUSH updates.</span>
+            <span>Send me HUSH. updates.</span>
           </label>
 
           <RustButton onClick={() => setStep(5)}>Continue</RustButton>
@@ -485,7 +485,7 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
               on your ballot — it&apos;s never shown to other users or sold to anyone.
             </li>
             <li style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
-              <strong style={{ color: C.ink }}>Your ranked issues</strong> shape what HUSH shows
+              <strong style={{ color: C.ink }}>Your ranked issues</strong> shape what HUSH. shows
               you first and how it scores how well a politician matches you — they&apos;re a
               personalization signal, not a political label attached to your account.
             </li>
@@ -497,7 +497,7 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
           {finished ? (
             <>
               <span style={{ fontSize: 13, color: C.ink, lineHeight: 1.5 }}>{finishMessage}</span>
-              <RustButton onClick={() => router.push("/feed")}>Continue to HUSH</RustButton>
+              <RustButton onClick={() => router.push("/feed")}>Continue to HUSH.</RustButton>
             </>
           ) : (
             <RustButton onClick={finish}>{finishing ? "Finishing up…" : "Finish"}</RustButton>

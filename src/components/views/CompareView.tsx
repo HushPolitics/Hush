@@ -1,16 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { C, PARTY, TAG_STYLE, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { DEFAULT_DISTRICT } from "@/lib/seed-data";
-import { stripPartySuffix } from "@/lib/guide";
 import { initials } from "@/lib/scoring";
 import { eligibleCandidates, stanceCoverage } from "@/lib/compare";
-import type { IssuePosition, Politician, Race, StanceCell } from "@/lib/types";
-import { Avatar, Display, ExpandableQuote, Kicker, RustButton, SearchField } from "@/components/ui";
+import type { IssuePosition, Politician, StanceCell } from "@/lib/types";
+import { Avatar, Display, ExpandableQuote, Kicker, SearchField } from "@/components/ui";
 
 /**
  * Side-by-side stance grid -- app IA restructure phase 5. Two changes from
@@ -30,12 +27,10 @@ import { Avatar, Display, ExpandableQuote, Kicker, RustButton, SearchField } fro
  */
 export default function CompareView({
   politicians,
-  races,
   stances,
   guidePositions,
 }: {
   politicians: Politician[];
-  races: Race[];
   stances: Record<string, Record<string, StanceCell>>;
   /** Same sourced excerpts the politician page's "Positions" section reads
    * from -- when a stance row's candidate has one for this issue, the row
@@ -43,9 +38,7 @@ export default function CompareView({
    * "coming soon" placeholder, and through to the full quote there. */
   guidePositions: Record<string, Record<string, IssuePosition>>;
 }) {
-  const router = useRouter();
-  const { zip, setZip, picks, setPicks, topics } = usePrefs();
-  const [zipDraft, setZipDraft] = useState(zip);
+  const { picks, setPicks, topics } = usePrefs();
   // "add": picking a politician for the next open slot. A number: replacing
   // the pick at that index. null: closed. One shared panel handles both --
   // see the picker render block below the "Side by side" header.
@@ -95,139 +88,6 @@ export default function CompareView({
 
   return (
     <div className="split" style={{ display: "flex", minHeight: "100%" }}>
-      {/* Ballot lookup */}
-      <div
-        style={{
-          width: 452,
-          flex: "0 0 452px",
-          borderRight: `1px solid ${C.line}`,
-          padding: 24,
-          display: "flex",
-          flexDirection: "column",
-          gap: 14,
-          background: C.sandDeep,
-        }}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <Kicker>Vote compare</Kicker>
-          <Display size={25}>Pull up your ballot</Display>
-          <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
-            Enter a ZIP and we load every race you can vote in, scored against your ranked issues.
-          </span>
-        </div>
-
-        <form
-          style={{ display: "flex", gap: 8 }}
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (zipDraft.length === 5) setZip(zipDraft);
-          }}
-        >
-          <input
-            value={zipDraft}
-            onChange={(e) => setZipDraft(e.target.value.replace(/[^0-9]/g, "").slice(0, 5))}
-            maxLength={5}
-            inputMode="numeric"
-            aria-label="ZIP code"
-            style={{
-              flex: 1,
-              padding: "11px 14px",
-              border: `1px solid ${C.lineHard}`,
-              borderRadius: 8,
-              background: C.white,
-              fontSize: 19,
-              letterSpacing: "0.1em",
-              outline: "none",
-            }}
-          />
-          <RustButton type="submit">Look up</RustButton>
-        </form>
-
-        <span style={{ fontSize: 12, color: C.muted }}>
-          {DEFAULT_DISTRICT.raceCount} races found{zip !== DEFAULT_DISTRICT.zip ? ` for ${zip}` : ""} ·
-          matched to {Math.min(topics.length, 5)} ranked issues
-        </span>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {races.map((race) => (
-            <div
-              key={race.id}
-              className="card-hover"
-              style={{
-                border: `1px solid ${C.line}`,
-                borderRadius: 10,
-                background: C.white,
-                padding: "14px 16px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 9,
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                <span
-                  style={{
-                    fontFamily: cond,
-                    fontSize: 16,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {race.title}
-                </span>
-                <span
-                  style={{ marginLeft: "auto", fontSize: 11, color: C.muted, whiteSpace: "nowrap" }}
-                >
-                  {race.meta}
-                </span>
-              </div>
-
-              {race.candidates.map((c) => {
-                const known = byId.has(c.politicianId);
-                return (
-                  <button
-                    key={c.politicianId}
-                    type="button"
-                    className="fade"
-                    onClick={() => known && router.push(`/politician/${c.politicianId}`)}
-                    disabled={!known}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      border: 0,
-                      background: "transparent",
-                      padding: "2px 0",
-                      cursor: known ? "pointer" : "default",
-                      textAlign: "left",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: 2,
-                        background: PARTY[c.party],
-                        flex: "0 0 8px",
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontSize: 13,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {stripPartySuffix(c.name)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Stance grid */}
       <div
         style={{

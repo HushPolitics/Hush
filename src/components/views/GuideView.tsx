@@ -161,14 +161,14 @@ function AddressStep({
       }}
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        <Kicker>{hasGuide ? "Edit address" : "Step 1 of 2 · HUSH Guide"}</Kicker>
+        <Kicker>{hasGuide ? "Edit address" : "Step 1 of 2 · HUSH. Guide"}</Kicker>
         <span style={{ height: 1, flex: 1, background: C.line }} />
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <span style={{ fontFamily: cond, fontSize: 24 }}>Confirm your address</span>
         <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
-          HUSH Guide uses this to pull up every race on your ballot. It&apos;s the same address
+          HUSH. Guide uses this to pull up every race on your ballot. It&apos;s the same address
           shown in the location pill at the top of the app, so anything you change here changes
           it everywhere else too.
         </span>
@@ -295,7 +295,7 @@ export function IssuesStep({
       }}
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        <Kicker>{kicker ?? (hasGuide ? "Edit issues" : "Step 2 of 2 · HUSH Guide")}</Kicker>
+        <Kicker>{kicker ?? (hasGuide ? "Edit issues" : "Step 2 of 2 · HUSH. Guide")}</Kicker>
         <span style={{ height: 1, flex: 1, background: C.line }} />
       </div>
 
@@ -304,7 +304,7 @@ export function IssuesStep({
         <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
           {description ?? (
             <>
-              Pick up to {MAX_GUIDE_ISSUES} issues. HUSH Guide researches sourced candidate
+              Pick up to {MAX_GUIDE_ISSUES} issues. HUSH. Guide researches sourced candidate
               positions on each one you choose — this is the same list as &quot;My Top
               Issues&quot; in your account menu, so picking issues here updates that
               ranking too.
@@ -719,7 +719,7 @@ function GuideAtAGlanceStrip({
             Register/Early voting/Mail ballot rows. Those three dates still show
             in full in the Voting Plan section further down this page; this
             column now covers the strip's other half -- who's on the ballot and
-            what you told HUSH matters to you -- instead of repeating the dates
+            what you told HUSH. matters to you -- instead of repeating the dates
             a second time. */}
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", borderLeft: `1px solid ${C.line}` }} className="stack-row">
           {/* Your Most Important Issues */}

@@ -295,7 +295,7 @@ export default function StanceCheckView({
             <>
               Stance Check turns each issue you pick into one specific statement and shows you
               which politicians on your ballot agree or disagree — up to 10 statements, one per
-              issue. This is the same list as HUSH Guide and &quot;My Top Issues&quot; in your
+              issue. This is the same list as HUSH. Guide and &quot;My Top Issues&quot; in your
               account menu, so picking issues here updates them too, and vice versa.
             </>
           }
@@ -751,7 +751,7 @@ function CandidateCard({
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <span style={{ fontSize: 12, color: C.ink }}>No public position found</span>
           <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
-            HUSH couldn&apos;t find a stated position on this issue in the sources we track.
+            HUSH. couldn&apos;t find a stated position on this issue in the sources we track.
           </span>
         </div>
       )}
@@ -1308,7 +1308,7 @@ function StanceSummary({
 
           <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 2 }}>
             <Kicker style={{ marginBottom: 8 }}>Next steps</Kicker>
-            <NextActionRow href="/hush-guide" label="Go to HUSH Guide" desc="See the full picture, race by race" />
+            <NextActionRow href="/hush-guide" label="Go to HUSH. Guide" desc="See the full picture, race by race" />
             <NextActionRow href="/compare" label="Compare candidates" desc="Put anyone on your ballot side by side" />
             <NextActionRow
               label="View your full results"
@@ -1343,7 +1343,7 @@ function StanceSummary({
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <GhostButton onClick={onReviewFromStart}>Retake Stance Check</GhostButton>
-          <RustButton onClick={() => router.push("/hush-guide")}>Go to HUSH Guide →</RustButton>
+          <RustButton onClick={() => router.push("/hush-guide")}>Go to HUSH. Guide →</RustButton>
         </div>
       </div>
     </div>

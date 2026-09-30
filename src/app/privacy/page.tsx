@@ -12,15 +12,15 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "Your top issues and topics you follow",
-    body: "The issues you rank and the topics you choose to follow shape what HUSH shows you first and how closely it says a politician matches what you care about. They're a personalization signal for your account only — not a political label, and not something other users can see.",
+    body: "The issues you rank and the topics you choose to follow shape what HUSH. shows you first and how closely it says a politician matches what you care about. They're a personalization signal for your account only — not a political label, and not something other users can see.",
   },
   {
     title: "HUSH. Scores, promise records and fact checks",
-    body: "This is an illustrative prototype. HUSH. Scores, promise records and fact-check verdicts shown across HUSH today are placeholder data, not a real assessment of any real person — see the notice at the bottom of every page.",
+    body: "This is an illustrative prototype. HUSH. Scores, promise records and fact-check verdicts shown across HUSH. today are placeholder data, not a real assessment of any real person — see the notice at the bottom of every page.",
   },
   {
     title: "Your account",
-    body: "Your name and email are used to sign you in and let HUSH address you by name. Your password is never visible to anyone at HUSH, including us — changing it happens through Supabase's authentication service.",
+    body: "Your name and email are used to sign you in and let HUSH. address you by name. Your password is never visible to anyone at HUSH., including us — changing it happens through Supabase's authentication service.",
   },
   {
     title: "Staying in control",
@@ -35,7 +35,7 @@ export default function PrivacyPage() {
         <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <Kicker>Privacy</Kicker>
-            <Display size={25}>Privacy at HUSH</Display>
+            <Display size={25}>Privacy at HUSH.</Display>
             <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
               Here&apos;s the plain-language version of how we use what you tell us.
             </span>

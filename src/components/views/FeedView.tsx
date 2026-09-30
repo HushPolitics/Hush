@@ -432,7 +432,7 @@ export default function FeedView({
       >
         <ElectionCard days={days} raceCount={races.length} />
         <TopIssuesCard topics={topics} />
-        <RepresentativesCard politicians={ballotPoliticians} header="display" variant="seeMore" />
+        <RepresentativesCard politicians={ballotPoliticians} header="display" variant="seeMore" title="Your Saved Representatives" />
       </div>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

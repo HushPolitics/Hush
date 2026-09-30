@@ -267,7 +267,7 @@ export default function FundHush() {
   return (
     <div style={{ background: C.ink }}>
       <MarketingHeader active="fund-hush" />
-      <MarketingTitleBar eyebrow="Fund HUSH" before="Funded by" highlight="voters," after="not donors." />
+      <MarketingTitleBar eyebrow="Fund HUSH." before="Funded by" highlight="voters," after="not donors." />
       <WhoFundsSection />
       <FollowTheMoneySection />
       <ItPaysTheBillsSection />

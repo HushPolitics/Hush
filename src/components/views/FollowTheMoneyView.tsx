@@ -35,7 +35,7 @@ export default function FollowTheMoneyView({
         <Kicker>Campaign Finance</Kicker>
         <Display size={28}>Follow the Money</Display>
         <span style={{ fontSize: 13, color: C.body, maxWidth: 640, lineHeight: 1.5 }}>
-          Federal campaign finance filings for the politicians on your ballot, sourced from the FEC. HUSH reports
+          Federal campaign finance filings for the politicians on your ballot, sourced from the FEC. HUSH. reports
           totals, shares, and named committee contributions with a source and filing date — never a ranking, and
           never an individual donor&apos;s name.
         </span>

@@ -39,7 +39,7 @@ export default function PersonalizeBanner() {
       }}
     >
       <span style={{ fontSize: 13, letterSpacing: "0.04em", color: C.body }}>
-        Finish personalizing your HUSH — add your address and rank what matters to you.
+        Finish personalizing your HUSH. Add your address and rank what matters to you.
       </span>
       <Link
         href="/signup"
