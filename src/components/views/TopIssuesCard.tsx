@@ -52,12 +52,15 @@ const ISSUE_DESCRIPTIONS: Record<string, string> = {
  *
  * Two visual modes, chosen automatically and never mixed:
  *  - `resultsDetail` set (Issue Finder's results step): every row renders
- *    the rich results treatment below (96×96 image, importance Pill, "why"
- *    line, Explore link) exactly as before this change — untouched.
+ *    the rich results treatment below (96×96 icon badge, importance Pill,
+ *    "why" line, Explore link) exactly as before this change — untouched.
  *  - `resultsDetail` unset (the plain /profile/top-issues page, the only
- *    other caller): the "editorial" layout — the top two ranked issues as
- *    large feature cards, the rest as a compact two-column grid, plus a
- *    3-zone bottom action row (add issue / progress / Issue Finder callout).
+ *    other caller): the "editorial" layout — a compact two-column grid for
+ *    every ranked issue, all the same size; #1 and #2 get a rust/ink outline
+ *    instead of the plain gray border everyone else gets, no fill behind
+ *    it, so rank alone (plus that outline) signals standing rather than a
+ *    bigger box. Plus a 3-zone bottom action row (add issue / progress /
+ *    Issue Finder callout).
  */
 export function TopIssuesCard({
   topicPool,
@@ -115,11 +118,9 @@ export function TopIssuesCard({
   const atCap = topics.length >= MAX_TOP_ISSUES;
   const available = topicPool.filter((name) => !topics.includes(name));
 
-  // Editorial (feature cards + grid) layout applies only where there's no
+  // Editorial (compact grid) layout applies only where there's no
   // per-issue results context -- i.e. only at /profile/top-issues.
   const editorial = !resultsDetail;
-  const featured = editorial ? ranked.slice(0, 2) : [];
-  const rest = editorial ? ranked.slice(2) : [];
 
   function toggle(name: string) {
     if (!draft) {
@@ -159,47 +160,22 @@ export function TopIssuesCard({
       {ranked.length === 0 ? (
         <EmptyState>Add a few issues below and they&apos;ll show up here, ranked.</EmptyState>
       ) : editorial ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {featured.length > 0 ? (
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              {featured.map((i, idx) => (
-                <IssueFeatureCard
-                  key={i.name}
-                  name={i.name}
-                  rank={i.rank}
-                  tier={idx === 0 ? "rust" : "slate"}
-                  dimmed={dragIndex !== null && dragIndex !== idx}
-                  onDragStart={() => setDragIndex(idx)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => dropOnto(idx)}
-                  onDragEnd={() => setDragIndex(null)}
-                  onRemove={() => toggle(i.name)}
-                />
-              ))}
-            </div>
-          ) : null}
-
-          {rest.length > 0 ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
-              {rest.map((i, restIdx) => {
-                const idx = restIdx + 2;
-                return (
-                  <IssueGridCard
-                    key={i.name}
-                    name={i.name}
-                    rank={i.rank}
-                    active={dragIndex === idx}
-                    dimmed={dragIndex !== null && dragIndex !== idx}
-                    onDragStart={() => setDragIndex(idx)}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => dropOnto(idx)}
-                    onDragEnd={() => setDragIndex(null)}
-                    onRemove={() => toggle(i.name)}
-                  />
-                );
-              })}
-            </div>
-          ) : null}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
+          {ranked.map((i, idx) => (
+            <IssueGridCard
+              key={i.name}
+              name={i.name}
+              rank={i.rank}
+              accent={i.rank === 1 ? C.rust : i.rank === 2 ? C.ink : undefined}
+              active={dragIndex === idx}
+              dimmed={dragIndex !== null && dragIndex !== idx}
+              onDragStart={() => setDragIndex(idx)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => dropOnto(idx)}
+              onDragEnd={() => setDragIndex(null)}
+              onRemove={() => toggle(i.name)}
+            />
+          ))}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -491,98 +467,16 @@ export function TopIssuesCard({
   );
 }
 
-/** Large feature-card treatment for rank #1 and #2 in the editorial layout. */
-function IssueFeatureCard({
-  name,
-  rank,
-  tier,
-  dimmed,
-  onDragStart,
-  onDragOver,
-  onDrop,
-  onDragEnd,
-  onRemove,
-}: {
-  name: string;
-  rank: number;
-  tier: "rust" | "slate";
-  dimmed: boolean;
-  onDragStart: () => void;
-  onDragOver: (e: DragEvent) => void;
-  onDrop: () => void;
-  onDragEnd: () => void;
-  onRemove: () => void;
-}) {
-  const accent = tier === "rust" ? C.rust : C.ink;
-  const fill = tier === "rust" ? C.rustFill : C.shell;
-
-  return (
-    <div
-      draggable
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-      onDragEnd={onDragEnd}
-      title="Drag to reorder"
-      style={{
-        flex: "1 1 280px",
-        minWidth: 260,
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
-        padding: 16,
-        borderRadius: 14,
-        border: `1px solid ${accent}`,
-        background: fill,
-        opacity: dimmed ? 0.6 : 1,
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-        <span aria-hidden style={{ color: C.faint, fontSize: 13, cursor: "grab" }}>
-          ⠿
-        </span>
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label={`Remove ${name} from your top issues`}
-          style={{ border: 0, background: "transparent", color: C.faint, fontSize: 16, lineHeight: 1, padding: "2px 4px", cursor: "pointer" }}
-        >
-          ×
-        </button>
-      </div>
-      <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-        <span
-          style={{
-            width: 120,
-            height: 120,
-            borderRadius: 18,
-            background: C.shell,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flex: "0 0 120px",
-          }}
-        >
-          <IssueIcon topic={name} size={60} />
-        </span>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
-          <span style={{ fontFamily: cond, fontSize: 40, lineHeight: 1, color: accent }}>
-            {String(rank).padStart(2, "0")}
-          </span>
-          <span style={{ fontSize: 16, fontWeight: 600, color: C.ink }}>{name}</span>
-          <span style={{ fontSize: 12.5, color: C.body, lineHeight: 1.45 }}>
-            {ISSUE_DESCRIPTIONS[name] ?? ""}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Compact horizontal-card treatment for ranks #3-#10 in the editorial layout. */
+/**
+ * Compact horizontal-card treatment for every rank in the editorial layout
+ * -- #1 and #2 included. All ten cards are the same size; `accent`, when
+ * passed, only recolors the border (no fill behind it) so rank #1 and #2
+ * still stand out without being physically bigger than the rest.
+ */
 function IssueGridCard({
   name,
   rank,
+  accent,
   active,
   dimmed,
   onDragStart,
@@ -593,6 +487,7 @@ function IssueGridCard({
 }: {
   name: string;
   rank: number;
+  accent?: string;
   active: boolean;
   dimmed: boolean;
   onDragStart: () => void;
@@ -615,7 +510,7 @@ function IssueGridCard({
         gap: 12,
         padding: "10px 12px",
         borderRadius: 10,
-        border: `1px solid ${C.line}`,
+        border: `1px solid ${accent ?? C.line}`,
         background: active ? C.hover : C.white,
         opacity: dimmed ? 0.6 : 1,
       }}
