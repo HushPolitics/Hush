@@ -44,6 +44,47 @@ const TYPE_FILTERS: { value: TypeFilter; label: string }[] = [
 /** Recent Updates' page-size choices -- 10 by default, with room to see more at once. */
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
+/**
+ * Full 50-state + DC list for the "Add Filters" popup's State section.
+ * Built ahead of real per-politician state data (see politicianState below)
+ * so the control is ready as-is once that data exists -- no reshaping the
+ * filter itself later, just wiring up a real value.
+ */
+const US_STATES: { value: string; label: string }[] = [
+  { value: "AL", label: "Alabama" }, { value: "AK", label: "Alaska" }, { value: "AZ", label: "Arizona" },
+  { value: "AR", label: "Arkansas" }, { value: "CA", label: "California" }, { value: "CO", label: "Colorado" },
+  { value: "CT", label: "Connecticut" }, { value: "DE", label: "Delaware" }, { value: "DC", label: "District of Columbia" },
+  { value: "FL", label: "Florida" }, { value: "GA", label: "Georgia" }, { value: "HI", label: "Hawaii" },
+  { value: "ID", label: "Idaho" }, { value: "IL", label: "Illinois" }, { value: "IN", label: "Indiana" },
+  { value: "IA", label: "Iowa" }, { value: "KS", label: "Kansas" }, { value: "KY", label: "Kentucky" },
+  { value: "LA", label: "Louisiana" }, { value: "ME", label: "Maine" }, { value: "MD", label: "Maryland" },
+  { value: "MA", label: "Massachusetts" }, { value: "MI", label: "Michigan" }, { value: "MN", label: "Minnesota" },
+  { value: "MS", label: "Mississippi" }, { value: "MO", label: "Missouri" }, { value: "MT", label: "Montana" },
+  { value: "NE", label: "Nebraska" }, { value: "NV", label: "Nevada" }, { value: "NH", label: "New Hampshire" },
+  { value: "NJ", label: "New Jersey" }, { value: "NM", label: "New Mexico" }, { value: "NY", label: "New York" },
+  { value: "NC", label: "North Carolina" }, { value: "ND", label: "North Dakota" }, { value: "OH", label: "Ohio" },
+  { value: "OK", label: "Oklahoma" }, { value: "OR", label: "Oregon" }, { value: "PA", label: "Pennsylvania" },
+  { value: "RI", label: "Rhode Island" }, { value: "SC", label: "South Carolina" }, { value: "SD", label: "South Dakota" },
+  { value: "TN", label: "Tennessee" }, { value: "TX", label: "Texas" }, { value: "UT", label: "Utah" },
+  { value: "VT", label: "Vermont" }, { value: "VA", label: "Virginia" }, { value: "WA", label: "Washington" },
+  { value: "WV", label: "West Virginia" }, { value: "WI", label: "Wisconsin" }, { value: "WY", label: "Wyoming" },
+];
+
+/**
+ * Placeholder until politicians carry a real state field. The seed dataset
+ * has no such field -- every politician in it is Florida/Jacksonville-area
+ * (see `district`: "FL-04", "District 4", "Duval County", "Statewide", and
+ * so on, never a state on its own) -- so this hardcodes "FL" for everyone
+ * rather than guessing state from free-text district strings that don't
+ * reliably contain one. That makes the State filter fully functional today
+ * (Florida shows every politician, any other state correctly shows none)
+ * without fabricating per-politician data; swap this for a real field read
+ * once one exists and every call site below keeps working unchanged.
+ */
+function politicianState(_p: Politician): string {
+  return "FL";
+}
+
 function typeLabel(t: FeedEvent["type"]): string {
   switch (t) {
     case "score":
@@ -271,6 +312,7 @@ export default function FeedView({
   const [scope, setScope] = useFeedScope();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [politicianIds, setPoliticianIds] = useState<string[]>([]);
+  const [stateIds, setStateIds] = useState<string[]>([]);
   const [sort, setSort] = useState<"recent" | "oldest">("recent");
   const [pageSize, setPageSize] = useState<number>(10);
   const [page, setPage] = useState(1);
@@ -324,14 +366,23 @@ export default function FeedView({
   }, [allEvents, scope, ballotIds, saved, topics, q]);
 
   const events = useMemo(() => {
-    const byType = typeFilter === "all" ? scopedEvents : scopedEvents.filter((e) => e.type === typeFilter);
-    if (politicianIds.length === 0) return byType;
-    const idSet = new Set(politicianIds);
-    return byType.filter((e) => {
-      const p = eventPolitician(e);
-      return p ? idSet.has(p.id) : false;
-    });
-  }, [scopedEvents, typeFilter, politicianIds]);
+    let filtered = typeFilter === "all" ? scopedEvents : scopedEvents.filter((e) => e.type === typeFilter);
+    if (politicianIds.length > 0) {
+      const idSet = new Set(politicianIds);
+      filtered = filtered.filter((e) => {
+        const p = eventPolitician(e);
+        return p ? idSet.has(p.id) : false;
+      });
+    }
+    if (stateIds.length > 0) {
+      const stateSet = new Set(stateIds);
+      filtered = filtered.filter((e) => {
+        const p = eventPolitician(e);
+        return p ? stateSet.has(politicianState(p)) : false;
+      });
+    }
+    return filtered;
+  }, [scopedEvents, typeFilter, politicianIds, stateIds]);
 
   const sortedEvents = useMemo(
     () => (sort === "oldest" ? events.slice().reverse() : events),
@@ -343,7 +394,7 @@ export default function FeedView({
   // usually just show an empty page.
   useEffect(() => {
     setPage(1);
-  }, [scope, typeFilter, politicianIds, sort, pageSize, q]);
+  }, [scope, typeFilter, politicianIds, stateIds, sort, pageSize, q]);
 
   const pageCount = Math.max(1, Math.ceil(sortedEvents.length / pageSize));
   const currentPage = Math.min(page, pageCount);
@@ -402,7 +453,6 @@ export default function FeedView({
       <div id="recent-updates" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <Display size={20}>Recent Updates</Display>
-          <TypeFilterBar value={typeFilter} onChange={setTypeFilter} />
           <AddFiltersButton
             q={q}
             onQueryChange={updateQuery}
@@ -410,6 +460,8 @@ export default function FeedView({
             onTypeChange={setTypeFilter}
             politicianIds={politicianIds}
             onPoliticianIdsChange={setPoliticianIds}
+            stateIds={stateIds}
+            onStateIdsChange={setStateIds}
             ballotPoliticians={ballotPoliticians}
           />
           <label
@@ -482,6 +534,8 @@ export default function FeedView({
                 `Nothing matches "${q.trim()}".`
               ) : politicianIds.length > 0 ? (
                 "Nothing from the politicians you picked."
+              ) : stateIds.length > 0 ? (
+                "Nothing from that state yet."
               ) : typeFilter !== "all" ? (
                 "Nothing in this category yet."
               ) : (
@@ -670,33 +724,19 @@ function TopIssuesCard({ topics }: { topics: string[] }) {
   );
 }
 
-function TypeFilterBar({
-  value,
-  onChange,
-}: {
-  value: TypeFilter;
-  onChange: (v: TypeFilter) => void;
-}) {
-  return (
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-      {TYPE_FILTERS.map((f) => (
-        <Chip key={f.value} on={value === f.value} onClick={() => onChange(f.value)}>
-          {f.label}
-        </Chip>
-      ))}
-    </div>
-  );
-}
-
 /**
  * A second entry point onto the same keyword/type/politician state the rest
  * of the page already owns -- not a parallel filter system. Keyword reads
  * and writes the exact same ?q= param the top bar's search field uses (see
- * updateQuery above), and Update type is the same TYPE_FILTERS chips as the
- * row above "Recent Updates", just also reachable from here. Politicians is
- * the one new axis, built off ballotPoliticians (the same list already
+ * updateQuery above); Update type is the same TYPE_FILTERS chips that used
+ * to sit in their own row above "Recent Updates" (that row is gone now that
+ * this popup covers it -- this is the one place type filtering lives).
+ * Politicians is built off ballotPoliticians (the same list already
  * computed on this page for the orientation strip), so it's always exactly
- * the people on this reader's ballot.
+ * the people on this reader's ballot, with its own local search on top so
+ * it stays usable once a ballot runs to more than a handful of races. State
+ * is real, functional filtering today (see politicianState above) even
+ * though the seed data only ever resolves to Florida right now.
  */
 function AddFiltersButton({
   q,
@@ -705,6 +745,8 @@ function AddFiltersButton({
   onTypeChange,
   politicianIds,
   onPoliticianIdsChange,
+  stateIds,
+  onStateIdsChange,
   ballotPoliticians,
 }: {
   q: string;
@@ -713,10 +755,20 @@ function AddFiltersButton({
   onTypeChange: (v: TypeFilter) => void;
   politicianIds: string[];
   onPoliticianIdsChange: (ids: string[]) => void;
+  stateIds: string[];
+  onStateIdsChange: (ids: string[]) => void;
   ballotPoliticians: Politician[];
 }) {
   const [open, setOpen] = useState(false);
-  const activeCount = (q.trim() ? 1 : 0) + (typeFilter !== "all" ? 1 : 0) + politicianIds.length;
+  const [politicianQuery, setPoliticianQuery] = useState("");
+  const activeCount =
+    (q.trim() ? 1 : 0) + (typeFilter !== "all" ? 1 : 0) + politicianIds.length + stateIds.length;
+
+  const shownPoliticians = useMemo(() => {
+    const needle = politicianQuery.trim().toLowerCase();
+    if (!needle) return ballotPoliticians;
+    return ballotPoliticians.filter((p) => p.name.toLowerCase().includes(needle));
+  }, [ballotPoliticians, politicianQuery]);
 
   function togglePolitician(id: string) {
     onPoliticianIdsChange(
@@ -724,10 +776,16 @@ function AddFiltersButton({
     );
   }
 
+  function toggleState(value: string) {
+    onStateIdsChange(stateIds.includes(value) ? stateIds.filter((x) => x !== value) : [...stateIds, value]);
+  }
+
   function clearAll() {
     onQueryChange("");
     onTypeChange("all");
     onPoliticianIdsChange([]);
+    onStateIdsChange([]);
+    setPoliticianQuery("");
   }
 
   return (
@@ -772,8 +830,16 @@ function AddFiltersButton({
               />
             </div>
 
-            {/* STATE FILTER GOES HERE -- see the build notes above. Left out
-                until you pick which of the three options it should be. */}
+            <div>
+              <Kicker style={{ marginBottom: 8, display: "block" }}>State</Kicker>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, maxHeight: 140, overflowY: "auto" }}>
+                {US_STATES.map((s) => (
+                  <Chip key={s.value} on={stateIds.includes(s.value)} onClick={() => toggleState(s.value)}>
+                    {s.label}
+                  </Chip>
+                ))}
+              </div>
+            </div>
 
             <div>
               <Kicker style={{ marginBottom: 8, display: "block" }}>Update type</Kicker>
@@ -793,12 +859,31 @@ function AddFiltersButton({
                   No politicians on your ballot yet.
                 </span>
               ) : (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, maxHeight: 180, overflowY: "auto" }}>
-                  {ballotPoliticians.map((p) => (
-                    <Chip key={p.id} on={politicianIds.includes(p.id)} onClick={() => togglePolitician(p.id)}>
-                      {p.name}
-                    </Chip>
-                  ))}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {/* Chips alone don't scale once a ballot has more than a
+                      handful of races on it -- this search narrows the list
+                      before picking, the same SearchField used for Keyword
+                      above, just scoped to this section's own local state
+                      rather than the page's ?q= param. */}
+                  <SearchField
+                    value={politicianQuery}
+                    onChange={setPoliticianQuery}
+                    placeholder="Search politicians on your ballot"
+                    style={{ width: "100%" }}
+                  />
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, maxHeight: 180, overflowY: "auto" }}>
+                    {shownPoliticians.length === 0 ? (
+                      <span style={{ fontSize: 12.5, color: C.muted, fontStyle: "italic" }}>
+                        No politicians match &quot;{politicianQuery.trim()}&quot;.
+                      </span>
+                    ) : (
+                      shownPoliticians.map((p) => (
+                        <Chip key={p.id} on={politicianIds.includes(p.id)} onClick={() => togglePolitician(p.id)}>
+                          {p.name}
+                        </Chip>
+                      ))
+                    )}
+                  </div>
                 </div>
               )}
             </div>
