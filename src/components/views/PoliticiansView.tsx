@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { C, PARTY, PARTY_LABEL } from "@/lib/theme";
+import { versionedAsset } from "@/lib/assetVersion";
 import { ballotPoliticianIds } from "@/lib/feed";
 import { initials } from "@/lib/scoring";
 import { usePrefs } from "@/lib/prefs";
@@ -55,7 +56,7 @@ function PoliticiansHero() {
       }}
     >
       <img
-        src="/images/politicians-hero.jpg"
+        src={versionedAsset("/images/politicians-hero.jpg")}
         alt=""
         aria-hidden
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { C, GUIDE_SOURCE_KIND, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
+import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
 import { jumpToSection } from "@/lib/sectionNav";
@@ -488,7 +489,7 @@ function StanceCheckHero() {
       }}
     >
       <img
-        src="/images/stance-check-hero.jpg"
+        src={versionedAsset("/images/stance-check-hero.jpg")}
         alt=""
         aria-hidden
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
