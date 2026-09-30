@@ -235,7 +235,7 @@ export default function PoliticianView({
 
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[
-                  { points: 100, label: "Delivered legislation in alignment with what they ran on", value: p.kept, color: C.ink },
+                  { points: 100, label: "Delivered aligned legislation", value: p.kept, color: C.ink },
                   { points: 50, label: "No clear action", value: p.prog, color: C.body },
                   { points: 0, label: "Contradicts what they said", value: p.broken, color: C.faint },
                 ].map((s) => (

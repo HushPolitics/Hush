@@ -13,7 +13,6 @@ import type { Level, Party, Politician, Race, StanceCell } from "@/lib/types";
 
 const LEVEL_FILTERS: (Level | "All")[] = ["All", "Federal", "State", "Local"];
 const PARTY_FILTERS: (Party | "All")[] = ["All", "D", "R", "I"];
-const STATE_FILTERS: string[] = ["All", "Florida"];
 
 // Avatar / Name / Party / Office / District / Compare. All three proportional
 // data columns (not a fixed width mixed in) grow at a consistent rate and
@@ -83,7 +82,6 @@ export default function PoliticiansView({
   const [levelFilter, setLevelFilter] = useState<Level | "All">("All");
   const [partyFilter, setPartyFilter] = useState<Party | "All">("All");
   const [officeFilter, setOfficeFilter] = useState<string>("All");
-  const [stateFilter, setStateFilter] = useState<string>("All");
 
   // The politicians currently picked for a custom comparison, resolved from
   // `picks` -- used to enforce the same-office-level constraint as a new row
@@ -111,10 +109,9 @@ export default function PoliticiansView({
       .filter((p) => levelFilter === "All" || p.level === levelFilter)
       .filter((p) => partyFilter === "All" || p.party === partyFilter)
       .filter((p) => officeFilter === "All" || p.office === officeFilter)
-      .filter((p) => stateFilter === "All" || p.state === stateFilter)
       .filter((p) => !query || `${p.name} ${p.office}`.toLowerCase().includes(query))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [politicians, levelFilter, partyFilter, officeFilter, stateFilter, q]);
+  }, [politicians, levelFilter, partyFilter, officeFilter, q]);
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -156,13 +153,6 @@ export default function PoliticiansView({
               activeFg={C.sand}
             >
               {party === "All" ? "All parties" : PARTY_LABEL[party]}
-            </Chip>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {STATE_FILTERS.map((st) => (
-            <Chip key={st} on={stateFilter === st} onClick={() => setStateFilter(st)}>
-              {st}
             </Chip>
           ))}
         </div>
