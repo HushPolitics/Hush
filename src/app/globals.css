@@ -463,3 +463,19 @@ input::placeholder {
     display: none !important;
   }
 }
+
+/* Inner marketing pages (Our Story, and the rest as they're built) -- the
+   shared two-column section pattern. Stacks to one column under ~800px; no
+   explicit reorder is needed for "What I found instead" because its image
+   is already first in markup, so it's already on top once stacked. */
+.story-two-col {
+  display: grid;
+}
+@media (max-width: 800px) {
+  .story-two-col {
+    grid-template-columns: 1fr !important;
+  }
+  .story-media {
+    min-height: 320px !important;
+  }
+}
