@@ -14,7 +14,7 @@ const FOOTER_NAV = [
 const LEGAL_LINKS = [
   { label: "Our Methodology", href: "/methodology" },
   { label: "File a Dispute", href: "/dispute" },
-  { label: "Privacy & Terms", href: "/privacy" },
+  { label: "Privacy & Terms", href: "/privacy-terms" },
   { label: "Contact", href: "/contact" },
 ];
 
