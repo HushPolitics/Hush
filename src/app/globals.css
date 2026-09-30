@@ -644,3 +644,52 @@ input::placeholder {
     grid-template-areas: "text" "sample";
   }
 }
+
+/* Fund HUSH (Step 6) -- smooth-scrolls the closing quote's "Become a
+   member" button (and any other #anchor link) to its target instead of
+   jumping. No earlier page needed this; What's Included's #feed/#stance/
+   #politicians links rely on scroll-margin-top alone, which still works
+   fine with smooth scrolling on. */
+html {
+  scroll-behavior: smooth;
+}
+
+/* "It pays the bills" full-bleed photo/text split: the gradient direction
+   flips from left-to-right (fading into the text panel on the right) to
+   top-to-bottom (fading into the text below) once the section stacks, so
+   the photo still reads as bleeding into the black panel at any width. */
+.fund-bills-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  min-height: 520px;
+}
+.fund-bills-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(28, 25, 23, 0) 55%, #1c1917 100%);
+}
+@media (max-width: 900px) {
+  .fund-bills-grid {
+    grid-template-columns: 1fr;
+  }
+  .fund-bills-grid > .fund-bills-image {
+    min-height: 300px;
+  }
+  .fund-bills-overlay {
+    background: linear-gradient(180deg, rgba(28, 25, 23, 0) 55%, #1c1917 100%);
+  }
+}
+
+/* Membership tier cards: three equal-height columns with their buttons
+   pinned to the bottom, collapsing to one column (Free, Member, Supporter,
+   same order as the source) below 900px. */
+.fund-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+@media (max-width: 900px) {
+  .fund-tiers-grid {
+    grid-template-columns: 1fr;
+  }
+}
