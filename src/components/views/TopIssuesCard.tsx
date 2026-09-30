@@ -1,34 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type CSSProperties, type DragEvent } from "react";
+import { useState, type DragEvent } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { rankWeights } from "@/lib/scoring";
-import { Card, Display, EmptyState, GhostButton, Kicker, Pill, RustButton } from "@/components/ui";
+import { Card, Display, EmptyState, GhostButton, IssueIcon, Kicker, Pill, RustButton } from "@/components/ui";
 import type { IssueFinderAnswer } from "@/lib/types";
 
 const MAX_TOP_ISSUES = 10;
-
-/** Filename (under /public/images/issues/) for an issue's results-row photo -- just the issue name, lowercased and hyphenated. */
-function issueImageSlug(issue: string): string {
-  return issue.toLowerCase().replace(/\s+/g, "-");
-}
-
-/**
- * Shared style for every issue-photo <img> across this file's three photo
- * sizes (feature card, grid card, Issue Finder results row). `WebkitUserDrag`
- * isn't part of csstype's `CSSProperties` (it doesn't track this vendor
- * property), hence the intersection type -- see the comment above this
- * style's first use for why the property itself is here.
- */
-const issuePhotoImgStyle: CSSProperties & { WebkitUserDrag?: "none" } = {
-  width: "100%",
-  height: "100%",
-  objectFit: "cover",
-  display: "block",
-  WebkitUserDrag: "none",
-};
 
 /**
  * Short, neutral, informational one-liners for the editorial "Your Top
@@ -276,31 +256,14 @@ export function TopIssuesCard({
                       width: 96,
                       height: 96,
                       borderRadius: 24,
-                      overflow: "hidden",
                       background: C.shell,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                       flex: "0 0 96px",
                     }}
                   >
-                    {/*
-                     * draggable={false} alone (the #38 fix) stops the HTML5
-                     * Drag and Drop API from picking this img as a drag
-                     * source, but WebKit/Blink also run a separate, older
-                     * native "drag this picture out" affordance for <img>
-                     * that draggable doesn't reach -- only `issuePhotoImgStyle`'s
-                     * WebkitUserDrag does. Without it, a click-drag that
-                     * starts on or near the photo (easy to trigger by
-                     * accident, since the whole card is itself draggable for
-                     * reordering) can still show a native drag-ghost
-                     * mislabeled with a different issue's filename. Same
-                     * fix, all three photo sizes in this file.
-                     */}
-                    <img
-                      src={`/images/issues/${issueImageSlug(i.name)}.jpg`}
-                      alt=""
-                      aria-hidden
-                      draggable={false}
-                      style={issuePhotoImgStyle}
-                    />
+                    <IssueIcon topic={i.name} size={48} />
                   </span>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -588,14 +551,19 @@ function IssueFeatureCard({
         </button>
       </div>
       <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-        <span style={{ width: 120, height: 120, borderRadius: 18, overflow: "hidden", background: C.shell, flex: "0 0 120px" }}>
-          <img
-            src={`/images/issues/${issueImageSlug(name)}.jpg`}
-            alt=""
-            aria-hidden
-            draggable={false}
-            style={issuePhotoImgStyle}
-          />
+        <span
+          style={{
+            width: 120,
+            height: 120,
+            borderRadius: 18,
+            background: C.shell,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flex: "0 0 120px",
+          }}
+        >
+          <IssueIcon topic={name} size={60} />
         </span>
         <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
           <span style={{ fontFamily: cond, fontSize: 40, lineHeight: 1, color: accent }}>
@@ -652,14 +620,19 @@ function IssueGridCard({
         opacity: dimmed ? 0.6 : 1,
       }}
     >
-      <span style={{ width: 56, height: 56, borderRadius: 12, overflow: "hidden", background: C.shell, flex: "0 0 56px" }}>
-        <img
-          src={`/images/issues/${issueImageSlug(name)}.jpg`}
-          alt=""
-          aria-hidden
-          draggable={false}
-          style={issuePhotoImgStyle}
-        />
+      <span
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: 12,
+          background: C.shell,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flex: "0 0 56px",
+        }}
+      >
+        <IssueIcon topic={name} size={28} />
       </span>
       <span
         style={{
