@@ -11,10 +11,8 @@ const FOOTER_NAV = [
   { label: "Fund HUSH.", href: "/fund-hush" },
 ];
 
-// "Our Methodology" points at "#" -- not built yet, per the brief. The rest
-// point at real paths; see the build notes on which of those exist today.
 const LEGAL_LINKS = [
-  { label: "Our Methodology", href: "#" },
+  { label: "Our Methodology", href: "/methodology" },
   { label: "File a Dispute", href: "/dispute" },
   { label: "Privacy & Terms", href: "/privacy" },
   { label: "Contact", href: "/contact" },

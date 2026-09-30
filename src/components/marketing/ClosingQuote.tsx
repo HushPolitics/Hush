@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { C } from "@/lib/theme";
 import { MK } from "@/lib/marketingTheme";
@@ -16,7 +17,11 @@ export function ClosingQuote({
 }: {
   quote: string;
   attributionName: string;
-  attributionSource: string;
+  // ReactNode, not just string -- Our Methodology's Franklin attribution
+  // ("Poor Richard's Almanack, 1737") needs the title itself in italics,
+  // so callers can pass JSX (e.g. <><em>Title</em>, 1737</>) as well as a
+  // plain string.
+  attributionSource: ReactNode;
   line: string;
   ctaLabel?: string;
   ctaHref?: string;
