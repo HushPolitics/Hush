@@ -7,9 +7,13 @@ import { MK } from "@/lib/marketingTheme";
 
 export type MarketingNavKey = "our-story" | "how-it-works" | "fund-hush";
 
+// "HUSH. Guide" points at /guide-overview, the public marketing preview of
+// the Guide feature (Step 4) -- not /hush-guide, which is the real,
+// logged-in app page. Building the marketing page at the same path as the
+// real feature would have overwritten it, so Step 4 got its own route.
 const HOW_IT_WORKS_ITEMS = [
   { label: "Overview", href: "/how-it-works" },
-  { label: "HUSH. Guide", href: "/hush-guide" },
+  { label: "HUSH. Guide", href: "/guide-overview" },
   { label: "What's Included?", href: "/whats-included" },
 ];
 
@@ -206,7 +210,7 @@ export function MarketingHeader({ active, sticky = true }: { active?: MarketingN
           <Link href="/how-it-works" className="home-nav-link" style={mobileLinkStyle} onClick={() => setMobileOpen(false)}>
             How It Works
           </Link>
-          <Link href="/hush-guide" className="home-nav-link" style={{ ...mobileLinkStyle, paddingLeft: 32, fontSize: 14 }} onClick={() => setMobileOpen(false)}>
+          <Link href="/guide-overview" className="home-nav-link" style={{ ...mobileLinkStyle, paddingLeft: 32, fontSize: 14 }} onClick={() => setMobileOpen(false)}>
             HUSH. Guide
           </Link>
           <Link href="/whats-included" className="home-nav-link" style={{ ...mobileLinkStyle, paddingLeft: 32, fontSize: 14 }} onClick={() => setMobileOpen(false)}>
