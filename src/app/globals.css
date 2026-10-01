@@ -396,6 +396,21 @@ input::placeholder {
   .compare-scroll-hint {
     display: block !important;
   }
+
+  /* OurStory's opening-paragraph drop cap floats a 4.2em "I" against the
+     story text column. On the wide desktop column the float's height
+     covers only a line or two, so the wrap-then-release looks deliberate;
+     on a phone-width column the same float covers several lines, and the
+     paragraph visibly jumps from an indented left edge to the full-width
+     edge mid-sentence. Turning the float off below this breakpoint keeps
+     the "I" as a normal (if slightly larger) inline letter instead. */
+  .story-dropcap {
+    float: none !important;
+    font-size: 1em !important;
+    line-height: inherit !important;
+    text-transform: none !important;
+    margin: 0 !important;
+  }
 }
 
 /* Feed's "Explore HUSH" grid: the only 4-up grid in the app that needs a

@@ -29,6 +29,7 @@ function WhereItStarted() {
           <div style={{ marginTop: 36, display: "flex", flexDirection: "column", gap: 22 }}>
             <p style={{ margin: 0, fontSize: "clamp(18px, 1.45vw, 20px)", lineHeight: 1.72, color: MK.body, letterSpacing: "-0.01em" }}>
               <span
+                className="story-dropcap"
                 style={{
                   float: "left",
                   fontFamily: cond,
