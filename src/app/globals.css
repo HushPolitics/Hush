@@ -514,34 +514,19 @@ input::placeholder {
   }
 }
 
-/* How It Works (Step 3) -- "Our principles" four-column row. Left border
-   sits between columns, so only the first column of each row should skip
-   it; the breakpoints below re-derive which items start a row as the
-   column count drops from 4 to 2 to 1, adding a top rule between stacked
-   rows in place of the left rule they lose. */
+/* How It Works (Step 3) -- "Our principles" four-column row. No vertical
+   rule between columns; gap handles the spacing the border's padding used
+   to provide. The breakpoints below re-derive which items start a row as
+   the column count drops from 4 to 2 to 1, adding a top rule between
+   stacked rows to mark the break there instead. */
 .principles-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-.principles-grid > div {
-  border-left: 1px solid #d9d2c4;
-  padding-left: 24px;
-}
-.principles-grid > div:first-child {
-  border-left: none;
-  padding-left: 0;
+  gap: 24px;
 }
 @media (max-width: 900px) {
   .principles-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .principles-grid > div:nth-child(odd) {
-    border-left: none;
-    padding-left: 0;
-  }
-  .principles-grid > div:nth-child(even) {
-    border-left: 1px solid #d9d2c4;
-    padding-left: 24px;
   }
   .principles-grid > div:nth-child(n + 3) {
     border-top: 1px solid #d9d2c4;
@@ -551,10 +536,6 @@ input::placeholder {
 @media (max-width: 600px) {
   .principles-grid {
     grid-template-columns: 1fr;
-  }
-  .principles-grid > div {
-    border-left: none !important;
-    padding-left: 0 !important;
   }
   .principles-grid > div:not(:first-child) {
     border-top: 1px solid #d9d2c4;
