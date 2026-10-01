@@ -387,6 +387,15 @@ input::placeholder {
     border-top: 1px solid rgba(28, 25, 23, 0.07) !important; /* C.lineSoft */
     z-index: 20 !important;
   }
+
+  /* CompareView's Stance grid stays at its full minWidth (560) and scrolls
+     horizontally on phone widths -- it works, but with no visual cue it
+     can read as if the 2nd/3rd politician just aren't there. Shown only
+     here so it never appears on wider viewports where the grid already
+     fits. */
+  .compare-scroll-hint {
+    display: block !important;
+  }
 }
 
 /* Feed's "Explore HUSH" grid: the only 4-up grid in the app that needs a
