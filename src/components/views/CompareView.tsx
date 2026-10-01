@@ -146,6 +146,9 @@ export default function CompareView({
           />
         ) : null}
 
+        <span className="compare-scroll-hint" style={{ display: "none", fontSize: 12, color: C.muted }}>
+          Swipe to see every politician →
+        </span>
         <div style={{ overflowX: "auto" }}>
           <div
             style={{
