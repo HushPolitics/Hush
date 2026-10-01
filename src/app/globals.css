@@ -396,6 +396,16 @@ input::placeholder {
   .compare-scroll-hint {
     display: block !important;
   }
+
+  /* GuideOverview's "What you'll actually be voting on" sample card grid
+     (BillsSample) stays 2-up at every width otherwise -- fine on desktop
+     where each card still has real room, but on a phone-width column it
+     squeezes each BillCard down to roughly half the column, cramming its
+     title/description/footer. Collapses to one card per row, same pattern
+     as .explore-hush-grid. */
+  .guide-bills-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Feed's "Explore HUSH" grid: the only 4-up grid in the app that needs a
