@@ -546,7 +546,7 @@ function BillsSample() {
   return (
     <SampleCard>
       <SampleKicker label="On your ballot" title="What you’ll actually be voting on" />
-      <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 10 }}>
+      <div className="guide-bills-grid" style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 10 }}>
         {BILLS.map((bill) => (
           <BillCard key={bill.no} bill={bill} />
         ))}
