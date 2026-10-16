@@ -9,6 +9,9 @@ import { syncOnboardingToSupabase } from "@/lib/supabase/profile";
 import { Card, Chip, Display, GhostButton, Kicker, RustButton } from "@/components/ui";
 
 const fieldStyle = {
+  // An <input> carries an intrinsic width of roughly 20 characters. Without
+  // this it refuses to shrink to its container and overflows the card.
+  width: "100%",
   padding: "11px 14px",
   border: "1px solid rgba(21,21,21,0.2)",
   borderRadius: 8,
@@ -20,6 +23,10 @@ const fieldStyle = {
 const labelStyle = {
   display: "flex",
   flexDirection: "column" as const,
+  // Flex items default to min-width:auto, which floors them at their content's
+  // intrinsic width. These labels wrap inputs, so without this the First/Last
+  // name and City/State/ZIP rows push past the card edge.
+  minWidth: 0,
   gap: 4,
   fontSize: 12,
   color: C.muted,
