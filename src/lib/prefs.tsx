@@ -73,8 +73,8 @@ export interface Prefs {
    * Name/email collected on the signup wizard's "Create account" step
    * (`SignupWizard`'s `firstName`/`lastName`/`email` state), mirrored here so
    * Profile Settings has something real to show and edit instead of a
-   * hardcoded placeholder. Seeded with plausible defaults for the prototype
-   * — a real account always overwrites these at signup.
+   * hardcoded placeholder. Empty until the user signs up (or signs in on a
+   * device that has no stored name yet, see AppShell's hydration effect).
    */
   firstName: string;
   lastName: string;
@@ -137,8 +137,8 @@ const DEFAULTS: Prefs = {
   state: DEFAULT_STATE,
   streetAddress: "",
   onboarded: false,
-  firstName: "Jordan",
-  lastName: "Reyes",
+  firstName: "",
+  lastName: "",
   email: "",
   emailPrefs: {
     electionUpdates: true,
