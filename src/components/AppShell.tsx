@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { createClient } from "@/lib/supabase/client";
@@ -71,10 +71,24 @@ const MENU_SHADOW = "0 8px 24px rgba(21,21,21,0.14)";
 // statement instead; `.topbar-tagline`'s own CSS rule goes unused rather
 // than needing cleanup, since nothing renders that class anymore.)
 
+/**
+ * The avatar tile's letters: first letter of the first name plus first
+ * letter of the last name ("Hunter" + "Mihalinec" -> "HM"). Falls back to
+ * just the first name's initial, then the email's first letter, then "?".
+ * Array.from rather than indexing so a name starting with an emoji or other
+ * multi-unit character isn't cut in half.
+ */
+function userInitials(firstName: string, lastName: string, email: string): string {
+  const first = (n: string) => Array.from(n.trim())[0] ?? "";
+  const letters = (first(firstName) + first(lastName)).toUpperCase();
+  return letters || first(email).toUpperCase() || "?";
+}
+
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { topics } = usePrefs();
+  const { topics, firstName, lastName, email, setFirstName, setLastName, setEmail } = usePrefs();
+  const avatarLetters = userInitials(firstName, lastName, email);
   const avatarMenu = [
     topics.length
       ? { href: "/profile/top-issues", label: "My issues" }
@@ -85,6 +99,35 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [navMenuOpen, setNavMenuOpen] = useState(false);
+
+  // Keep the latest stored names in a ref so the async lookup below checks
+  // them after localStorage has hydrated, not the empty first-render snapshot.
+  const namesRef = useRef({ firstName, lastName });
+  namesRef.current = { firstName, lastName };
+
+  // If this browser has no name on file yet (a sign-in on a new device),
+  // fill it from the account's signup metadata. Never overwrites a name that
+  // is already stored, so edits made in Profile Settings win.
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      const user = data.user;
+      if (!user || cancelled) return;
+      if (namesRef.current.firstName || namesRef.current.lastName) return;
+      const meta = (user.user_metadata ?? {}) as { first_name?: string; last_name?: string };
+      if (meta.first_name) setFirstName(meta.first_name);
+      if (meta.last_name) setLastName(meta.last_name);
+      if (user.email) setEmail(user.email);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Runs once on mount. The setters are re-created whenever prefs change, so
+    // listing them would re-run this on every prefs write.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Section-nav zone: registered by whichever view is mounted below (see
   // lib/sectionNav.tsx). `mainRef` is the scroll-spy's observer root -- the
@@ -112,6 +155,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
     setAvatarOpen(false);
     const supabase = createClient();
     if (supabase) await supabase.auth.signOut();
+    setFirstName("");
+    setLastName("");
+    setEmail("");
     router.push("/login");
   }
 
@@ -396,7 +442,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               cursor: "pointer",
             }}
           >
-            JR
+            {avatarLetters}
           </button>
 
           {avatarOpen ? (
