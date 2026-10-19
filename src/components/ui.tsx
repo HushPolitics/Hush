@@ -517,7 +517,7 @@ export function IssueIcon({ topic, size = 16, color = C.ink }: { topic: string; 
           <path d="M4 7.5V13H12V7.5" />
         </svg>
       );
-    case "Voting rights":
+    case "Election Laws / Voting Rights":
       return (
         <svg {...common} aria-hidden>
           <path d="M3 6h10l-1 7.5H4L3 6z" />
@@ -527,14 +527,14 @@ export function IssueIcon({ topic, size = 16, color = C.ink }: { topic: string; 
           <line x1="5.5" y1="8.7" x2="10.5" y2="8.7" />
         </svg>
       );
-    case "Climate":
+    case "Climate / Environmental Laws":
       return (
         <svg {...common} aria-hidden>
           <path d="M8 13.5C4 12 3 8 5 4.5C7.5 6 10 5 12 3C13 7 12 11 8 13.5Z" />
           <line x1="8" y1="13.5" x2="10.5" y2="4.5" />
         </svg>
       );
-    case "Labor":
+    case "Jobs / Labor":
       return (
         <svg {...common} aria-hidden>
           <rect x="2.5" y="6" width="11" height="7" rx="1" />
@@ -550,7 +550,7 @@ export function IssueIcon({ topic, size = 16, color = C.ink }: { topic: string; 
           <line x1="14" y1="6" x2="14" y2="10" />
         </svg>
       );
-    case "Economy":
+    case "Cost of Living / Economy":
       return (
         <svg {...common} aria-hidden>
           <line x1="3" y1="13" x2="13" y2="13" />
@@ -567,7 +567,7 @@ export function IssueIcon({ topic, size = 16, color = C.ink }: { topic: string; 
           <line x1="2.5" y1="8" x2="13.5" y2="8" />
         </svg>
       );
-    case "Criminal justice":
+    case "Crime / Public Safety":
       return (
         <svg {...common} aria-hidden>
           <line x1="8" y1="2.5" x2="8" y2="12" />
@@ -580,13 +580,13 @@ export function IssueIcon({ topic, size = 16, color = C.ink }: { topic: string; 
           <path d="M11 8a2 2 0 004 0" />
         </svg>
       );
-    case "Guns":
+    case "Gun Laws":
       return (
         <svg {...common} aria-hidden>
           <path d="M8 2.5L13 4.3V8C13 11 10.8 13 8 13.5C5.2 13 3 11 3 8V4.3L8 2.5Z" />
         </svg>
       );
-    case "Reproductive rights":
+    case "Abortion / Reproductive Rights":
       return (
         <svg {...common} aria-hidden>
           <path d="M4.5 2.5H10L11.5 4V13.5H4.5V2.5Z" />
@@ -596,7 +596,7 @@ export function IssueIcon({ topic, size = 16, color = C.ink }: { topic: string; 
           <line x1="6" y1="11.5" x2="8.5" y2="11.5" />
         </svg>
       );
-    case "Transit":
+    case "Infrastructure / Transportation":
       return (
         <svg {...common} aria-hidden>
           <rect x="2.5" y="4" width="11" height="7" rx="1.5" />
@@ -605,16 +605,76 @@ export function IssueIcon({ topic, size = 16, color = C.ink }: { topic: string; 
           <circle cx="11" cy="12.5" r="1.2" />
         </svg>
       );
-    case "Water":
-      return (
-        <svg {...common} aria-hidden>
-          <path d="M8 2.5C8 2.5 12.5 8 12.5 10.8C12.5 13 10.5 14.2 8 14.2C5.5 14.2 3.5 13 3.5 10.8C3.5 8 8 2.5 8 2.5Z" />
-        </svg>
-      );
     case "Veterans":
       return (
         <svg {...common} aria-hidden>
           <path d="M8 2L9.4 6.2H13.8L10.2 8.7L11.6 13L8 10.4L4.4 13L5.8 8.7L2.2 6.2H6.6L8 2Z" />
+        </svg>
+      );
+    case "Government Spending":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M2.5 6.5L8 3L13.5 6.5H2.5Z" />
+          <line x1="4.5" y1="8" x2="4.5" y2="12" />
+          <line x1="8" y1="8" x2="8" y2="12" />
+          <line x1="11.5" y1="8" x2="11.5" y2="12" />
+          <line x1="2.5" y1="13" x2="13.5" y2="13" />
+        </svg>
+      );
+    case "Taxes":
+      return (
+        <svg {...common} aria-hidden>
+          <line x1="12" y1="4" x2="4" y2="12" />
+          <circle cx="5" cy="5" r="1.6" />
+          <circle cx="11" cy="11" r="1.6" />
+        </svg>
+      );
+    case "AI / Technology":
+      return (
+        <svg {...common} aria-hidden>
+          <rect x="4.5" y="4.5" width="7" height="7" rx="1" />
+          <line x1="6.5" y1="2.5" x2="6.5" y2="4.5" />
+          <line x1="9.5" y1="2.5" x2="9.5" y2="4.5" />
+          <line x1="6.5" y1="11.5" x2="6.5" y2="13.5" />
+          <line x1="9.5" y1="11.5" x2="9.5" y2="13.5" />
+          <line x1="2.5" y1="6.5" x2="4.5" y2="6.5" />
+          <line x1="2.5" y1="9.5" x2="4.5" y2="9.5" />
+          <line x1="11.5" y1="6.5" x2="13.5" y2="6.5" />
+          <line x1="11.5" y1="9.5" x2="13.5" y2="9.5" />
+        </svg>
+      );
+    case "Medicare / Social Security":
+      return (
+        <svg {...common} aria-hidden>
+          <rect x="2.5" y="4" width="11" height="8" rx="1" />
+          <circle cx="6" cy="7.5" r="1.2" />
+          <line x1="9" y1="6.5" x2="12" y2="6.5" />
+          <line x1="9" y1="9" x2="11.5" y2="9" />
+        </svg>
+      );
+    case "LGBTQ+ Rights":
+      return (
+        <svg {...common} aria-hidden>
+          <circle cx="6" cy="8" r="3.5" />
+          <circle cx="10" cy="8" r="3.5" />
+        </svg>
+      );
+    case "Data Centers":
+      return (
+        <svg {...common} aria-hidden>
+          <rect x="3" y="3" width="10" height="3.2" rx="0.8" />
+          <rect x="3" y="6.9" width="10" height="3.2" rx="0.8" />
+          <rect x="3" y="10.8" width="10" height="2.7" rx="0.8" />
+          <line x1="5" y1="4.6" x2="5.4" y2="4.6" />
+          <line x1="5" y1="8.5" x2="5.4" y2="8.5" />
+          <line x1="5" y1="12.1" x2="5.4" y2="12.1" />
+        </svg>
+      );
+    case "Foreign Policy":
+      return (
+        <svg {...common} aria-hidden>
+          <path d="M3 6h9M9.5 3.5L12 6l-2.5 2.5" />
+          <path d="M13 10H4M6.5 7.5L4 10l2.5 2.5" />
         </svg>
       );
     default:
