@@ -571,8 +571,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
         }}
       >
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.rust, flex: "0 0 6px" }} />
-        Illustrative placeholder data — HUSH. Scores, promise records and fact-check verdicts in this
-        prototype are not real.
+        Records only — officials, races and bills are real. HUSH. Scores, promise records and
+        fact checks aren&apos;t running yet.
       </footer>
     </div>
     </HushScoreInfoProvider>

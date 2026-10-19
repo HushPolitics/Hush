@@ -16,7 +16,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "HUSH. Scores, promise records and fact checks",
-    body: "This is an illustrative prototype. HUSH. Scores, promise records and fact-check verdicts shown across HUSH. today are placeholder data, not a real assessment of any real person — see the notice at the bottom of every page.",
+    body: "None of these are running yet. Deciding whether a politician kept a promise is a judgment call that takes a human reviewer, and HUSH. doesn't have reviewers doing that work today — so no politician on HUSH. carries a score, and nothing you see here is an assessment of any real person. What HUSH. does show is the public record: who holds which office, who has filed for which race, and what bills are moving.",
   },
   {
     title: "Your account",
