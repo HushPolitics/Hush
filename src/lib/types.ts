@@ -118,6 +118,17 @@ export interface Politician {
   wikipediaUrl?: string;
   /** Bioguide ID -- the stable congressional identifier. */
   bioguideId?: string;
+  /**
+   * True when this person is running for an office rather than holding one.
+   *
+   * The distinction is load-bearing and must never be dropped in the UI. A
+   * candidate record carries the office they are seeking in `office`, which
+   * reads identically to an officeholder's. Rendering the two the same way
+   * tells a reader that someone running for County Commission already sits on
+   * it. `politician_offices` is the source of truth for actually holding a
+   * seat, and a candidate has no row in it.
+   */
+  isCandidate?: boolean;
   tags: string[];
   policies: PolicyPosition[];
   promises: PromiseRecord[];

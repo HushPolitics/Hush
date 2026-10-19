@@ -72,6 +72,9 @@ const POLITICIAN_SELECT = `
   campaign_site_url, wikipedia_url, bioguide_id, fec_candidate_id, in_office_since,
   politician_offices(
     offices( title, level, districts( name, state_code ) )
+  ),
+  candidacies(
+    races( offices( title, level, districts( name, state_code ) ) )
   )
 `;
 
@@ -111,13 +114,28 @@ interface PoliticianRow {
   fec_candidate_id: string | null;
   in_office_since: number | null;
   politician_offices?: { offices?: unknown }[] | null;
+  candidacies?: { races?: unknown }[] | null;
 }
 
 function toPolitician(row: PoliticianRow): Politician {
-  const office = first(row.politician_offices)?.offices as
+  // An officeholder's seat comes from politician_offices. A candidate has no
+  // row there -- on purpose, since that table asserts a term served -- so the
+  // office they are *seeking* is read from their candidacy instead. Which of
+  // the two produced this office decides `isCandidate`, and the UI must say
+  // "running for" rather than showing it like a held seat.
+  const heldOffice = first(row.politician_offices)?.offices as
     | { title?: string; level?: string; districts?: unknown }
     | null
     | undefined;
+
+  const soughtOffice = heldOffice
+    ? null
+    : ((first(first(row.candidacies)?.races) as { offices?: unknown } | null)?.offices as
+        | { title?: string; level?: string; districts?: unknown }
+        | null
+        | undefined);
+
+  const office = heldOffice ?? soughtOffice;
   const district = first(office?.districts) as { name?: string } | null;
 
   return {
@@ -135,6 +153,7 @@ function toPolitician(row: PoliticianRow): Politician {
     bioguideId: row.bioguide_id ?? undefined,
     fecCandidateId: row.fec_candidate_id ?? undefined,
     since: row.in_office_since ?? undefined,
+    isCandidate: !heldOffice,
     // The HUSH Score and the promise ledger are deliberately absent, not zero.
     // Scoring whether someone kept a promise takes a human reviewer making a
     // judgment call, and Hush has no reviewer yet -- so there is no score to

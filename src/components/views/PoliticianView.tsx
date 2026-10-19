@@ -141,7 +141,12 @@ export default function PoliticianView({
           <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 220 }}>
             <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1.05 }}>{p.name}</span>
             <span style={{ fontSize: 13, color: C.body }}>
-              {p.office}, {p.district} · {PARTY_LABEL[p.party]}
+              {/* "Running for" when the seat is sought rather than held -- see
+                  Politician.isCandidate. Stating the office bare would say
+                  this person holds it. */}
+              {p.isCandidate ? "Running for " : ""}
+              {p.office}
+              {p.district ? `, ${p.district}` : ""} · {PARTY_LABEL[p.party]}
             </span>
             <span style={{ fontSize: 13, color: C.muted }}>
               {/* `since` is optional -- the member records carry no

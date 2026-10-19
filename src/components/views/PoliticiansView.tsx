@@ -259,7 +259,28 @@ export default function PoliticiansView({
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: PARTY[p.party], flex: "0 0 7px" }} />
                 {PARTY_LABEL[p.party]}
               </span>
-              <span style={{ fontSize: 13, color: C.body }}>{p.office}</span>
+              <span style={{ fontSize: 13, color: C.body, display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+                {/* A candidate's `office` is the seat they are running for, not
+                    one they hold. Without this label the row reads as though
+                    they already sit in it. */}
+                {p.isCandidate ? (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      color: C.muted,
+                      border: `1px solid ${C.line}`,
+                      borderRadius: 4,
+                      padding: "1px 5px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Running for
+                  </span>
+                ) : null}
+                <span>{p.office}</span>
+              </span>
               <span style={{ fontSize: 13, color: C.body }}>{p.district}</span>
               {isPicked ? (
                 <button
