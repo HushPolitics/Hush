@@ -291,11 +291,50 @@ function CorrectionsSection() {
   );
 }
 
+/**
+ * Build-status notice.
+ *
+ * Sits directly under the title bar, above any description of the method,
+ * because everything below it is written in the present tense and most of it
+ * is not running yet. A reader who takes this page at face value would
+ * believe politicians carry scores and that a reviewer checks every claim.
+ * Neither is true today, and the page should say so before it says anything
+ * else.
+ */
+function BuildNotice() {
+  return (
+    <section style={{ background: MK.card, borderBottom: `1px solid ${MK.rule}`, padding: "26px 34px" }}>
+      <div style={{ maxWidth: 820, margin: "0 auto", display: "flex", gap: 14, alignItems: "flex-start" }}>
+        <span
+          aria-hidden
+          style={{ width: 8, height: 8, borderRadius: "50%", background: C.rust, flex: "0 0 8px", marginTop: 7 }}
+        />
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: C.ink }}>
+            Still being built
+          </span>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: MK.body }}>
+            HUSH. Scores are not running yet, and no politician on this site carries one. The method
+            below describes how scoring and review are designed to work, not what is happening today.
+          </p>
+          <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: MK.body }}>
+            What is live is the public record: who holds which office, who has filed for which race,
+            and what bills are moving. That comes from official sources and is believed accurate, but
+            it has not been independently verified, and records change. Check anything that matters
+            against your county supervisor of elections before you vote.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Methodology() {
   return (
     <div style={{ background: C.ink }}>
       <MarketingHeader />
       <MarketingTitleBar eyebrow="Our Methodology" before="Every claim, checked and" highlight="sourced." />
+      <BuildNotice />
       <SourcesSection />
       <ProcessSection />
       <ScoreSection />
