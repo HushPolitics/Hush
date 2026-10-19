@@ -91,6 +91,14 @@ export interface Prefs {
    */
   onboarded: boolean;
   /**
+   * Whether this user has been through HUSH. Guide's own setup: Step 1
+   * (confirm address), then Step 2 (issues). Deliberately separate from
+   * `topics`: the signup wizard already ranks issues, so `topics` alone can't
+   * tell a new account that has never opened the Guide from a returning user.
+   * Reset to false every time an account is created (see SignupWizard).
+   */
+  guideSetupDone: boolean;
+  /**
    * Name/email collected on the signup wizard's "Create account" step
    * (`SignupWizard`'s `firstName`/`lastName`/`email` state), mirrored here so
    * Profile Settings has something real to show and edit instead of a
@@ -168,6 +176,7 @@ const DEFAULTS: Prefs = {
   matchedAddress: "",
   districtsResolvedAt: null,
   onboarded: false,
+  guideSetupDone: false,
   firstName: "",
   lastName: "",
   email: "",
@@ -219,6 +228,10 @@ function readStorage(): Prefs {
       // category was added) needs its own merge or the missing keys would
       // be `undefined` instead of falling back to DEFAULTS.
       emailPrefs: { ...DEFAULTS.emailPrefs, ...(stored.emailPrefs ?? {}) },
+      // Browsers that stored prefs before this flag existed: anyone who already
+      // has issues ranked has already used the Guide, so don't send them back
+      // through setup. A stored explicit `false` (a new signup) is kept as is.
+      guideSetupDone: stored.guideSetupDone ?? (stored.topics?.length ?? 0) > 0,
     };
   } catch {
     // Private browsing or blocked storage: defaults are a fine starting point.
@@ -297,6 +310,7 @@ interface PrefsContextValue extends Prefs {
   /** Clears the resolved location, returning the app to the full ballot. */
   clearResolvedLocation: () => void;
   setOnboarded: (onboarded: boolean) => void;
+  setGuideSetupDone: (guideSetupDone: boolean) => void;
   setFirstName: (firstName: string) => void;
   setLastName: (lastName: string) => void;
   setEmail: (email: string) => void;
@@ -371,6 +385,7 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
       clearResolvedLocation: () =>
         patch({ matchedAddress: "", districtIds: [], districtsResolvedAt: null }),
       setOnboarded: (onboarded) => patch({ onboarded }),
+      setGuideSetupDone: (guideSetupDone) => patch({ guideSetupDone }),
       setFirstName: (firstName) => patch({ firstName }),
       setLastName: (lastName) => patch({ lastName }),
       setEmail: (email) => patch({ email }),

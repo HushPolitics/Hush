@@ -136,6 +136,9 @@ export default function SignupWizard({ topicPool }: { topicPool: string[] }) {
     prefs.setFirstName(firstName.trim());
     prefs.setLastName(lastName.trim());
     prefs.setEmail(email.trim());
+    // A new account always starts HUSH. Guide from Step 1, even though the
+    // wizard's own steps below will fill in an address and ranked issues.
+    prefs.setGuideSetupDone(false);
 
     setAccountStatus("idle");
     setStep(2);
