@@ -5,6 +5,9 @@ import { useMemo } from "react";
 import { C, PARTY, cond } from "@/lib/theme";
 import { Display } from "@/components/ui";
 import { stripPartySuffix } from "@/lib/guide";
+import { usePrefs } from "@/lib/prefs";
+import AddressLookup from "@/components/AddressLookup";
+import { filterRaces, scopeLabel, scopeReasonFor } from "@/lib/ballot-scope";
 import type { Politician, Race } from "@/lib/types";
 
 /**
@@ -20,11 +23,39 @@ export default function BallotView({ races, politicians }: { races: Race[]; poli
   // against. Those names render as inert text instead of a dead link.
   const knownIds = useMemo(() => new Set(politicians.map((p) => p.id)), [politicians]);
 
+  const { districtIds, state } = usePrefs();
+
+  // No address means no narrowing: every race stays visible. An empty ballot
+  // must never be the result of us not knowing where someone lives.
+  const scope = districtIds.length > 0 ? { districtIds, stateCode: state } : null;
+  const shown = useMemo(() => filterRaces(races, scope), [races, scope]);
+  const narrowed = scope !== null;
+
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
+      <AddressLookup />
       <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-        <Display size={21}>{races.length} races on your ballot</Display>
-        {races.map((race) => (
+        <Display size={21}>
+          {narrowed
+            ? `${shown.length} ${shown.length === 1 ? "race" : "races"} on your ballot`
+            : `${races.length} races statewide`}
+        </Display>
+        {narrowed ? (
+          <span style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.5 }}>
+            Narrowed from {races.length} to the seats your address votes in.
+          </span>
+        ) : (
+          <span style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.5 }}>
+            Every race we have loaded. Add your address above to see only yours.
+          </span>
+        )}
+        {narrowed && shown.length === 0 ? (
+          <span style={{ fontSize: 13, color: C.body, lineHeight: 1.6 }}>
+            We resolved your address but matched none of the races loaded so far. That is a gap in
+            our data, not a quiet ballot. Use &ldquo;show all races&rdquo; above to see everything.
+          </span>
+        ) : null}
+        {shown.map((race) => (
           <div
             key={race.id}
             className="card-hover"
@@ -52,6 +83,17 @@ export default function BallotView({ races, politicians }: { races: Race[]; poli
               <span style={{ marginLeft: "auto", fontSize: 11, color: C.muted, whiteSpace: "nowrap" }}>
                 {race.meta}
               </span>
+              {/* Says why a race survived the filter when it was not a direct
+                  district match, so an unexpected race is explained rather
+                  than looking like a bug. */}
+              {narrowed ? (() => {
+                const label = scopeLabel(scopeReasonFor(race, scope));
+                return label ? (
+                  <span style={{ fontSize: 11, color: C.muted, fontStyle: "italic", width: "100%" }}>
+                    {label}
+                  </span>
+                ) : null;
+              })() : null}
             </div>
             <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
               {race.candidates.map((c) => {

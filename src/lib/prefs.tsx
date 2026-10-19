@@ -62,6 +62,29 @@ export interface Prefs {
    */
   streetAddress: string;
   /**
+   * The districts this user's address actually votes in, as resolved by
+   * `resolveAddress`. Ids into `public.districts`.
+   *
+   * This is what makes a personal ballot possible, and it is kept here rather
+   * than derived on the fly for two reasons: resolving costs a geocode plus a
+   * point-in-polygon query, and a signed-out visitor has nowhere else to put
+   * it. A signed-in user also gets it mirrored to `user_districts`, but this
+   * copy is the one the UI reads, so the two never race each other.
+   *
+   * Empty means "we have not looked it up", not "this address votes in
+   * nothing" -- every consumer must treat empty as unfiltered and show all
+   * races, never an empty ballot.
+   */
+  districtIds: string[];
+  /**
+   * The address exactly as the Census matched it, which is not necessarily
+   * what the user typed. Shown back to them so a wrong match is visible
+   * instead of silently producing someone else's ballot.
+   */
+  matchedAddress: string;
+  /** When the districts above were resolved, so staleness can be surfaced. */
+  districtsResolvedAt: number | null;
+  /**
    * Whether the user has been through (or explicitly skipped past) the
    * signup wizard's personalization steps. Drives whether `PersonalizeBanner`
    * nags a signed-in user to finish — not whether an account exists at all.
@@ -138,6 +161,12 @@ const DEFAULTS: Prefs = {
   city: "",
   state: "",
   streetAddress: "",
+  // Empty, meaning "not looked up yet". Consumers read an empty list as
+  // unfiltered, so a user who has not given an address sees every race
+  // rather than an empty ballot.
+  districtIds: [],
+  matchedAddress: "",
+  districtsResolvedAt: null,
   onboarded: false,
   firstName: "",
   lastName: "",
@@ -160,12 +189,14 @@ const DEFAULTS: Prefs = {
   readEventIds: [],
 };
 
-// v2: v1 payloads have the old seeded defaults baked into them (saved reps,
-// ZIP 32202, the Jacksonville polling place). They were written by the store
-// itself, so on read they are indistinguishable from real user choices -- the
-// only way to drop them is to stop reading v1. Bumping the key resets every
-// existing browser to the empty defaults above, once.
-const STORAGE_KEY = "hush.prefs.v2";
+// v3: v1 payloads carried the old seeded defaults (saved reps, ZIP 32202, the
+// Jacksonville polling place), which the store had written itself and which
+// are indistinguishable from real user choices on read -- the only way to drop
+// them was to stop reading v1. v2 then predates districtIds, and a stored
+// value without it would shallow-merge to the default empty list anyway; the
+// bump is to avoid carrying a ZIP that was never resolved to a real district
+// into a UI that now treats location as authoritative.
+const STORAGE_KEY = "hush.prefs.v3";
 
 // ---------------------------------------------------------------------------
 // Store
@@ -251,6 +282,20 @@ interface PrefsContextValue extends Prefs {
   setCity: (city: string) => void;
   setState: (state: string) => void;
   setStreetAddress: (streetAddress: string) => void;
+  /**
+   * Records a resolved address and the districts it votes in, together, as
+   * one write. They must never be set separately: an address with somebody
+   * else's districts attached is worse than no address at all.
+   */
+  setResolvedLocation: (loc: {
+    matchedAddress: string;
+    city: string;
+    state: string;
+    zip: string;
+    districtIds: string[];
+  }) => void;
+  /** Clears the resolved location, returning the app to the full ballot. */
+  clearResolvedLocation: () => void;
   setOnboarded: (onboarded: boolean) => void;
   setFirstName: (firstName: string) => void;
   setLastName: (lastName: string) => void;
@@ -314,6 +359,17 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
       setCity: (city) => patch({ city }),
       setState: (state) => patch({ state }),
       setStreetAddress: (streetAddress) => patch({ streetAddress }),
+      setResolvedLocation: (loc) =>
+        patch({
+          matchedAddress: loc.matchedAddress,
+          city: loc.city,
+          state: loc.state,
+          zip: loc.zip,
+          districtIds: loc.districtIds,
+          districtsResolvedAt: Date.now(),
+        }),
+      clearResolvedLocation: () =>
+        patch({ matchedAddress: "", districtIds: [], districtsResolvedAt: null }),
       setOnboarded: (onboarded) => patch({ onboarded }),
       setFirstName: (firstName) => patch({ firstName }),
       setLastName: (lastName) => patch({ lastName }),

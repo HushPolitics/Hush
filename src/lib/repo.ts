@@ -203,7 +203,7 @@ export async function politicianExists(id: string): Promise<boolean> {
 
 const RACE_SELECT = `
   id, title, seats_to_fill, is_nonpartisan,
-  offices( title, level, districts( name, jurisdictions( name ) ) ),
+  offices( title, level, districts( id, name, kind, state_code, is_at_large, jurisdictions( name ) ) ),
   candidacies( id, display_name, party, is_incumbent, ballot_order, withdrew, status, politician_id )
 `;
 
@@ -229,7 +229,16 @@ function toRace(row: RaceRow, slugById: Map<string, string>): Race {
   const office = first(row.offices) as
     | { title?: string; level?: string; districts?: unknown }
     | null;
-  const district = first(office?.districts) as { name?: string; jurisdictions?: unknown } | null;
+  const district = first(office?.districts) as
+    | {
+        id?: string;
+        name?: string;
+        kind?: string;
+        state_code?: string;
+        is_at_large?: boolean;
+        jurisdictions?: unknown;
+      }
+    | null;
   const jurisdiction = first(district?.jurisdictions) as { name?: string } | null;
 
   // Prefer jurisdiction + office over the stored `title`. The stored one was
@@ -287,7 +296,18 @@ function toRace(row: RaceRow, slugById: Map<string, string>): Race {
     .filter(Boolean)
     .join(" · ");
 
-  return { id: row.id, title, meta, candidates };
+  return {
+    id: row.id,
+    title,
+    meta,
+    candidates,
+    districtId: district?.id,
+    districtName: district?.name,
+    level,
+    districtKind: district?.kind,
+    districtStateCode: district?.state_code?.trim() || undefined,
+    isAtLarge: district?.is_at_large ?? false,
+  };
 }
 
 /**

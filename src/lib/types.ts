@@ -168,6 +168,37 @@ export interface Race {
   title: string;
   meta: string;
   candidates: RaceCandidate[];
+  /**
+   * The district whose voters elect this seat. This is what makes a race
+   * matchable to a person: without it every race looks equally relevant to
+   * everyone, which is the state the app was in before addresses existed.
+   * Optional because a race whose office has no district attached (a data
+   * gap) must still render rather than disappearing.
+   */
+  districtId?: string;
+  districtName?: string;
+  /** Local, State or Federal, for grouping and for explaining scope. */
+  level?: Level;
+  /**
+   * The district's kind ("us_house", "fl_senate", "county_commission",
+   * "state", ...) and the state it sits in.
+   *
+   * Both exist for one reason: statewide seats cannot be matched by
+   * point-in-polygon. A US Senate or Governor race belongs to a "state"
+   * district that has no boundary loaded and never will need one, because
+   * every voter in the state votes in it. Filtering purely on resolved
+   * district ids would therefore hide a voter's own Senate race, which is a
+   * far worse failure than showing one race too many.
+   */
+  districtKind?: string;
+  districtStateCode?: string;
+  /**
+   * True when every voter in the parent jurisdiction votes in this seat even
+   * though it carries a district number -- Pinellas's at-large commission and
+   * school board seats, for instance. The UI needs this to say "you vote in
+   * this because it is countywide" rather than implying a district match.
+   */
+  isAtLarge?: boolean;
 }
 
 export interface BallotItem {
