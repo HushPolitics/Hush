@@ -41,10 +41,10 @@ const labelStyle: CSSProperties = {
 type Step = "address" | "issues" | "grid";
 
 /**
- * HUSH Guide's own flow, gated on `topics` — the same ranked issue list "My
- * Top Issues" in the account menu edits — rather than a separate "setup
- * done" flag: an empty list means the user hasn't been through setup, so
- * /hush-guide opens on the address step; once populated, it opens straight
+ * HUSH Guide's own flow. Gated on `topics` plus `guideSetupDone` (see
+ * prefs.tsx): ranked issues alone no longer mean setup is done, because the
+ * signup wizard ranks issues before the Guide is ever opened. Until setup is
+ * done, /hush-guide opens on the address step; once done, it opens straight
  * on the tile grid. `manualStep` overrides that default once the user
  * navigates on purpose (Edit address / Edit issues from the grid, or
  * Continue/Back between steps) — see the render below for how each step's
@@ -76,27 +76,41 @@ export default function GuideView({
   bills?: Bill[];
 }) {
   const router = useRouter();
-  const { topics } = usePrefs();
+  const { topics, guideSetupDone, setGuideSetupDone } = usePrefs();
   const [manualStep, setManualStep] = useState<Step | null>(null);
   const hasGuide = topics.length > 0;
-  const step: Step = manualStep ?? (hasGuide ? "grid" : "address");
+  // Setup counts as finished only when issues are ranked AND the person has
+  // been through the Guide's own Step 1. Ranked issues alone aren't enough:
+  // signup ranks them before the Guide has ever been opened.
+  const setupDone = hasGuide && guideSetupDone;
+  const step: Step = manualStep ?? (setupDone ? "grid" : "address");
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
       {step === "address" ? (
         <AddressStep
-          hasGuide={hasGuide}
-          onCancel={hasGuide ? () => setManualStep("grid") : undefined}
+          hasGuide={setupDone}
+          onCancel={setupDone ? () => setManualStep("grid") : undefined}
           onContinue={() => {
-            // Already have topics ranked (this is a manual "Edit address"
-            // visit, not first-time setup): stay in-page and go straight to
-            // the grid, same as before. A visitor with no ranked issues at
-            // all is routed out to the two-path chooser (rank yourself vs.
-            // Issue Finder) instead of an inline, unranked issue-toggle step
-            // — same shared `topics` list either path lands on, and it
-            // sends the visitor back to the Guide via `next` once done.
-            if (hasGuide) setManualStep("grid");
-            else router.push("/profile/top-issues/start?next=/hush-guide");
+            // Marked done here, before any hand-off, because Step 2 lives on
+            // another route (the shared My Top Issues editor) and the person
+            // lands back on this page via `?next=` — by then the flag has to
+            // already be set or they'd loop back to Step 1.
+            setGuideSetupDone(true);
+            if (setupDone) {
+              // Manual "Edit address" visit, not first-time setup: stay
+              // in-page and go straight to the grid, same as before.
+              setManualStep("grid");
+            } else if (hasGuide) {
+              // New account: issues were already ranked during signup, so
+              // open the shared editor with that list ready to review
+              // rather than the empty two-path chooser.
+              router.push("/profile/top-issues?next=/hush-guide");
+            } else {
+              // No ranked issues at all (signup step 3 was skipped): the
+              // two-path chooser (rank yourself vs. Issue Finder), unchanged.
+              router.push("/profile/top-issues/start?next=/hush-guide");
+            }
           }}
         />
       ) : step === "issues" ? (
