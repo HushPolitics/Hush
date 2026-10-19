@@ -5,7 +5,7 @@ type FinderAnswers = Record<string, { value: IssueFinderAnswer; answeredAt: numb
 /**
  * Quick/Standard/Thorough — how many of each issue's 8 `ISSUE_FINDER_BANK`
  * sub-questions one sitting asks. Every sitting touches every issue in the
- * pool at the chosen depth, so a 14-issue pool works out to 28/42/56
+ * pool at the chosen depth, so a 20-issue pool works out to 40/60/80
  * questions total, never a fixed 25 — see `sittingTotal()`.
  */
 export const FINDER_DEPTHS: Record<IssueFinderDepth, { label: string; perIssue: number; blurb: string }> = {

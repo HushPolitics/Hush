@@ -17,23 +17,29 @@
 export const TOPIC_POOL: string[] = [
   "Healthcare",
   "Housing",
-  "Voting rights",
-  "Climate",
-  "Labor",
+  "Election Laws / Voting Rights",
+  "Climate / Environmental Laws",
   "Education",
-  "Economy",
+  "Jobs / Labor",
   "Immigration",
-  "Criminal justice",
-  "Guns",
-  "Reproductive rights",
-  "Transit",
-  "Water",
-  "Veterans"
+  "Crime / Public Safety",
+  "Gun Laws",
+  "Abortion / Reproductive Rights",
+  "Infrastructure / Transportation",
+  "Veterans",
+  "Cost of Living / Economy",
+  "Government Spending",
+  "Taxes",
+  "AI / Technology",
+  "Medicare / Social Security",
+  "LGBTQ+ Rights",
+  "Data Centers",
+  "Foreign Policy",
 ];
 
 /**
  * Issue Finder's question bank: 8 specific, in-the-weeds policy
- * details per `TOPIC_POOL` issue (112 total), ordered core-first within each
+ * details per `TOPIC_POOL` issue (160 total), ordered core-first within each
  * issue's array. Deliberately not generic topic ratings ("how important is
  * gun rights to you") — each one names a specific provision within that
  * umbrella issue, so Issue Finder tests whether someone holds a view on the
@@ -44,8 +50,8 @@ export const TOPIC_POOL: string[] = [
  * detail is to the person — not whether they agree with it. That importance
  * framing is what keeps the phrasing from leaning: caring a lot about a
  * specific provision doesn't reveal which side of it someone is on, unlike
- * an agree/disagree scale would. Within a charged issue (e.g. Guns,
- * Reproductive rights, Immigration) the 8 questions are also deliberately
+ * an agree/disagree scale would. Within a charged issue (e.g. Gun Laws,
+ * Abortion / Reproductive Rights, Immigration) the 8 questions are also deliberately
  * split across provisions typically favored by different sides of that
  * issue's usual debate, so the set as a whole doesn't only test one side's
  * preferred reforms.
@@ -80,7 +86,7 @@ export const ISSUE_FINDER_BANK: Record<string, string[]> = {
     "local governments be allowed to enact rent control limiting how much annual rent can increase",
     "local property tax increases on a primary residence be capped by law"
   ],
-  "Voting rights": [
+  "Election Laws / Voting Rights": [
     "states offer at least two weeks of early in-person voting before every federal election",
     "voters be automatically registered when they get a driver's license, unless they opt out",
     "voters be required to show a government-issued photo ID at the polls",
@@ -90,7 +96,7 @@ export const ISSUE_FINDER_BANK: Record<string, string[]> = {
     "states be required to count mail ballots postmarked by Election Day even if received after",
     "voters be required to periodically reverify their registration (e.g., every few years) to remove inactive entries from the rolls"
   ],
-  "Climate": [
+  "Climate / Environmental Laws": [
     "new fossil-fuel power plants be required to capture and store a portion of their carbon emissions",
     "the federal government offer tax credits for installing residential solar panels",
     "the federal government put a direct price (a tax or fee) on carbon emissions from large industrial emitters",
@@ -100,7 +106,7 @@ export const ISSUE_FINDER_BANK: Record<string, string[]> = {
     "fossil fuel companies be held legally liable for a share of climate-related disaster costs (e.g., through a state climate superfund)",
     "insurance companies be allowed to price policies based on a property's specific wildfire or flood risk, without state price caps"
   ],
-  "Labor": [
+  "Jobs / Labor": [
     "gig-economy workers (e.g., rideshare and delivery drivers) be classified as employees eligible for benefits, rather than independent contractors",
     "the federal minimum wage be indexed to inflation so it rises automatically each year",
     "private-sector workers be guaranteed a minimum number of paid sick days per year by federal law",
@@ -120,15 +126,85 @@ export const ISSUE_FINDER_BANK: Record<string, string[]> = {
     "free community college be available to any state resident who wants to attend",
     "standardized state testing results be used to hold individual schools accountable, including potential funding consequences for chronic low performance"
   ],
-  "Economy": [
-    "corporations with over $1 billion in annual profit pay a minimum federal tax rate, regardless of deductions",
+  "Cost of Living / Economy": [
+    "large retailers and energy companies be prohibited from raising prices sharply on essentials like groceries and gasoline during an emergency (price-gouging limits)",
     "the federal government impose tariffs on imported goods in industries facing foreign competition, even if it raises prices for U.S. consumers",
+    "the federal government expand subsidized child care for working families",
+    "credit card companies be limited by law in how much they can charge in late fees and interest",
+    "utility companies be limited in how much and how often they can raise residential electricity rates",
+    "the federal government release oil from the Strategic Petroleum Reserve to lower gasoline prices when they spike",
+    "the Federal Reserve be required to prioritize keeping inflation low over maximizing employment",
+    "federal regulations on new small-business formation (e.g., licensing requirements) be reduced"
+  ],
+  "Government Spending": [
+    "the federal government reduce its budget deficit primarily through spending cuts rather than tax increases",
+    "a constitutional amendment require Congress to pass a balanced federal budget each year",
+    "federal defense spending be reduced and the savings redirected to domestic programs",
+    "federal funding for anti-poverty programs (e.g., food and housing assistance) be increased even if it adds to the deficit",
+    "Congress be required to offset the cost of any new spending with spending cuts or new revenue elsewhere (pay-as-you-go rules)",
+    "Congress be prohibited from adding earmarks (spending directed to specific local projects) to federal budget bills",
+    "federal programs automatically expire unless Congress votes to renew them (sunset provisions)",
+    "the federal government be required to publish a detailed, searchable public report of where every federal dollar is spent"
+  ],
+  "Taxes": [
+    "corporations with over $1 billion in annual profit pay a minimum federal tax rate, regardless of deductions",
+    "the federal tax code be simplified by eliminating most deductions and credits in exchange for lower rates",
+    "the federal child tax credit be expanded and made fully refundable for low-income families",
     "capital gains on investments held over a year be taxed at a lower rate than wage income",
-    "the estate tax apply only to inheritances above a multi-million-dollar threshold, exempting smaller estates entirely",
-    "the \"carried interest\" tax treatment allowing investment fund managers to pay a lower capital-gains rate on part of their income be eliminated",
     "the IRS receive increased funding specifically to audit high-income earners and large corporations",
-    "federal regulations on new small-business formation (e.g., licensing requirements) be reduced",
-    "the federal government reduce its budget deficit primarily through spending cuts rather than tax increases"
+    "the estate tax apply only to inheritances above a multi-million-dollar threshold, exempting smaller estates entirely",
+    "the cap on the federal deduction for state and local taxes (SALT) be raised or removed",
+    "the \"carried interest\" tax treatment allowing investment fund managers to pay a lower capital-gains rate on part of their income be eliminated"
+  ],
+  "AI / Technology": [
+    "companies be required to disclose when text, images, or video were generated by artificial intelligence",
+    "the federal government require safety testing of the most powerful AI systems before they are released to the public",
+    "Congress pass a comprehensive national data-privacy law limiting how companies collect and sell personal data",
+    "social media companies be required to verify users' ages and restrict accounts for children under 16",
+    "AI developers be prohibited from training models on copyrighted work without the creator's permission",
+    "states be prevented from passing their own AI regulations in favor of a single national standard",
+    "social media platforms be held legally liable for content their users post (reducing Section 230 protections)",
+    "technology companies be required to give law enforcement access to encrypted messages when presented with a warrant"
+  ],
+  "Medicare / Social Security": [
+    "the age to receive full Social Security retirement benefits be raised to help keep the program solvent",
+    "the income cap on Social Security payroll taxes be raised or eliminated so higher earners pay tax on more of their income",
+    "Medicare eligibility be lowered below age 65",
+    "Social Security benefits be reduced for higher-income retirees",
+    "workers be allowed to direct a portion of their Social Security payroll taxes into personal investment accounts",
+    "private insurers offering Medicare Advantage plans be paid the same amount per person as traditional Medicare",
+    "Medicare cover long-term care, such as nursing homes and in-home care, for seniors",
+    "Medicare be allowed to cover routine dental, vision, and hearing care"
+  ],
+  "LGBTQ+ Rights": [
+    "federal law explicitly prohibit employment and housing discrimination based on sexual orientation and gender identity",
+    "same-sex marriage be protected by federal law",
+    "transgender students be required to compete on school sports teams that match their sex assigned at birth",
+    "states be allowed to restrict gender-affirming medical care for minors",
+    "public schools be required to notify parents if a student asks to use a different name or pronouns at school",
+    "religious businesses and individuals be allowed to decline services for same-sex weddings on religious grounds",
+    "transgender people be allowed to update the sex listed on government-issued IDs to match their gender identity",
+    "public school curricula be restricted from including lessons on sexual orientation and gender identity in elementary grades"
+  ],
+  "Data Centers": [
+    "new data centers be required to publicly disclose how much electricity and water they use each year",
+    "local governments be allowed to deny permits for new data centers over concerns about power or water use",
+    "data centers pay a higher electricity rate than households so residents don't absorb the cost of grid upgrades",
+    "tax breaks and other incentives be offered to attract new data centers to a state or community",
+    "new data centers be required to supply part of their own power from on-site or newly built generation",
+    "permitting for data centers and the power plants that supply them be streamlined to speed up construction",
+    "approval of new large data centers be paused until their impact on the electric grid has been studied",
+    "data centers be required to use water-efficient cooling systems in areas facing drought"
+  ],
+  "Foreign Policy": [
+    "the U.S. continue sending military and financial aid to Ukraine",
+    "the U.S. keep its current military commitments to NATO allies",
+    "the U.S. reduce its overseas troop deployments and shift those resources to domestic priorities",
+    "the U.S. impose broader economic sanctions on China in response to its trade and security practices",
+    "U.S. military aid to Israel come with conditions on how it is used",
+    "the U.S. be prepared to defend Taiwan militarily if it is attacked",
+    "Congress be required to approve any new military action abroad that lasts longer than a set number of days",
+    "the U.S. participate in international agreements on trade, health, and climate even if they limit how freely it can act on its own"
   ],
   "Immigration": [
     "undocumented immigrants who have lived in the U.S. for a set number of years with no serious criminal record be given a path to legal status",
@@ -140,7 +216,7 @@ export const ISSUE_FINDER_BANK: Record<string, string[]> = {
     "Deferred Action for Childhood Arrivals (DACA)-style protections be codified into permanent federal law for people brought to the U.S. as children",
     "the annual number of legal immigration visas be tied to a formula based on U.S. labor-market needs, reviewed periodically"
   ],
-  "Criminal justice": [
+  "Crime / Public Safety": [
     "judges retain discretion to release a defendant without cash bail for non-violent offenses",
     "police body-camera footage be released to the public within a set number of days after a use-of-force incident",
     "mandatory minimum sentences be eliminated for non-violent drug offenses, restoring judicial discretion",
@@ -150,7 +226,7 @@ export const ISSUE_FINDER_BANK: Record<string, string[]> = {
     "juveniles charged with serious violent crimes be eligible to be tried as adults",
     "\"three-strikes\" laws requiring significantly longer sentences for a third felony conviction remain in effect"
   ],
-  "Guns": [
+  "Gun Laws": [
     "background checks apply to private gun sales between individuals, not just sales through licensed dealers",
     "there be a minimum waiting period between purchasing a firearm and taking possession of it",
     "a person be required to complete a safety training course before purchasing a firearm",
@@ -160,7 +236,7 @@ export const ISSUE_FINDER_BANK: Record<string, string[]> = {
     "states be prohibited from imposing a longer firearm-purchase waiting period than federal law requires",
     "magazine capacity (the number of rounds a magazine can hold) be left unregulated by state law"
   ],
-  "Reproductive rights": [
+  "Abortion / Reproductive Rights": [
     "any abortion restriction include an explicit exception for when the pregnant person's life or physical health is at risk",
     "health insurance plans be required to cover contraception with no out-of-pocket cost",
     "minors be required to obtain parental consent before receiving an abortion, absent a judicial waiver",
@@ -170,7 +246,7 @@ export const ISSUE_FINDER_BANK: Record<string, string[]> = {
     "federal law guarantee a right to abortion up to fetal viability, regardless of state law",
     "health care providers be legally protected from being investigated or prosecuted by another state for providing legal abortion care to a patient who traveled there"
   ],
-  "Transit": [
+  "Infrastructure / Transportation": [
     "cities dedicate a portion of new road-construction budgets to dedicated bus lanes",
     "transit agencies be allowed to charge lower fares during off-peak hours and higher fares during peak demand",
     "new highway-widening projects include a dedicated passenger rail or bus-rapid-transit line as part of the same funding package",
@@ -179,16 +255,6 @@ export const ISSUE_FINDER_BANK: Record<string, string[]> = {
     "private companies be allowed to operate toll lanes or transit routes competitively instead of a government transit agency",
     "a portion of gas-tax revenue be redirected specifically to fund public transit rather than roads alone",
     "local transit systems be required to cover a minimum percentage of operating costs through fares rather than public subsidy"
-  ],
-  "Water": [
-    "municipal water utilities be required to test for and publicly disclose PFAS (\"forever chemicals\") levels in drinking water",
-    "municipalities be required to replace lead water pipes on a fixed public timeline",
-    "agricultural operations be subject to limits on water withdrawal from shared rivers and aquifers during drought conditions",
-    "water utilities be required to cap what they can charge low-income households as a percentage of monthly income",
-    "water infrastructure upgrades be funded primarily through public-private partnerships rather than raising utility rates or taxes",
-    "permitting for new reservoir and water-storage infrastructure projects be streamlined",
-    "water utility rate-setting remain under local and state control rather than new federal mandates or subsidy programs",
-    "industrial facilities be required to publicly disclose the chemicals they discharge into local waterways"
   ],
   "Veterans": [
     "veterans be able to see a private-sector doctor at government expense when VA wait times exceed a set threshold",
@@ -215,22 +281,32 @@ export const STANCE_STATEMENTS: Record<string, string> = {
   "Healthcare": "Medicare should be allowed to negotiate directly with drug manufacturers over prescription drug prices.",
   "Housing":
     "Local governments should ease single-family-only zoning to allow duplexes and small apartment buildings in more neighborhoods.",
-  "Voting rights": "Voters should be required to show valid photo ID to cast a ballot.",
-  "Climate": "State governments should be able to phase out sales of new gas-powered cars by 2035, as California has.",
-  "Labor": "The federal minimum wage should be raised for the first time since 2009.",
+  "Election Laws / Voting Rights": "Voters should be required to show valid photo ID to cast a ballot.",
+  "Climate / Environmental Laws": "State governments should be able to phase out sales of new gas-powered cars by 2035, as California has.",
+  "Jobs / Labor": "The federal minimum wage should be raised for the first time since 2009.",
   "Education":
     "Public education funding should be able to follow a student to the public, charter, or private school their family chooses.",
-  "Economy": "The federal government should raise taxes on household income above $400,000 a year to help reduce the deficit.",
+  "Cost of Living / Economy":
+    "The federal government should limit how much companies can raise prices on essentials like groceries and gasoline during periods of high inflation.",
+  "Government Spending": "Congress should be required to balance the federal budget each year.",
+  "Taxes": "The federal government should raise taxes on household income above $400,000 a year to help reduce the deficit.",
+  "AI / Technology":
+    "The federal government should require safety testing of the most powerful AI systems before they can be released to the public.",
+  "Medicare / Social Security":
+    "The age to receive full Social Security retirement benefits should be raised to help keep the program solvent.",
+  "LGBTQ+ Rights":
+    "Federal law should explicitly prohibit employment discrimination based on sexual orientation and gender identity.",
+  "Data Centers":
+    "Local governments should be able to deny permits for new data centers over concerns about electricity and water use.",
+  "Foreign Policy": "The U.S. should continue sending military aid to Ukraine.",
   "Immigration":
     "Undocumented immigrants who have lived in the U.S. for years without a criminal record should have a path to citizenship.",
-  "Criminal justice": "Cash bail should be ended for nonviolent, low-risk offenses.",
-  "Guns": "Federal law should require a background check for every firearm sale, including private sales at gun shows.",
-  "Reproductive rights":
+  "Crime / Public Safety": "Cash bail should be ended for nonviolent, low-risk offenses.",
+  "Gun Laws": "Federal law should require a background check for every firearm sale, including private sales at gun shows.",
+  "Abortion / Reproductive Rights":
     "States should be able to restrict abortion after the point of fetal viability, with exceptions for the mother's life and health.",
-  "Transit":
+  "Infrastructure / Transportation":
     "Cities facing traffic congestion should invest new transportation funding in public transit rather than expanding highway lanes.",
-  "Water":
-    "Water utilities should be required to replace all remaining lead service lines within a set deadline, funded by federal infrastructure dollars.",
   "Veterans":
     "Veterans should have the option to receive private-doctor care at government expense when VA wait times or distance don't meet certain standards.",
 };
