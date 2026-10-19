@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { C, VERDICT_STYLE, cond } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs } from "@/lib/prefs";
+import { filterRaces } from "@/lib/ballot-scope";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/app-content";
 import { FEED_SCOPES, useFeedScope } from "@/lib/feedScope";
@@ -309,7 +310,12 @@ export default function FeedView({
   const router = useRouter();
   const params = useSearchParams();
   const q = params.get("q") ?? "";
-  const { saved, topics, markEventRead, isEventRead } = usePrefs();
+  const { saved, topics, markEventRead, isEventRead, districtIds, state } = usePrefs();
+
+  // Same scoping the ballot page uses: no address means no narrowing, so the
+  // count falls back to every race rather than to zero.
+  const ballotScope = districtIds.length > 0 ? { districtIds, stateCode: state } : null;
+  const scopedRaces = useMemo(() => filterRaces(races, ballotScope), [races, ballotScope]);
   const [scope, setScope] = useFeedScope();
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [politicianIds, setPoliticianIds] = useState<string[]>([]);
@@ -330,7 +336,7 @@ export default function FeedView({
     router.replace(target, { scroll: false });
   }
 
-  const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
+  const ballotIds = useMemo(() => ballotPoliticianIds(scopedRaces), [scopedRaces]);
   const ballotPoliticians = useMemo(
     () => politicians.filter((p) => ballotIds.has(p.id)),
     [politicians, ballotIds],
@@ -430,7 +436,10 @@ export default function FeedView({
           gap: 10,
         }}
       >
-        <ElectionCard days={days} raceCount={races.length} />
+        {/* The count must respect the address the reader already gave us.
+            Showing the statewide total next to "races on your ballot" told a
+            St. Petersburg voter they had 781 races. */}
+        <ElectionCard days={days} raceCount={scopedRaces.length} />
         <TopIssuesCard topics={topics} />
         <RepresentativesCard politicians={ballotPoliticians} header="display" variant="seeMore" title="Your Saved Representatives" />
       </div>

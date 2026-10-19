@@ -46,7 +46,21 @@ const MONTHS: Record<string, number> = {
  * dated against the election year).
  */
 export function parseFeedDate(date: string): number | null {
+  if (!date) return null;
   if (date === "Ongoing") return null;
+
+  // ISO (2026-10-16), which is what every record out of the database looks
+  // like. This branch did not exist while the app ran on seed data, where
+  // dates were hand-written as "Mar 5, 2026" -- so when real bills arrived,
+  // every one of them parsed to null and `buildFeedEvents` dropped it on the
+  // `ts === null` guard. The Feed went completely empty with no error
+  // anywhere, which is exactly the kind of failure a silent null invites.
+  // Parsed as local midnight rather than through `new Date(iso)`, which would
+  // read a bare date as UTC and shift it a day backwards west of Greenwich.
+  const iso = date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3])).getTime();
+  }
 
   const quarter = date.match(/^Q([1-4]) (\d{4})$/);
   if (quarter) {
