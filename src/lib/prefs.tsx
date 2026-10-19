@@ -215,6 +215,53 @@ let snapshot: Prefs = DEFAULTS;
 let loaded = false;
 const listeners = new Set<() => void>();
 
+// Old issue name -> new issue name, for anything already saved in a browser
+// from before the issue list was consolidated. Water is folded into
+// Climate / Environmental Laws.
+const ISSUE_RENAMES: Record<string, string> = {
+  "Voting rights": "Election Laws / Voting Rights",
+  Climate: "Climate / Environmental Laws",
+  Labor: "Jobs / Labor",
+  "Criminal justice": "Crime / Public Safety",
+  Guns: "Gun Laws",
+  "Reproductive rights": "Abortion / Reproductive Rights",
+  Transit: "Infrastructure / Transportation",
+  Economy: "Cost of Living / Economy",
+  Water: "Climate / Environmental Laws",
+};
+
+// Issues whose Issue Finder questions were rewritten or retired: a saved
+// answer is keyed to a question's position in the bank, which no longer
+// means the same question, so these are cleared instead of carried over.
+const ISSUES_WITH_RESET_ANSWERS = new Set(["Economy", "Water"]);
+
+function migrateTopics(topics: string[] | undefined): string[] | undefined {
+  if (!topics) return topics;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const t of topics) {
+    const next = ISSUE_RENAMES[t] ?? t;
+    if (!seen.has(next)) {
+      seen.add(next);
+      out.push(next);
+    }
+  }
+  return out;
+}
+
+function migrateFinderAnswers(answers: Prefs["finderAnswers"] | undefined): Prefs["finderAnswers"] | undefined {
+  if (!answers) return answers;
+  const out: Prefs["finderAnswers"] = {};
+  for (const [id, value] of Object.entries(answers)) {
+    const sep = id.lastIndexOf("::");
+    if (sep < 0) continue;
+    const issue = id.slice(0, sep);
+    if (ISSUES_WITH_RESET_ANSWERS.has(issue)) continue;
+    out[(ISSUE_RENAMES[issue] ?? issue) + id.slice(sep)] = value;
+  }
+  return out;
+}
+
 function readStorage(): Prefs {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -223,6 +270,8 @@ function readStorage(): Prefs {
     return {
       ...DEFAULTS,
       ...stored,
+      topics: migrateTopics(stored.topics) ?? DEFAULTS.topics,
+      finderAnswers: migrateFinderAnswers(stored.finderAnswers) ?? DEFAULTS.finderAnswers,
       // Shallow-merged above like every other field, but emailPrefs is
       // itself an object — a partial stored value (e.g. from before a new
       // category was added) needs its own merge or the missing keys would
