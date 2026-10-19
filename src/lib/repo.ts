@@ -204,7 +204,7 @@ export async function politicianExists(id: string): Promise<boolean> {
 const RACE_SELECT = `
   id, title, seats_to_fill, is_nonpartisan,
   offices( title, level, districts( name, jurisdictions( name ) ) ),
-  candidacies( id, display_name, party, is_incumbent, ballot_order, withdrew, politician_id )
+  candidacies( id, display_name, party, is_incumbent, ballot_order, withdrew, status, politician_id )
 `;
 
 interface RaceRow {
@@ -220,6 +220,7 @@ interface RaceRow {
     is_incumbent: boolean | null;
     ballot_order: number | null;
     withdrew: boolean | null;
+    status: string | null;
     politician_id: string | null;
   }[] | null;
 }
@@ -240,7 +241,19 @@ function toRace(row: RaceRow, slugById: Map<string, string>): Race {
       ? `${jurisdiction.name} — ${office.title}`
       : (row.title ?? office?.title ?? "Race");
 
-  const running = (row.candidacies ?? []).filter((c) => !c.withdrew);
+  // Who is actually on the ballot being shown.
+  //
+  // Filing records keep every candidate who ever entered the race, with a
+  // status saying how far they got. Florida's August primary has already
+  // happened, so a county race can carry someone who was defeated there and
+  // someone who won outright. Listing them all implies a contest that is over.
+  // "Defeated" and withdrawals come out; "Elected" and "Unopposed" stay,
+  // because that person does hold the seat and a reader looking up the race
+  // should see who won it.
+  const DECIDED_AGAINST = new Set(["defeated", "withdrawn"]);
+  const running = (row.candidacies ?? []).filter(
+    (c) => !c.withdrew && !DECIDED_AGAINST.has(String(c.status ?? "").toLowerCase()),
+  );
 
   const candidates: RaceCandidate[] = running
     .slice()
@@ -259,6 +272,7 @@ function toRace(row: RaceRow, slugById: Map<string, string>): Race {
       politicianId: c.politician_id ? (slugById.get(c.politician_id) ?? `candidacy:${c.id}`) : `candidacy:${c.id}`,
       name: c.display_name,
       party: toParty(c.party),
+      status: c.status ?? undefined,
     }));
 
   const level = toLevel(office?.level);

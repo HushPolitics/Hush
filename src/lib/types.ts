@@ -154,6 +154,13 @@ export interface RaceCandidate {
   politicianId: string;
   name: string;
   party: Party;
+  /**
+   * Where this candidacy stands in the filing record -- "Qualified",
+   * "Unopposed", "Elected", "Runoff". Present so the UI can say that a seat
+   * was already settled in the primary rather than implying every name listed
+   * is still being contested. Absent when the source carries no status.
+   */
+  status?: string;
 }
 
 export interface Race {
