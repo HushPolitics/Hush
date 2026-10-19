@@ -40,12 +40,21 @@ export function scopeReasonFor(race: Race, scope: BallotScope | null): ScopeReas
   // Statewide seats have no polygon and never will: the electorate is the
   // whole state, so point-in-polygon has nothing to test. Match on state
   // instead, or they vanish from their own voters' ballots.
+  //
+  // `isAtLarge` must NOT be treated as statewide, and an earlier version of
+  // this function made exactly that mistake. At-large means every voter in
+  // the seat's own jurisdiction votes in it -- everyone in Pinellas County,
+  // everyone in Altamonte Springs -- not everyone in Florida. Because those
+  // districts carry their jurisdiction's real boundary as geometry, the
+  // point-in-polygon check above already resolves them correctly. Adding them
+  // here put all 39 Florida mayoral races on one St. Petersburg ballot,
+  // labelled as though the whole state voted in each one.
   const sameState =
     !race.districtStateCode ||
     !scope.stateCode ||
     race.districtStateCode.toUpperCase() === scope.stateCode.toUpperCase();
 
-  if (sameState && (race.districtKind === "state" || race.isAtLarge)) return "statewide";
+  if (sameState && race.districtKind === "state") return "statewide";
 
   if (!race.districtId) return "unknown-district";
 
