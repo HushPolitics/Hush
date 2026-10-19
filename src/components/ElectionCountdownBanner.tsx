@@ -2,7 +2,7 @@
 
 import { C, cond } from "@/lib/theme";
 import { useMounted, useNow } from "@/lib/hooks";
-import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
+import { ELECTION_ISO, KEY_DATES } from "@/lib/app-content";
 import { Kicker, RustButton } from "@/components/ui";
 
 function formatCountdown(target: number, now: number) {
@@ -18,7 +18,7 @@ function formatCountdown(target: number, now: number) {
  * The dark "Time until polls close" banner: live countdown, key dates
  * (Register by / Early voting / Mail ballot request), and the "Check my
  * registration" link-out. Self-contained and prop-free -- reads the election
- * date and key dates straight from seed-data and ticks its own clock -- so
+ * date and key dates straight from app-content and ticks its own clock -- so
  * any page can drop it in as-is. Originally Your Ballot's top banner; also
  * used at the top of HUSH Guide's tile grid.
  */

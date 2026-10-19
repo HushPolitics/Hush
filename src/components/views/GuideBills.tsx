@@ -8,11 +8,14 @@ import { Card, Display, EmptyState, Kicker } from "@/components/ui";
 
 /**
  * "Bills Being Considered" — sits at the bottom of /hush-guide, below the
- * race tile grid. Bill data is seed/placeholder only (see BILLS in
- * seed-data.ts): no Congress.gov / state-legislature / municipal
- * integration exists yet, and neither does the address-to-district lookup
- * that would eventually filter this list to bills relevant to the user's
- * own district — every bill in the seed set is shown to every user.
+ * race tile grid.
+ *
+ * The bills are real, from repo.ts's `listBills`: Florida's current regular
+ * session as carried by LegiScan, with the legislature's own summary. Two
+ * limits are worth stating plainly. There is no Congress.gov or municipal
+ * ingestion yet, so federal and city legislation is missing entirely. And
+ * there is no district filter yet, so every user sees the same statewide
+ * list rather than the bills that affect their own district.
  */
 export function BillsSection({ bills }: { bills: Bill[] }) {
   return (

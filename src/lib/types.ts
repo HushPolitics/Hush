@@ -1,4 +1,10 @@
-export type Party = "D" | "R" | "I";
+/**
+ * Ballot party designations as they actually appear on filings. "NPA" (no
+ * party affiliation) and "Other" are real Florida designations carried
+ * straight through from the candidate record -- collapsing either into "I"
+ * would misstate how the candidate filed.
+ */
+export type Party = "D" | "R" | "I" | "NPA" | "Other";
 export type Level = "Local" | "State" | "Federal";
 /**
  * Promise state, expressed as progress rather than judgment.
@@ -87,13 +93,31 @@ export interface Politician {
   district: string;
   level: Level;
   party: Party;
-  since: number;
-  /** Trust score, 0-100. 60% promises kept, 25% recency, 15% significance. */
-  trust: number;
-  kept: number;
-  prog: number;
-  broken: number;
+  /** First year in this office, when the record carries one. */
+  since?: number;
+  /**
+   * HUSH Score, 0-100, and its promise tallies.
+   *
+   * Optional, and absent rather than zero for everyone today. Deciding whether
+   * a promise was kept is a judgment call that needs a human reviewer, and
+   * Hush does not have one yet, so there is no score to report. A zero would
+   * render as "this politician scored zero", which is a claim about a real
+   * person that nobody has established. Views must branch on `undefined` and
+   * say the score is not available rather than drawing an empty meter.
+   */
+  trust?: number;
+  kept?: number;
+  prog?: number;
+  broken?: number;
   bio: string;
+  /** Official portrait, when the source carries one. */
+  portraitUrl?: string;
+  /** The office's own .gov site. */
+  officialSiteUrl?: string;
+  campaignSiteUrl?: string;
+  wikipediaUrl?: string;
+  /** Bioguide ID -- the stable congressional identifier. */
+  bioguideId?: string;
   tags: string[];
   policies: PolicyPosition[];
   promises: PromiseRecord[];
@@ -273,9 +297,9 @@ export interface Bill {
 
 /**
  * A politician's recorded vote on a specific bill -- the Feed's Votes
- * category. Kept as an external per-politician map (see seed-data.ts's
- * `VOTES`) rather than nested on `Politician`, the same convention
- * `GUIDE_POSITIONS`/`STANCE_POSITIONS` already use for sourced records that
+ * category. Kept as an external per-politician map (see repo.ts's
+ * `listVotes`) rather than nested on `Politician`, the same convention
+ * `guidePositions`/`stancePositions` already use for sourced records that
  * don't belong on the core profile shape.
  */
 export interface VoteRecord {

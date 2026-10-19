@@ -29,7 +29,11 @@ export default function FollowingView({ politicians }: { politicians: Politician
     return list
       .slice()
       .sort((a, b) =>
-        sort === "A–Z" ? lastNameOf(a.name).localeCompare(lastNameOf(b.name)) : a.since - b.since,
+        sort === "A–Z"
+          ? lastNameOf(a.name).localeCompare(lastNameOf(b.name))
+          : // `since` is optional -- a record without a first-year-in-office
+            // sorts last under Seniority rather than ahead of everyone at 0.
+            (a.since ?? Infinity) - (b.since ?? Infinity),
       );
   }, [politicians, saved, sort]);
 

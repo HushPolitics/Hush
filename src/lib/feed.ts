@@ -1,4 +1,4 @@
-import { ELECTION_ISO } from "./seed-data";
+import { ELECTION_ISO } from "./app-content";
 import type {
   ArticleRecord,
   Bill,

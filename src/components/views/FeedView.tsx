@@ -7,7 +7,7 @@ import { C, VERDICT_STYLE, cond } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
-import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
+import { ELECTION_ISO, KEY_DATES } from "@/lib/app-content";
 import { FEED_SCOPES, useFeedScope } from "@/lib/feedScope";
 import {
   ballotPoliticianIds,

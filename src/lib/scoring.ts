@@ -22,19 +22,32 @@ export function lastNameOf(fullName: string): string {
 /**
  * Trust score: 60% promises kept, 25% recency, 15% promise significance.
  *
- * The seed data carries a precomputed `trust` field. Once the ingestion
- * pipeline is live this becomes the single place the score is derived, so the
- * weighting stays auditable and the number on screen can always be traced back
- * to the ledger rows that produced it.
+ * Nothing produces a score today. The tallies these read (`kept`/`prog`/
+ * `broken`) come from a promise ledger that needs a human reviewer to decide
+ * whether a promise was kept, and Hush has no reviewer yet, so every
+ * politician arrives with them undefined. This stays as the single place the
+ * score will be derived once that exists, so the weighting stays auditable
+ * and the number on screen can always be traced back to the ledger rows that
+ * produced it.
+ *
+ * Until then both functions below treat a missing tally as zero for
+ * arithmetic, and `computeTrust` returns `null` rather than 0 for a
+ * politician with no ledger at all -- callers must render the absence, not a
+ * zero score.
  */
 export const TRUST_WEIGHTS = { kept: 0.6, recency: 0.25, significance: 0.15 } as const;
 
-export function computeTrust(p: Pick<Politician, "kept" | "prog" | "broken" | "trust">): number {
-  const total = p.kept + p.prog + p.broken;
-  if (!total) return p.trust ?? 0;
+export function computeTrust(
+  p: Pick<Politician, "kept" | "prog" | "broken" | "trust">,
+): number | null {
+  const kept = p.kept ?? 0;
+  const total = kept + (p.prog ?? 0) + (p.broken ?? 0);
+  // No ledger and no stored score: there is no number to show, and 0 would be
+  // read as a score of zero rather than as an absence.
+  if (!total) return p.trust ?? null;
   // Until recency and significance are modelled from real ledger rows, the
   // stored score wins so the UI never invents a number it cannot cite.
-  return p.trust ?? Math.round((p.kept / total) * 100);
+  return p.trust ?? Math.round((kept / total) * 100);
 }
 
 /** Linear-falloff weight bars shown on the profile's ranked-issue list. */
@@ -64,11 +77,15 @@ export function issueSlug(name: string): string {
 }
 
 export function promiseSplit(p: Politician) {
-  const total = p.kept + p.prog + p.broken || 1;
+  const kept = p.kept ?? 0;
+  const prog = p.prog ?? 0;
+  const broken = p.broken ?? 0;
+  const counted = kept + prog + broken;
+  const total = counted || 1;
   return {
-    total: p.kept + p.prog + p.broken,
-    keptPct: Math.round((p.kept / total) * 100),
-    progPct: Math.round((p.prog / total) * 100),
-    brokenPct: Math.round((p.broken / total) * 100),
+    total: counted,
+    keptPct: Math.round((kept / total) * 100),
+    progPct: Math.round((prog / total) * 100),
+    brokenPct: Math.round((broken / total) * 100),
   };
 }

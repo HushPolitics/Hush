@@ -96,8 +96,12 @@ export default function PollingPlaceCard() {
 
       <div style={{ flex: "1 1 260px", minWidth: 240, display: "flex", flexDirection: "column", gap: 10 }}>
         <Kicker>Polling place</Kicker>
-        <Display size={20}>{polling.name}</Display>
-        <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>{polling.detail}</span>
+        {/* `polling` starts empty (see prefs.tsx DEFAULTS) rather than carrying
+            a seeded address, so both fields are blank until a lookup runs. */}
+        <Display size={20}>{polling.name || "Not looked up yet"}</Display>
+        <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
+          {polling.detail || "Enter your address below to find where you vote."}
+        </span>
         {!mapSrc ? (
           <a
             href={openInMapsHref}

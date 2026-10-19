@@ -14,22 +14,43 @@ import {
   stancePositions,
 } from "@/lib/repo";
 
+/**
+ * Records change between deploys, so this page is rebuilt in the background
+ * at most every five minutes rather than frozen at whatever the database
+ * held when the deploy ran.
+ */
+export const revalidate = 300;
+
+
 export const metadata: Metadata = { title: "Feed" };
 
-export default function FeedPage() {
+export default async function FeedPage() {
+  const [politicians, factChecks, races, guide, stance, votes, bills, electionUpdates, articles] =
+    await Promise.all([
+      listPoliticians(),
+      listFactChecks(),
+      listRaces(),
+      guidePositions(),
+      stancePositions(),
+      listVotes(),
+      listBills(),
+      listElectionUpdates(),
+      listArticles(),
+    ]);
+
   return (
     <AppShell>
       <Suspense fallback={null}>
         <FeedView
-          politicians={listPoliticians()}
-          factChecks={listFactChecks()}
-          races={listRaces()}
-          guide={guidePositions()}
-          stance={stancePositions()}
-          votes={listVotes()}
-          bills={listBills()}
-          electionUpdates={listElectionUpdates()}
-          articles={listArticles()}
+          politicians={politicians}
+          factChecks={factChecks}
+          races={races}
+          guide={guide}
+          stance={stance}
+          votes={votes}
+          bills={bills}
+          electionUpdates={electionUpdates}
+          articles={articles}
         />
       </Suspense>
     </AppShell>

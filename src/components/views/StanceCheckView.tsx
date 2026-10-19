@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { C, GUIDE_SOURCE_KIND, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
+import { C, GUIDE_SOURCE_KIND, PARTIES, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
@@ -1002,7 +1002,11 @@ function AnswerTrendChart({ matches, answeredTopics }: { matches: Match[]; answe
   if (answeredTopics.length < 2) return null; // a trend needs at least two points
 
   const running: Record<Party, number>[] = [];
-  const totals: Record<Party, number> = { D: 0, R: 0, I: 0 };
+  // Built from PARTIES rather than a D/R/I literal so a new designation (NPA,
+  // Other) cannot be silently dropped from the tally.
+  const totals: Record<Party, number> = Object.fromEntries(
+    PARTIES.map((x) => [x, 0]),
+  ) as Record<Party, number>;
   for (const issue of answeredTopics) {
     for (const m of matches.filter((mm) => mm.issue === issue)) {
       totals[m.candidacy.party] += 1;
@@ -1154,20 +1158,24 @@ function StanceSummary({
     }
   }
 
-  const matchedIdsByParty: Record<Party, Set<string>> = { D: new Set(), R: new Set(), I: new Set() };
+  const matchedIdsByParty: Record<Party, Set<string>> = Object.fromEntries(
+    PARTIES.map((x) => [x, new Set<string>()]),
+  ) as Record<Party, Set<string>>;
   for (const m of matches) matchedIdsByParty[m.candidacy.party].add(m.candidacy.politicianId);
-  const partyCounts = (["D", "R", "I"] as Party[])
+  const partyCounts = (PARTIES as readonly Party[])
     .map((party) => ({ party, count: matchedIdsByParty[party].size }))
     .filter((p) => p.count > 0);
   const crossesParty = partyCounts.length >= 2;
 
   const noMatchIssues = answeredTopics.filter((issue) => !matches.some((m) => m.issue === issue));
 
-  // "Your Overall Alignment" always shows all three parties, zero-count
-  // ones included -- a party you matched nobody in is itself a finding,
-  // and dropping it would make the card's width jump around depending on
-  // how many parties happened to match.
-  const countByParty: Record<Party, number> = { D: 0, R: 0, I: 0 };
+  // "Your Overall Alignment" always shows every party designation, zero-count
+  // ones included -- a party you matched nobody in is itself a finding, and
+  // dropping it would make the card's width jump around depending on how many
+  // parties happened to match.
+  const countByParty: Record<Party, number> = Object.fromEntries(
+    PARTIES.map((x) => [x, 0]),
+  ) as Record<Party, number>;
   for (const p of partyCounts) countByParty[p.party] = p.count;
 
   // Same pattern PoliticianView's own "Compare" link already uses --

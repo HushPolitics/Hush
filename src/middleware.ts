@@ -3,8 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 
 /**
  * Refreshes the Supabase session cookie on every request so Server Components
- * see a live session. No-ops entirely when Supabase is not configured, which
- * keeps the seed-data build deployable.
+ * see a live session. No-ops entirely when Supabase is not configured -- the
+ * app then renders with no records at all rather than falling back to a
+ * dataset, so an unconfigured build is still deployable, just empty.
  */
 export async function middleware(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

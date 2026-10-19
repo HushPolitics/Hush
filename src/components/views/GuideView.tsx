@@ -7,7 +7,7 @@ import { C, cond } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
-import { ELECTION_ISO, KEY_DATES } from "@/lib/seed-data";
+import { ELECTION_ISO, KEY_DATES } from "@/lib/app-content";
 import { ballotPoliticianIds } from "@/lib/feed";
 import {
   issueCoverage,
@@ -430,7 +430,7 @@ function TileGrid({
         State House, or County Commission race with a full candidate roster
         — those tile types are left out rather than invented. The footer
         disclaimer already covers this prototype limitation; it doesn't need
-        repeating here too. See seed-data.ts.
+        repeating here too. See app-content.ts.
       */}
 
       <div id="races" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -652,6 +652,10 @@ function GuideAtAGlanceStrip({
   // distance. Same "split a seeded delimiter-joined string" pattern as
   // parseRaceTitle in guide.ts; hours (the third segment) isn't used here.
   const [pollingAddress, pollingDistance] = polling.detail.split(" - ");
+  // `polling` is empty until the user looks one up (see prefs.tsx DEFAULTS),
+  // so these two carry the prompt rather than rendering blank lines.
+  const pollingName = polling.name || "Not looked up yet";
+  const pollingLine = polling.detail || "Look up where you vote";
 
   return (
     <Card style={{ padding: 0, overflow: "hidden" }}>
@@ -823,8 +827,8 @@ function GuideAtAGlanceStrip({
               <span style={{ fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: C.ink }}>
                 Your polling place
               </span>
-              <span style={{ fontSize: 15, color: C.ink }}>{polling.name}</span>
-              <span style={{ fontSize: 11.5, color: C.muted }}>{pollingAddress}</span>
+              <span style={{ fontSize: 15, color: C.ink }}>{pollingName}</span>
+              <span style={{ fontSize: 11.5, color: C.muted }}>{pollingAddress || pollingLine}</span>
               {pollingDistance ? (
                 <span style={{ fontSize: 11.5, color: C.muted }}>{pollingDistance} away</span>
               ) : null}
@@ -949,6 +953,10 @@ function directionsHref(polling: { name: string }, cityStateZip: string): string
 }
 
 function VotingInformationSection({ polling }: { polling: { name: string; detail: string } }) {
+  // `polling` is empty until the user looks one up (see prefs.tsx DEFAULTS),
+  // so these two carry the prompt rather than rendering blank lines.
+  const pollingName = polling.name || "Not looked up yet";
+  const pollingLine = polling.detail || "Look up where you vote";
   const days = useDaysToElection();
   const { city, state, zip } = usePrefs();
   const cityStateZip = [city, state, zip].filter(Boolean).join(" ");
@@ -1045,8 +1053,8 @@ function VotingInformationSection({ polling }: { polling: { name: string; detail
           }}
         >
           <Kicker size={10}>Where you vote</Kicker>
-          <span style={{ fontSize: 16, lineHeight: 1.2 }}>{polling.name}</span>
-          <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>{polling.detail}</span>
+          <span style={{ fontSize: 16, lineHeight: 1.2 }}>{pollingName}</span>
+          <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>{pollingLine}</span>
           <button
             type="button"
             className="link-quiet"

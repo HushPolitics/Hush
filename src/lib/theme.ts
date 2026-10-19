@@ -99,16 +99,30 @@ export const C = {
   independentBright: "#40DD9C",
 } as const;
 
+/**
+ * Every party designation a candidate record can carry, in the order they are
+ * displayed. "NPA" (no party affiliation) is Florida's own ballot term and is
+ * the majority designation in its nonpartisan county, school board and
+ * judicial races; "Other" covers a minor party the filing names but the record
+ * does not break out. Both are shown as filed rather than folded into
+ * "Independent", which would misstate how the candidate qualified.
+ */
+export const PARTIES = ["D", "R", "I", "NPA", "Other"] as const;
+
 export const PARTY: Record<string, string> = {
   D: C.navy,
   R: C.rust,
   I: C.independent,
+  NPA: C.body,
+  Other: C.muted,
 };
 
 export const PARTY_LABEL: Record<string, string> = {
   D: "Democrat",
   R: "Republican",
   I: "Independent",
+  NPA: "No party affiliation",
+  Other: "Other party",
 };
 
 /**

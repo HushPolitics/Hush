@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
-import { DEFAULT_DISTRICT, DEFAULT_POLLING_PLACE } from "./seed-data";
 import type { IssueFinderAnswer } from "./types";
 
 /**
@@ -49,8 +48,7 @@ export interface Prefs {
    * City/state shown alongside `zip` (e.g. the header location pill).
    * Set directly from what the user types into that form — not derived from
    * `zip` by a real ZIP-to-city/state lookup, which would need a geocoding
-   * data source or API. Seeded from `DEFAULT_DISTRICT.city`, which was itself
-   * a single hardcoded "City, ST" string.
+   * data source or API. Empty until the user sets it.
    */
   city: string;
   state: string;
@@ -118,10 +116,6 @@ export interface Prefs {
   readEventIds: string[];
 }
 
-// DEFAULT_DISTRICT.city is a combined "City, ST" string; split it once here
-// so city/state can be stored (and edited) as separate fields.
-const [DEFAULT_CITY, DEFAULT_STATE] = DEFAULT_DISTRICT.city.split(", ");
-
 const DEFAULTS: Prefs = {
   // Empty rather than pre-populated: `topics` now gates HUSH Guide's and
   // Stance Check's own setup steps (see hasGuide/picking in GuideView.tsx and
@@ -131,10 +125,18 @@ const DEFAULTS: Prefs = {
   // TopIssuesCard/SignupWizard both render their own "nothing picked yet"
   // empty state.
   topics: [],
-  saved: ["marchetti", "bellweather", "vance", "ainsley", "oseihart"],
-  zip: DEFAULT_DISTRICT.zip,
-  city: DEFAULT_CITY,
-  state: DEFAULT_STATE,
+  // Empty, not pre-followed. These were five seed-data politician ids, so a
+  // brand-new account opened with five representatives already saved and no
+  // way to tell they were fictional. Nothing is saved until the user saves it.
+  saved: [],
+  // Empty, not Jacksonville. These three defaulted to DEFAULT_DISTRICT
+  // (ZIP 32202 / Duval County), so every signed-in user saw Duval County
+  // local data regardless of the ZIP they entered -- a stored value only
+  // overwrote them once onboarding wrote to them. An empty location reads as
+  // "not set yet", which is the truth.
+  zip: "",
+  city: "",
+  state: "",
   streetAddress: "",
   onboarded: false,
   firstName: "",
@@ -146,13 +148,24 @@ const DEFAULTS: Prefs = {
     politicianUpdates: true,
     hushAnnouncements: false,
   },
-  picks: ["marchetti", "vance", "pike"],
-  polling: DEFAULT_POLLING_PLACE,
+  // Empty, not three seed-data ids: Compare opened pre-loaded with fictional
+  // politicians the user never picked.
+  picks: [],
+  // Empty, not the seeded Jacksonville "Main Library" address. Every render
+  // site falls back to a "not looked up yet" string when these are blank, so
+  // the polling card prompts for a lookup instead of asserting a polling
+  // place the user was never assigned.
+  polling: { name: "", detail: "" },
   finderAnswers: {},
   readEventIds: [],
 };
 
-const STORAGE_KEY = "hush.prefs.v1";
+// v2: v1 payloads have the old seeded defaults baked into them (saved reps,
+// ZIP 32202, the Jacksonville polling place). They were written by the store
+// itself, so on read they are indistinguishable from real user choices -- the
+// only way to drop them is to stop reading v1. Bumping the key resets every
+// existing browser to the empty defaults above, once.
+const STORAGE_KEY = "hush.prefs.v2";
 
 // ---------------------------------------------------------------------------
 // Store

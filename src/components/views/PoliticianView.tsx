@@ -58,9 +58,21 @@ export default function PoliticianView({
   const { saved, toggleSaved, picks, setPicks, topics } = usePrefs();
   const [ledgerStatus, setLedgerStatus] = useState<PromiseStatus | "All">("All");
 
+  // What this politician actually has on file. Each gates a section that
+  // would otherwise render an empty meter, an empty ledger or an empty
+  // timeline -- all of which read as a claim ("scored zero", "kept no
+  // promises") rather than as the absence of data they are.
+  const hasScore = p.trust !== undefined;
+  const hasLedger = p.promises.length > 0;
+  const hasHistory = p.promises.length > 0 || p.timeline.length > 0 || p.terms.length > 0;
+  const hasCareer = p.career.length > 0;
+
   // Fixed list, matching the brief's section order -- the two supplementary
   // sections below (Score history, Career) aren't part of it, same as they
   // aren't one of the 5 named sections in the original app IA restructure.
+  // "The record" and "Promises" stay listed with nothing on file, because
+  // both still render: they say why they are empty, which is the answer a
+  // reader scrolled there for.
   useRegisterSectionNav([
     { id: "score", label: "The record" },
     { id: "ledger", label: "Promises" },
@@ -69,7 +81,7 @@ export default function PoliticianView({
     { id: "claims-checked", label: "Claims checked" },
   ]);
 
-  const scoreColor = trustBand(p.trust);
+  const scoreColor = trustBand(p.trust ?? 0);
   const split = promiseSplit(p);
   const isSaved = saved.includes(p.id);
   const ledgerRows = p.promises.filter((x) => ledgerStatus === "All" || x.status === ledgerStatus);
@@ -99,19 +111,31 @@ export default function PoliticianView({
               padding: 8,
             }}
           >
-            <span
-              style={{
-                fontWeight: 600,
-                fontSize: 10,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                background: C.sand,
-                padding: "3px 6px",
-                borderRadius: 4,
-              }}
-            >
-              Portrait
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element --
+                a plain <img>, not next/image: these portraits come from the
+                same public dataset the member records did, and routing 500+
+                of them through the optimizer buys nothing. */}
+            {p.portraitUrl ? (
+              <img
+                src={p.portraitUrl}
+                alt={`Official portrait of ${p.name}`}
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            ) : (
+              <span
+                style={{
+                  fontWeight: 600,
+                  fontSize: 10,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  background: C.sand,
+                  padding: "3px 6px",
+                  borderRadius: 4,
+                }}
+              >
+                Portrait
+              </span>
+            )}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 220 }}>
@@ -120,8 +144,21 @@ export default function PoliticianView({
               {p.office}, {p.district} · {PARTY_LABEL[p.party]}
             </span>
             <span style={{ fontSize: 13, color: C.muted }}>
-              In office since {p.since} · next election Nov 3, 2026
+              {/* `since` is optional -- the member records carry no
+                  first-year-in-office field, so the line omits it rather than
+                  printing "In office since undefined". */}
+              {p.since ? `In office since ${p.since} · ` : ""}next election Nov 3, 2026
             </span>
+            {p.officialSiteUrl ? (
+              <a
+                href={p.officialSiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 13, color: C.rust }}
+              >
+                Official site →
+              </a>
+            ) : null}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
               {p.tags.map((t) => (
                 <span
@@ -175,213 +212,258 @@ export default function PoliticianView({
 
       {/* Sections 2-7 */}
       <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-        {/* 2. The score, with its breakdown */}
+        {/* 2. The record.
+
+            `hasScore` is false for everyone today: scoring a promise means
+            judging whether it was kept, which takes a human reviewer, and Hush
+            does not have one. Rather than draw the meter at zero -- which a
+            reader would fairly take as "this official scored zero" -- the
+            fallback says the score is not running and what is shown instead. */}
+        {hasScore ? (
+          <section id="score" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div className="stack-row" style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <Card
+                style={{
+                  flex: "0 0 210px",
+                  padding: 16,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 3,
+                }}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Kicker>HUSH. Score</Kicker>
+                  <HushScoreInfoIcon politicianId={p.id} />
+                </span>
+                <span style={{ fontFamily: cond, fontSize: 56, lineHeight: 1, color: scoreColor }}>
+                  {p.trust}
+                </span>
+                <span style={{ fontSize: 12, color: C.muted }}>{split.total} promises tracked</span>
+              </Card>
+
+              <Card
+                style={{
+                  flex: 1,
+                  minWidth: 300,
+                  padding: 16,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                  <span style={{ fontFamily: cond, fontSize: 18 }}>Promise breakdown</span>
+                </div>
+
+                {/*
+                  Three distinguishable neutral shades, not one flat color --
+                  unlike STATUS_STYLE's per-row treatment, this is a stacked
+                  proportion bar, and a stacked bar with all-identical segments
+                  is illegible (no visible boundary between them). Dark-to-
+                  light (ink/body/faint) reads as three plain categories with
+                  no good/bad association, the same way a legend would.
+                */}
+                <div
+                  style={{
+                    display: "flex",
+                    height: 12,
+                    borderRadius: 6,
+                    overflow: "hidden",
+                    background: C.shell,
+                  }}
+                >
+                  <span style={{ width: `${split.keptPct}%`, background: C.ink }} />
+                  <span style={{ width: `${split.progPct}%`, background: C.body }} />
+                  <span style={{ width: `${split.brokenPct}%`, background: C.faint }} />
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {[
+                    { points: 100, label: "Delivered aligned legislation", value: p.kept, color: C.ink },
+                    { points: 50, label: "No clear action", value: p.prog, color: C.body },
+                    { points: 0, label: "Contradicts what they said", value: p.broken, color: C.faint },
+                  ].map((s) => (
+                    <div key={s.label} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: 2, background: s.color, marginTop: 5, flex: "0 0 8px" }} />
+                      <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.45, flex: 1 }}>
+                        <span style={{ fontFamily: cond, fontSize: 13, color: C.ink }}>{s.points}</span>
+                        {" — "}
+                        {s.label}
+                      </span>
+                      <span style={{ fontFamily: cond, fontSize: 22, flex: "0 0 auto" }}>{s.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          </section>
+        ) : (
         <section id="score" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <div className="stack-row" style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-            <Card
+          <Card style={{ padding: 18, display: "flex", flexDirection: "column", gap: 8 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Kicker>HUSH. Score</Kicker>
+              <HushScoreInfoIcon politicianId={p.id} />
+            </span>
+            <span style={{ fontFamily: cond, fontSize: 20, lineHeight: 1.2 }}>Not scored yet</span>
+            <span style={{ fontSize: 13, color: C.body, lineHeight: 1.55, maxWidth: 620 }}>
+              A HUSH Score rates whether an official kept what they promised. Deciding that takes
+              a person reading the promise and the record and making a call, and Hush does not
+              have reviewers doing that work yet. Until it does there is no score here, rather
+              than a number nobody stands behind.
+            </span>
+            <span style={{ fontSize: 13, color: C.body, lineHeight: 1.55, maxWidth: 620 }}>
+              What this page shows instead is the record itself: the office {p.name} holds, the
+              district they represent, and where to read their own words. Votes and funding
+              appear below as they are loaded.
+            </span>
+          </Card>
+        </section>
+        )}
+
+        {/* 3. Promise ledger -- same reasoning as the score above: no
+            reviewer, so no ledger. The filter UI and the rows stay in the
+            codebase rather than being rendered against an empty array. */}
+        {hasLedger ? (
+          <section id="ledger" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div
               style={{
-                flex: "0 0 210px",
-                padding: 16,
-                display: "flex",
-                flexDirection: "column",
-                gap: 3,
+                border: `1px solid ${C.line}`,
+                borderRadius: 10,
+                background: C.white,
+                overflow: "hidden",
               }}
             >
-              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <Kicker>HUSH. Score</Kicker>
-                <HushScoreInfoIcon politicianId={p.id} />
-              </span>
-              <span style={{ fontFamily: cond, fontSize: 56, lineHeight: 1, color: scoreColor }}>
-                {p.trust}
-              </span>
-              <span style={{ fontSize: 12, color: C.muted }}>{split.total} promises tracked</span>
-            </Card>
-
-            <Card
-              style={{
-                flex: 1,
-                minWidth: 300,
-                padding: 16,
-                display: "flex",
-                flexDirection: "column",
-                gap: 12,
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                <span style={{ fontFamily: cond, fontSize: 18 }}>Promise breakdown</span>
-              </div>
-
-              {/*
-                Three distinguishable neutral shades, not one flat color --
-                unlike STATUS_STYLE's per-row treatment, this is a stacked
-                proportion bar, and a stacked bar with all-identical segments
-                is illegible (no visible boundary between them). Dark-to-
-                light (ink/body/faint) reads as three plain categories with
-                no good/bad association, the same way a legend would.
-              */}
               <div
                 style={{
                   display: "flex",
-                  height: 12,
-                  borderRadius: 6,
-                  overflow: "hidden",
-                  background: C.shell,
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "12px 18px",
+                  borderBottom: `1px solid ${C.line}`,
+                  background: C.sand,
+                  flexWrap: "wrap",
                 }}
               >
-                <span style={{ width: `${split.keptPct}%`, background: C.ink }} />
-                <span style={{ width: `${split.progPct}%`, background: C.body }} />
-                <span style={{ width: `${split.brokenPct}%`, background: C.faint }} />
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[
-                  { points: 100, label: "Delivered aligned legislation", value: p.kept, color: C.ink },
-                  { points: 50, label: "No clear action", value: p.prog, color: C.body },
-                  { points: 0, label: "Contradicts what they said", value: p.broken, color: C.faint },
-                ].map((s) => (
-                  <div key={s.label} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: s.color, marginTop: 5, flex: "0 0 8px" }} />
-                    <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.45, flex: 1 }}>
-                      <span style={{ fontFamily: cond, fontSize: 13, color: C.ink }}>{s.points}</span>
-                      {" — "}
-                      {s.label}
-                    </span>
-                    <span style={{ fontFamily: cond, fontSize: 22, flex: "0 0 auto" }}>{s.value}</span>
-                  </div>
+                <span style={{ fontFamily: cond, fontSize: 17, marginRight: 6 }}>Promise ledger</span>
+                {LEDGER_FILTERS.map((f) => (
+                  <Chip key={f} on={ledgerStatus === f} onClick={() => setLedgerStatus(f)}>
+                    {f}
+                  </Chip>
                 ))}
               </div>
-            </Card>
-          </div>
-        </section>
 
-        {/* 3. Promise ledger */}
-        <section id="ledger" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <div
-            style={{
-              border: `1px solid ${C.line}`,
-              borderRadius: 10,
-              background: C.white,
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "12px 18px",
-                borderBottom: `1px solid ${C.line}`,
-                background: C.sand,
-                flexWrap: "wrap",
-              }}
-            >
-              <span style={{ fontFamily: cond, fontSize: 17, marginRight: 6 }}>Promise ledger</span>
-              {LEDGER_FILTERS.map((f) => (
-                <Chip key={f} on={ledgerStatus === f} onClick={() => setLedgerStatus(f)}>
-                  {f}
-                </Chip>
-              ))}
-            </div>
+              <div
+                className="stack-grid-head"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: LEDGER_GRID,
+                  gap: 12,
+                  padding: "10px 18px",
+                  borderBottom: `1px solid ${C.line}`,
+                  fontWeight: 600,
+                  fontSize: 11,
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  color: C.muted,
+                }}
+              >
+                <span>What they said</span>
+                <span>Progress</span>
+                <span>Checked</span>
+                <span>Evidence</span>
+              </div>
 
-            <div
-              className="stack-grid-head"
-              style={{
-                display: "grid",
-                gridTemplateColumns: LEDGER_GRID,
-                gap: 12,
-                padding: "10px 18px",
-                borderBottom: `1px solid ${C.line}`,
-                fontWeight: 600,
-                fontSize: 11,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: C.muted,
-              }}
-            >
-              <span>What they said</span>
-              <span>Progress</span>
-              <span>Checked</span>
-              <span>Evidence</span>
-            </div>
-
-            {ledgerRows.map((row) => {
-              const s = STATUS_STYLE[row.status];
-              const fill = progressColor(row.progress);
-              return (
-                <div
-                  key={row.id}
-                  className="row-hover stack-grid"
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: LEDGER_GRID,
-                    gap: 12,
-                    padding: "12px 18px",
-                    alignItems: "center",
-                    borderBottom: `1px solid ${C.lineSoft}`,
-                  }}
-                >
-                  <span style={{ fontSize: 13, lineHeight: 1.4 }}>&ldquo;{row.text}&rdquo;</span>
-
-                  <span
-                    style={{ display: "flex", flexDirection: "column", gap: 5 }}
-                    role="img"
-                    aria-label={`${row.progress}% complete — ${row.status}`}
+              {ledgerRows.map((row) => {
+                const s = STATUS_STYLE[row.status];
+                const fill = progressColor(row.progress);
+                return (
+                  <div
+                    key={row.id}
+                    className="row-hover stack-grid"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: LEDGER_GRID,
+                      gap: 12,
+                      padding: "12px 18px",
+                      alignItems: "center",
+                      borderBottom: `1px solid ${C.lineSoft}`,
+                    }}
                   >
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span
-                        style={{
-                          flex: 1,
-                          height: 6,
-                          borderRadius: 3,
-                          background: C.shell,
-                          display: "block",
-                          overflow: "hidden",
-                        }}
-                      >
+                    <span style={{ fontSize: 13, lineHeight: 1.4 }}>&ldquo;{row.text}&rdquo;</span>
+
+                    <span
+                      style={{ display: "flex", flexDirection: "column", gap: 5 }}
+                      role="img"
+                      aria-label={`${row.progress}% complete — ${row.status}`}
+                    >
+                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <span
                           style={{
-                            display: "block",
+                            flex: 1,
                             height: 6,
                             borderRadius: 3,
-                            width: `${row.progress}%`,
-                            background: fill,
+                            background: C.shell,
+                            display: "block",
+                            overflow: "hidden",
                           }}
-                        />
+                        >
+                          <span
+                            style={{
+                              display: "block",
+                              height: 6,
+                              borderRadius: 3,
+                              width: `${row.progress}%`,
+                              background: fill,
+                            }}
+                          />
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 15,
+                            color: fill,
+                            width: 34,
+                            textAlign: "right",
+                            fontVariantNumeric: "tabular-nums",
+                          }}
+                        >
+                          {row.progress}%
+                        </span>
                       </span>
-                      <span
-                        style={{
-                          fontSize: 15,
-                          color: fill,
-                          width: 34,
-                          textAlign: "right",
-                          fontVariantNumeric: "tabular-nums",
-                        }}
-                      >
-                        {row.progress}%
-                      </span>
+                      <span style={{ fontSize: 11, color: s.fg }}>{row.status}</span>
                     </span>
-                    <span style={{ fontSize: 11, color: s.fg }}>{row.status}</span>
-                  </span>
 
-                  <span style={{ fontSize: 12, color: C.muted }}>{row.date}</span>
-                  <span style={{ display: "flex", gap: 8, fontSize: 12, flexWrap: "wrap" }}>
-                    {row.sources.map((src) => (
-                      <span key={src} style={{ color: C.rust }}>
-                        {src}
-                      </span>
-                    ))}
-                  </span>
+                    <span style={{ fontSize: 12, color: C.muted }}>{row.date}</span>
+                    <span style={{ display: "flex", gap: 8, fontSize: 12, flexWrap: "wrap" }}>
+                      {row.sources.map((src) => (
+                        <span key={src} style={{ color: C.rust }}>
+                          {src}
+                        </span>
+                      ))}
+                    </span>
+                  </div>
+                );
+              })}
+
+              {ledgerRows.length === 0 ? (
+                <div style={{ padding: "22px 18px", fontSize: 13, color: C.muted }}>
+                  No promises with this status.
                 </div>
-              );
-            })}
-
-            {ledgerRows.length === 0 ? (
-              <div style={{ padding: "22px 18px", fontSize: 13, color: C.muted }}>
-                No promises with this status.
-              </div>
-            ) : null}
+              ) : null}
+            </div>
+          </section>
+        ) : (
+        <section id="ledger" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Kicker>Promises</Kicker>
+            <span style={{ fontFamily: cond, fontSize: 18 }}>Promise ledger</span>
           </div>
+          <EmptyState>
+            No promises are being tracked for {p.name} yet. The ledger records a specific thing
+            an official said they would do and what has happened since, which takes a reviewer
+            to establish. Nothing is listed until that work is done.
+          </EmptyState>
         </section>
+        )}
 
         {/* 4. Positions on the user's ranked issues */}
         <section id="positions" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -481,13 +563,65 @@ export default function PoliticianView({
 
         {/* 6. Score history — kept from the old standalone /trust page rather
             than dropped; not one of the brief's 5 named sections. */}
-        <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Kicker>Score history</Kicker>
-            <span style={{ fontFamily: cond, fontSize: 18 }}>How the record built up</span>
-          </div>
+        {hasHistory ? (
+          <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Kicker>Score history</Kicker>
+              <span style={{ fontFamily: cond, fontSize: 18 }}>How the record built up</span>
+            </div>
 
-          {flagship && flagshipStyle ? (
+            {flagship && flagshipStyle ? (
+              <div
+                style={{
+                  border: `1px solid ${C.line}`,
+                  borderRadius: 10,
+                  background: C.white,
+                  padding: 18,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 16,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+                  <Kicker>Flagship promise</Kicker>
+                  <span style={{ fontFamily: cond, fontSize: 19 }}>&ldquo;{flagship.text}&rdquo;</span>
+                  <Pill bg={flagshipStyle.bg} fg={flagshipStyle.fg} style={{ marginLeft: "auto" }}>
+                    {flagship.status}
+                  </Pill>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "flex-start", overflowX: "auto" }}>
+                  {p.timeline.map((t) => (
+                    <div
+                      key={t.date}
+                      style={{ flex: 1, minWidth: 130, display: "flex", flexDirection: "column", gap: 8 }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        {/*
+                          `t.dot` (see TimelineEvent in lib/types.ts) is
+                          documented as a verdict color -- navy for progress,
+                          tan for slippage, rust for failure. Deliberately not
+                          read here: the milestone label text is what tells
+                          the reader what happened on this date, not the color
+                          of its dot.
+                        */}
+                        <span
+                          style={{ width: 12, height: 12, borderRadius: "50%", background: C.ink, flex: "0 0 12px" }}
+                        />
+                        <span style={{ flex: 1, height: 2, background: C.shell }} />
+                      </div>
+                      <Kicker size={13} color={C.muted} style={{ letterSpacing: "0.08em" }}>
+                        {t.date}
+                      </Kicker>
+                      <span style={{ fontSize: 12, lineHeight: 1.45, paddingRight: 18, whiteSpace: "normal" }}>
+                        {t.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             <div
               style={{
                 border: `1px solid ${C.line}`,
@@ -496,137 +630,87 @@ export default function PoliticianView({
                 padding: 18,
                 display: "flex",
                 flexDirection: "column",
-                gap: 16,
+                gap: 12,
               }}
             >
-              <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-                <Kicker>Flagship promise</Kicker>
-                <span style={{ fontFamily: cond, fontSize: 19 }}>&ldquo;{flagship.text}&rdquo;</span>
-                <Pill bg={flagshipStyle.bg} fg={flagshipStyle.fg} style={{ marginLeft: "auto" }}>
-                  {flagship.status}
-                </Pill>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "flex-start", overflowX: "auto" }}>
-                {p.timeline.map((t) => (
-                  <div
-                    key={t.date}
-                    style={{ flex: 1, minWidth: 130, display: "flex", flexDirection: "column", gap: 8 }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      {/*
-                        `t.dot` (see TimelineEvent in lib/types.ts) is seed
-                        data documented as a verdict color -- navy for
-                        progress, tan for slippage, rust for failure. Not
-                        hand-editing seed-data.ts itself (generated fixture,
-                        per the repo's own rule), but deliberately not
-                        reading that field here anymore: the milestone label
-                        text is what tells the reader what happened on this
-                        date, not the color of its dot.
-                      */}
+              <span style={{ fontFamily: cond, fontSize: 17 }}>Trust by term</span>
+              <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.45 }}>
+                Score recalculated for each office held.
+              </span>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 14, height: 210 }}>
+                {p.terms.map((t) => {
+                  const color = trustBand(t.score);
+                  return (
+                    <div
+                      key={t.label}
+                      style={{
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 8,
+                        justifyContent: "flex-end",
+                        height: "100%",
+                      }}
+                    >
+                      <span style={{ fontFamily: cond, fontSize: 17, color }}>{t.score}</span>
                       <span
-                        style={{ width: 12, height: 12, borderRadius: "50%", background: C.ink, flex: "0 0 12px" }}
+                        style={{
+                          width: "100%",
+                          borderRadius: "5px 5px 0 0",
+                          background: color,
+                          height: Math.round(t.score * 1.4),
+                        }}
                       />
-                      <span style={{ flex: 1, height: 2, background: C.shell }} />
+                      <span style={{ fontSize: 11, color: C.muted, textAlign: "center", lineHeight: 1.3 }}>
+                        {t.label}
+                      </span>
                     </div>
-                    <Kicker size={13} color={C.muted} style={{ letterSpacing: "0.08em" }}>
-                      {t.date}
-                    </Kicker>
-                    <span style={{ fontSize: 12, lineHeight: 1.45, paddingRight: 18, whiteSpace: "normal" }}>
-                      {t.label}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
-          ) : null}
+          </section>
+        ) : null}
 
-          <div
-            style={{
-              border: `1px solid ${C.line}`,
-              borderRadius: 10,
-              background: C.white,
-              padding: 18,
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-            }}
-          >
-            <span style={{ fontFamily: cond, fontSize: 17 }}>Trust by term</span>
-            <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.45 }}>
-              Score recalculated for each office held.
-            </span>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 14, height: 210 }}>
-              {p.terms.map((t) => {
-                const color = trustBand(t.score);
-                return (
+        {/* 7. Career timeline — kept from the old "Bio & timeline" tab. */}
+        {hasCareer ? (
+          <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Kicker>Career</Kicker>
+              <span style={{ fontFamily: cond, fontSize: 18 }}>Timeline</span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", paddingLeft: 6 }}>
+              {p.career.map((c, i) => (
+                <div key={c.year} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
                   <div
-                    key={t.label}
                     style={{
-                      flex: 1,
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
-                      gap: 8,
-                      justifyContent: "flex-end",
-                      height: "100%",
+                      alignSelf: "stretch",
+                      paddingTop: 4,
                     }}
                   >
-                    <span style={{ fontFamily: cond, fontSize: 17, color }}>{t.score}</span>
                     <span
-                      style={{
-                        width: "100%",
-                        borderRadius: "5px 5px 0 0",
-                        background: color,
-                        height: Math.round(t.score * 1.4),
-                      }}
+                      style={{ width: 11, height: 11, borderRadius: "50%", background: C.ink, flex: "0 0 11px" }}
                     />
-                    <span style={{ fontSize: 11, color: C.muted, textAlign: "center", lineHeight: 1.3 }}>
-                      {t.label}
-                    </span>
+                    {i < p.career.length - 1 ? (
+                      <span style={{ flex: 1, width: 2, background: C.shell }} />
+                    ) : null}
                   </div>
-                );
-              })}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 2, paddingBottom: 20 }}>
+                    <Kicker size={13} style={{ letterSpacing: "0.1em" }}>
+                      {c.year}
+                    </Kicker>
+                    <span style={{ fontSize: 14 }}>{c.what}</span>
+                    <span style={{ fontSize: 12, color: C.muted }}>{c.detail}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        </section>
-
-        {/* 7. Career timeline — kept from the old "Bio & timeline" tab. */}
-        <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Kicker>Career</Kicker>
-            <span style={{ fontFamily: cond, fontSize: 18 }}>Timeline</span>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", paddingLeft: 6 }}>
-            {p.career.map((c, i) => (
-              <div key={c.year} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    alignSelf: "stretch",
-                    paddingTop: 4,
-                  }}
-                >
-                  <span
-                    style={{ width: 11, height: 11, borderRadius: "50%", background: C.ink, flex: "0 0 11px" }}
-                  />
-                  {i < p.career.length - 1 ? (
-                    <span style={{ flex: 1, width: 2, background: C.shell }} />
-                  ) : null}
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 2, paddingBottom: 20 }}>
-                  <Kicker size={13} style={{ letterSpacing: "0.1em" }}>
-                    {c.year}
-                  </Kicker>
-                  <span style={{ fontSize: 14 }}>{c.what}</span>
-                  <span style={{ fontSize: 12, color: C.muted }}>{c.detail}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+          </section>
+        ) : null}
       </div>
     </div>
   );
