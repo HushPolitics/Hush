@@ -53,6 +53,8 @@ export interface PollingPlace {
   lookupUrl?: string;
   /** Span of early voting, e.g. "Oct 19 - Nov 1", from the lookup. */
   earlyWindow?: string;
+  /** The county's own precinct finder, pre-filled with the voter's street, when we know it works. */
+  precinct?: { url: string; county: string };
   /** Counts from the last lookup, for telling "none published" from "dropped". */
   diag?: { electionId: string; polling: number; early: number; dropOff: number; retried: boolean };
   checkedAt?: number;
