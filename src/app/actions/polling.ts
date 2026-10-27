@@ -79,6 +79,31 @@ async function civic<T>(path: string, params: Record<string, string>, key: strin
   }
 }
 
+/**
+ * Counties often publish early voting hours as one line per day ("Mon, Oct 19:
+ * 7 am - 7 pm" for two weeks straight), which is unreadable in a small box.
+ * When every day has the same hours it becomes one line ("Oct 19 - Nov 1, daily
+ * 7 am - 7 pm"). When the days differ it says so rather than guessing, since
+ * the county's own schedule is what the voter should follow.
+ */
+function summarizeHours(raw: string): string {
+  const lines = raw
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lines.length <= 1) return lines[0] ?? "";
+
+  const parsed = lines.map((l) => {
+    const m = l.match(/^(?:[A-Za-z]{3},\s*)?([A-Za-z]{3}\s+\d{1,2}):\s*(.+)$/);
+    return m ? { date: m[1], time: m[2].trim() } : null;
+  });
+  if (parsed.every((p): p is { date: string; time: string } => p !== null)) {
+    const times = new Set(parsed.map((p) => p.time));
+    if (times.size === 1) return `${parsed[0].date} - ${parsed[parsed.length - 1].date}, daily ${parsed[0].time}`;
+  }
+  return "Hours vary by day; see the county's schedule";
+}
+
 function toSite(s: CivicSite): PollingSite {
   const a = s.address ?? {};
   const street = [a.line1, a.line2, a.line3].filter(Boolean).join(" ");
@@ -87,7 +112,7 @@ function toSite(s: CivicSite): PollingSite {
     // Some sources put the venue name in the address block rather than `name`.
     name: (s.name || a.locationName || "").trim(),
     address: [street, cityLine].filter(Boolean).join(", "),
-    hours: (s.pollingHours ?? "").trim(),
+    hours: summarizeHours(s.pollingHours ?? ""),
   };
 }
 
