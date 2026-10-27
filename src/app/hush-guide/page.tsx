@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import AppShell from "@/components/AppShell";
 import GuideView from "@/components/views/GuideView";
-import { guidePositions, listBills, listPoliticians, listRaces, topicPool } from "@/lib/repo";
+import { ballotMeasures, guidePositions, listPoliticians, listRaces, topicPool } from "@/lib/repo";
 
 /**
  * Records change between deploys, so this page is rebuilt in the background
@@ -14,12 +14,12 @@ export const revalidate = 300;
 export const metadata: Metadata = { title: "HUSH. Guide" };
 
 export default async function HushGuidePage() {
-  const [politicians, races, positions, bills] = await Promise.all([
+  const [politicians, races, positions] = await Promise.all([
     listPoliticians(),
     listRaces(),
     guidePositions(),
-    listBills(),
   ]);
+  const bills = ballotMeasures();
 
   return (
     <AppShell>
