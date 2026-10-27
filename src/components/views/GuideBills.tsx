@@ -10,12 +10,11 @@ import { Card, Display, EmptyState, Kicker } from "@/components/ui";
  * "Bills Being Considered" — sits at the bottom of /hush-guide, below the
  * race tile grid.
  *
- * The bills are real, from repo.ts's `listBills`: Florida's current regular
- * session as carried by LegiScan, with the legislature's own summary. Two
- * limits are worth stating plainly. There is no Congress.gov or municipal
- * ingestion yet, so federal and city legislation is missing entirely. And
- * there is no district filter yet, so every user sees the same statewide
- * list rather than the bills that affect their own district.
+ * The items are the statewide constitutional amendments on the Nov 3, 2026
+ * ballot, from repo.ts's `ballotMeasures` (hand-written for now, with official
+ * titles and a link to the official text). There is no Congress.gov or
+ * municipal ingestion yet, and no district filter, so every user sees the
+ * same statewide list.
  */
 export function BillsSection({ bills }: { bills: Bill[] }) {
   return (
@@ -26,7 +25,7 @@ export function BillsSection({ bills }: { bills: Bill[] }) {
       </div>
 
       {bills.length === 0 ? (
-        <EmptyState>No bills in Hush&apos;s seed dataset yet.</EmptyState>
+        <EmptyState>No ballot measures to show yet.</EmptyState>
       ) : (
         <div
           style={{
@@ -115,6 +114,7 @@ function ChamberPill({ children, accent }: { children: ReactNode; accent: { fg: 
 
 function BillCard({ bill }: { bill: Bill }) {
   const [flipped, setFlipped] = useState(false);
+  const noun = bill.kind === "amendment" ? "amendment" : "bill";
   // HUSH's own plain-English paraphrase, trimmed for the card front.
   // bill.description is only "official-ish" per its own doc comment in
   // lib/types.ts -- the guaranteed plain-English text is `explanation`.
@@ -188,7 +188,7 @@ function BillCard({ bill }: { bill: Bill }) {
                 color: C.rust,
               }}
             >
-              Understand this bill →
+              Understand this {noun} →
             </span>
           </div>
         </Card>
@@ -224,10 +224,10 @@ function BillCard({ bill }: { bill: Bill }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <Kicker>HUSH.&apos;s paraphrase</Kicker>
             <span style={{ fontFamily: cond, fontSize: 15, lineHeight: 1.2 }}>
-              What does this bill do?
+              What does this {noun} do?
             </span>
             <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
-              Not the bill&apos;s official language — see the source below.
+              Not the official {noun} language — see the source below.
             </span>
           </div>
 
@@ -299,7 +299,7 @@ function BillCard({ bill }: { bill: Bill }) {
               onClick={(e) => e.stopPropagation()}
               style={{ fontSize: 12, color: C.rust, marginTop: 2 }}
             >
-              View Original Bill →
+              {bill.kind === "amendment" ? "View Official Text →" : "View Original Bill →"}
             </a>
           </div>
         </Card>

@@ -315,6 +315,8 @@ export interface Bill {
   number: string;
   /** Official title. */
   title: string;
+  /** What the voter is looking at. Absent means an ordinary bill; "amendment" is a constitutional amendment on the ballot. */
+  kind?: "bill" | "amendment";
   /** Legislative body considering it, e.g. "U.S. House of Representatives". */
   chamber: string;
   level: Level;
