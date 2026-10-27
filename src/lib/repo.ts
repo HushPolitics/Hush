@@ -495,8 +495,8 @@ export function ballotMeasures(): Bill[] {
         "Let lawmakers skip a year's deposit if money was already taken out that year, or by a two-thirds vote once every five years for a critical need costing more than $750 million.",
       ],
       noMeans: [
-        "Keep the fund's cap at 10% of general revenue.",
-        "Leave the fund's deposit and withdrawal rules as they are today.",
+        "Keep the fund's cap at 10% of general revenue (roughly $5 billion today).",
+        "Not add the new requirement to deposit $750 million a year, and leave the fund's other rules as they are today.",
       ],
     },
     {
@@ -508,13 +508,13 @@ export function ballotMeasures(): Bill[] {
       explanation:
         "Farmers pay local property tax on equipment such as tractors and harvesting machines. This amendment would exempt certain equipment used for farming or agritourism.",
       yesMeans: [
-        "Exempt certain tangible personal property on agricultural land, like tractors and harvesting machines, from property taxes if it is used for agricultural production or agritourism and owned by the person who owns or leases the land.",
+        "Exempt certain tangible personal property on agricultural land, like tractors and harvesting machines, from property taxes if it is used for agricultural production or agritourism and owned by the person who owns or leases the land. Its owners would no longer pay property tax on it.",
         "Apply first to tax year 2027.",
-        "Reduce local property tax revenue. A legislative analysis estimated about $31 million a year starting in fiscal year 2027-28.",
+        "Reduce local property tax revenue by about $31 million a year starting in fiscal year 2027-28, according to a legislative analysis.",
       ],
       noMeans: [
-        "Keep taxing that equipment under current property tax rules.",
-        "Leave local governments' property tax revenue from it unchanged.",
+        "Keep taxing that equipment under current property tax rules, so its owners would keep paying property tax on it.",
+        "Leave local governments with the roughly $31 million a year a legislative analysis estimated they would otherwise lose starting in fiscal year 2027-28.",
       ],
     },
     {
@@ -526,14 +526,16 @@ export function ballotMeasures(): Bill[] {
       explanation:
         "This amendment changes how property taxes are figured. It raises the homestead exemption on non-school property taxes for homeowners and slows how fast the taxable value of other property can rise.",
       yesMeans: [
-        "Raise the homestead exemption from non-school property taxes to $150,000 in 2027 and $250,000 in 2028, adjusted for inflation after that.",
+        "Raise the homestead exemption from non-school property taxes to $150,000 in 2027 and $250,000 in 2028, adjusted for inflation after that, which lowers the taxable value of a homestead.",
         "Lower the yearly cap on assessment increases for non-homestead property, such as rental and business property, from 10% to 5%.",
         "Give people who were not Florida residents on Dec. 31, 2026 the current exemption at first, with the larger exemption starting in their fifth year, as far as the U.S. Constitution allows.",
         "Require counties and cities to use property tax money mainly for set purposes such as public safety, education and infrastructure.",
-        "Reduce the property tax revenue local governments collect. Takes effect Jan. 1, 2027.",
+        "Reduce the property tax base and revenue local governments rely on.",
+        "Take effect Jan. 1, 2027.",
       ],
       noMeans: [
-        "Keep today's homestead exemption and the 10% cap on non-homestead assessment increases.",
+        "Keep today's homestead exemption and the 10% cap on non-homestead assessment increases, so homeowners would not get the larger exemption and non-homestead owners would not get the lower cap.",
+        "Leave local governments with their current property tax base and revenue.",
         "Leave the rules on how local governments spend property tax money as they are.",
       ],
     },
