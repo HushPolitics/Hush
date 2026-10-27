@@ -157,6 +157,7 @@ function toPollingPlace(r: PollingLookupResult): PollingPlace {
     early: r.early.length > 0 ? r.early : undefined,
     lookupUrl: r.lookupUrl ?? undefined,
     earlyWindow: r.earlyWindow ?? undefined,
+    precinct: r.precinct ?? undefined,
     diag: r.diag,
     checkedAt: Date.now(),
   };
@@ -1166,7 +1167,22 @@ function VotingInformationSection({ polling }: { polling: PollingPlace }) {
   // See pollingLabels: the prompt, or "not published yet" after a lookup that
   // found nothing, rather than blank lines.
   const { name: pollingName, line: pollingLine, found } = pollingLabels(polling);
-  const finderUrl = polling.lookupUrl || "https://www.vote.org/polling-place-locator/";
+  // Where "Find your polling place" goes when no place was published: the
+  // county's own finder pre-filled with the street (only for counties we have
+  // checked), else the state's lookup, else vote.org's locator. The note under
+  // the box says which, since the first one sends the street to the county's site.
+  const finderUrl =
+    polling.precinct?.url || polling.lookupUrl || "https://www.vote.org/polling-place-locator/";
+  const finderNote = !polling.checkedAt
+    ? null
+    : polling.precinct
+      ? `Google doesn't have Election Day places for ${polling.precinct.county} yet. The link below opens the county's own precinct finder with your house number and street already filled in, so your street address goes to their site when you click.`
+      : polling.lookupUrl
+        ? "Google doesn't have an Election Day place for your address yet. The link below opens your state's polling place lookup, where you enter your address yourself. We don't send it."
+        : "Google doesn't have an Election Day place for your address yet. The link below opens vote.org's polling place locator, where you enter your address yourself. We don't send it.";
+  const finderLabel = polling.precinct
+    ? "Find my polling place on the county site →"
+    : "Find your polling place →";
   const days = useDaysToElection();
   const { city, state, zip } = usePrefs();
   const cityStateZip = [city, state, zip].filter(Boolean).join(" ");
@@ -1270,6 +1286,9 @@ function VotingInformationSection({ polling }: { polling: PollingPlace }) {
           <Kicker size={10}>Where you vote</Kicker>
           <span style={{ fontSize: 16, lineHeight: 1.2 }}>{pollingName}</span>
           <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>{pollingLine}</span>
+          {!found && finderNote ? (
+            <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.4 }}>{finderNote}</span>
+          ) : null}
           {polling.hours ? (
             <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>Open {polling.hours}</span>
           ) : null}
@@ -1284,26 +1303,43 @@ function VotingInformationSection({ polling }: { polling: PollingPlace }) {
               ))}
             </div>
           ) : null}
-          <button
-            type="button"
-            className="link-quiet"
-            onClick={() =>
-              window.open(found ? directionsHref(polling, cityStateZip) : finderUrl, "_blank", "noopener")
-            }
-            style={{
-              marginTop: "auto",
-              alignSelf: "flex-start",
-              border: 0,
-              background: "transparent",
-              color: C.rust,
-              fontSize: 11.5,
-              fontWeight: 600,
-              cursor: "pointer",
-              padding: 0,
-            }}
-          >
-            {found ? "Get directions →" : "Find your polling place →"}
-          </button>
+          {found ? (
+            <button
+              type="button"
+              className="link-quiet"
+              onClick={() => window.open(directionsHref(polling, cityStateZip), "_blank", "noopener")}
+              style={{
+                marginTop: "auto",
+                alignSelf: "flex-start",
+                border: 0,
+                background: "transparent",
+                color: C.rust,
+                fontSize: 11.5,
+                fontWeight: 600,
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              Get directions →
+            </button>
+          ) : (
+            <a
+              href={finderUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-quiet"
+              style={{
+                marginTop: "auto",
+                alignSelf: "flex-start",
+                color: C.rust,
+                fontSize: 11.5,
+                fontWeight: 600,
+                textDecoration: "none",
+              }}
+            >
+              {finderLabel}
+            </a>
+          )}
         </div>
       </Card>
     </section>
