@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useMemo, useState, useTransition, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs } from "@/lib/prefs";
@@ -19,6 +19,9 @@ import {
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, ExpandableQuote, GhostButton, Kicker, RustButton } from "@/components/ui";
 import RepresentativesCard from "@/components/RepresentativesCard";
+import AddressLookup from "@/components/AddressLookup";
+import { resolveAddress } from "@/app/actions/location";
+import { filterRaces, scopeReasonFor } from "@/lib/ballot-scope";
 import { BillsSection } from "./GuideBills";
 
 const fieldStyle = {
@@ -147,18 +150,88 @@ function AddressStep({
   onCancel?: () => void;
   onContinue: () => void;
 }) {
-  const { streetAddress, city, state, zip, setStreetAddress, setCity, setState, setZip } = usePrefs();
+  const {
+    streetAddress,
+    city,
+    state,
+    zip,
+    setStreetAddress,
+    setCity,
+    setState,
+    setZip,
+    setResolvedLocation,
+    clearResolvedLocation,
+  } = usePrefs();
   const [draftStreet, setDraftStreet] = useState(streetAddress);
   const [draftCity, setDraftCity] = useState(city);
   const [draftState, setDraftState] = useState(state);
   const [draftZip, setDraftZip] = useState(zip);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
 
-  function submit(e: FormEvent) {
-    e.preventDefault();
+  function saveTypedFields() {
     setStreetAddress(draftStreet.trim());
     if (draftCity.trim()) setCity(draftCity.trim());
     if (draftState.trim()) setState(draftState.trim().toUpperCase().slice(0, 2));
     if (draftZip.length === 5) setZip(draftZip);
+  }
+
+  // Looks the typed address up and keeps the districts it resolves to, which
+  // is what scopes "Your Races" to the races this person actually votes in.
+  // Without a street address there is nothing to resolve (a ZIP crosses district
+  // lines), so the typed fields are saved, any earlier lookup is dropped so
+  // another address's districts never stay attached, and Your Races asks for
+  // the street address instead of guessing.
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    if (pending) return;
+    setError(null);
+    const street = draftStreet.trim();
+    if (!street) {
+      clearResolvedLocation();
+      saveTypedFields();
+      onContinue();
+      return;
+    }
+
+    const query = [
+      street,
+      draftCity.trim(),
+      [draftState.trim().toUpperCase(), draftZip.length === 5 ? draftZip : ""].filter(Boolean).join(" "),
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    start(async () => {
+      const res = await resolveAddress(query);
+      if (res.ok) {
+        setStreetAddress(street);
+        setResolvedLocation({
+          matchedAddress: res.matchedAddress,
+          city: res.city ?? "",
+          state: res.state ?? "",
+          zip: res.zip ?? "",
+          districtIds: res.districts.map((d) => d.id),
+        });
+        onContinue();
+        return;
+      }
+      // Different failures call for different sentences; see resolveAddress.
+      setError(
+        res.reason === "not_found"
+          ? "We couldn't find that address. Check the street number and spelling, and include the city or ZIP."
+          : res.reason === "no_districts"
+            ? "We found that address, but we haven't loaded district boundaries for it yet. Right now that means Florida only."
+            : "Address lookup isn't available right now.",
+      );
+    });
+  }
+
+  // Lets someone move on even when the lookup can't place them. Your Races
+  // then shows the address prompt rather than a guess.
+  function continueWithoutLookup() {
+    clearResolvedLocation();
+    saveTypedFields();
     onContinue();
   }
 
@@ -182,15 +255,17 @@ function AddressStep({
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <span style={{ fontFamily: cond, fontSize: 24 }}>Confirm your address</span>
         <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
-          HUSH. Guide uses this to pull up every race on your ballot. It&apos;s the same address
-          shown in the location pill at the top of the app, so anything you change here changes
-          it everywhere else too.
+          HUSH. Guide uses your street address to find the districts you live in, so it can show
+          only the races on your ballot. A ZIP code alone isn&apos;t enough, because ZIP codes and
+          voting districts don&apos;t share boundaries. It&apos;s the same address shown in the
+          location pill at the top of the app, so anything you change here changes it everywhere
+          else too.
         </span>
       </div>
 
       <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <label style={labelStyle}>
-          Street address (optional)
+          Street address
           <input
             value={draftStreet}
             onChange={(e) => setDraftStreet(e.target.value)}
@@ -235,10 +310,17 @@ function AddressStep({
           </label>
         </div>
 
-        <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
-          <RustButton type="submit" style={{ flex: 1 }}>
-            Continue
+        {error ? (
+          <span role="alert" style={{ fontSize: 12.5, color: C.rust, lineHeight: 1.5 }}>
+            {error}
+          </span>
+        ) : null}
+
+        <div style={{ display: "flex", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
+          <RustButton type="submit" style={{ flex: 1, opacity: pending ? 0.6 : 1 }}>
+            {pending ? "Finding your ballot…" : "Continue"}
           </RustButton>
+          {error ? <GhostButton onClick={continueWithoutLookup}>Continue without my ballot</GhostButton> : null}
           {onCancel ? <GhostButton onClick={onCancel}>Cancel</GhostButton> : null}
         </div>
       </form>
@@ -385,7 +467,7 @@ export function IssuesStep({
 const GUIDE_LEAD: "bills" | "races" = "races";
 
 function TileGrid({
-  races,
+  races: allRaces,
   politicians,
   positions,
   bills,
@@ -400,8 +482,21 @@ function TileGrid({
   onEditIssues: () => void;
 }) {
   const router = useRouter();
-  const { topics, polling } = usePrefs();
+  const { topics, polling, districtIds, state } = usePrefs();
   const knownIds = new Set(politicians.map((p) => p.id));
+
+  // Only the races this address votes in. Unlike the Ballot and Feed pages,
+  // which show everything until an address is given, the Guide shows nothing
+  // until it has one: "Your Races" should never list races that aren't yours.
+  // Races with no district attached are dropped too. Elsewhere they are kept
+  // so a gap in our data can't hide a real race, but here they would put
+  // races on a ballot that may not be this voter's.
+  const located = districtIds.length > 0;
+  const races = useMemo(() => {
+    if (!located) return [];
+    const scope = { districtIds, stateCode: state };
+    return filterRaces(allRaces, scope).filter((r) => scopeReasonFor(r, scope) !== "unknown-district");
+  }, [allRaces, located, districtIds, state]);
   const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
   const ballotPoliticians = useMemo(
     () => politicians.filter((p) => ballotIds.has(p.id)),
@@ -424,6 +519,7 @@ function TileGrid({
 
       <GuideAtAGlanceStrip
         races={races}
+        located={located}
         polling={polling}
         onEditAddress={onEditAddress}
         topics={topics}
@@ -436,15 +532,11 @@ function TileGrid({
         {GUIDE_LEAD === "bills" ? <BillsSection bills={bills} /> : null}
 
           {/*
-        RACES has 6 entries seeded (U.S. House, U.S. Senate, Mayor, State
-        Senate, County Judge, School Board), all for the same Jacksonville/Duval
-        County sample ballot BallotView and CompareView already use — there's
-        no real address-to-ballot lookup behind it yet, so every address
-        shows the same six races. The seed dataset still has no Governor,
-        State House, or County Commission race with a full candidate roster
-        — those tile types are left out rather than invented. The footer
-        disclaimer already covers this prototype limitation; it doesn't need
-        repeating here too. See app-content.ts.
+        Your Races is scoped to the saved address. The address step resolves
+        it to districts (resolveAddress) and `races` above keeps only the races
+        in those districts plus the statewide seats for the address's state.
+        With no resolved address the section asks for one instead of listing
+        everything.
       */}
 
       <div id="races" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -452,8 +544,16 @@ function TileGrid({
         <Kicker>Your Races</Kicker>
         <Display size={22}>See where candidates stand on your issues</Display>
       </div>
-      {races.length === 0 ? (
-        <EmptyState>No races found in the seed dataset.</EmptyState>
+      <AddressLookup changeLabel="Change address" />
+      {!located ? (
+        <EmptyState>
+          Enter your street address above and your races will show up here. Until then we
+          don&apos;t know which ones are yours.
+        </EmptyState>
+      ) : races.length === 0 ? (
+        <EmptyState>
+          We found your districts, but don&apos;t have any races loaded for them yet.
+        </EmptyState>
       ) : (
         <div
           style={{
@@ -655,6 +755,7 @@ function useDaysToElection(): number | null {
  */
 function GuideAtAGlanceStrip({
   races,
+  located,
   polling,
   onEditAddress,
   topics,
@@ -662,6 +763,8 @@ function GuideAtAGlanceStrip({
   onEditIssues,
 }: {
   races: Race[];
+  /** True once the saved address has resolved to districts; `races` is only meaningful then. */
+  located: boolean;
   polling: { name: string; detail: string };
   onEditAddress: () => void;
   topics: string[];
@@ -883,9 +986,13 @@ function GuideAtAGlanceStrip({
                 Your ballot
               </span>
               <span style={{ fontSize: 15, color: C.ink }}>
-                {races.length} Race{races.length === 1 ? "" : "s"} on Your Ballot
+                {located
+                  ? `${races.length} Race${races.length === 1 ? "" : "s"} on Your Ballot`
+                  : "Add your address"}
               </span>
-              <span style={{ fontSize: 11.5, color: C.muted }}>{raceLevelSummary(races)}</span>
+              <span style={{ fontSize: 11.5, color: C.muted }}>
+                {located ? raceLevelSummary(races) : "to see the races you vote in"}
+              </span>
             </div>
             <span style={{ marginLeft: "auto", color: C.rust }} aria-hidden>→</span>
           </a>
