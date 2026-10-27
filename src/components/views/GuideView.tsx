@@ -1135,9 +1135,15 @@ function pollingLabels(polling: PollingPlace): { name: string; line: string; fou
     return { name: "Election Day has passed", line: "Polling places are no longer listed", found: false };
   }
   if (polling.name) return { name: polling.name, line: polling.detail, found: true };
-  return polling.checkedAt
-    ? { name: "Not published yet", line: "Your county hasn't posted your polling place", found: false }
-    : { name: "Not looked up yet", line: "Add your address to find where you vote", found: false };
+  // A lookup that ran but found no place means Google doesn't have it, which is
+  // not the same as the county not having published one (Pinellas has, on its
+  // own finder), so the wording points at the lookup rather than claiming that.
+  if (polling.checkedAt) {
+    return polling.precinct
+      ? { name: "Look up your polling place", line: `Use ${polling.precinct.county}'s precinct finder`, found: false }
+      : { name: "Not shown here yet", line: "Use the lookup link to find your polling place", found: false };
+  }
+  return { name: "Not looked up yet", line: "Add your address to find where you vote", found: false };
 }
 
 /** The polling place's address for maps and calendar links, falling back to the reader's city. */
