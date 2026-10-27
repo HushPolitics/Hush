@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
-import { usePrefs } from "@/lib/prefs";
+import { usePrefs, type PollingPlace } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/app-content";
 import { ballotPoliticianIds } from "@/lib/feed";
@@ -21,6 +21,7 @@ import { Card, Chip, Display, EmptyState, ExpandableQuote, GhostButton, Kicker, 
 import RepresentativesCard from "@/components/RepresentativesCard";
 import AddressLookup from "@/components/AddressLookup";
 import { resolveAddress } from "@/app/actions/location";
+import { lookupPollingPlace, type PollingLookupResult } from "@/app/actions/polling";
 import { filterRaces, scopeReasonFor } from "@/lib/ballot-scope";
 import { BillsSection } from "./GuideBills";
 
@@ -141,6 +142,24 @@ export default function GuideView({
 // Step 1 — Address
 // ---------------------------------------------------------------------------
 
+/**
+ * A polling lookup result in the shape the prefs store keeps. A failed lookup
+ * is stored as "not checked" (no `checkedAt`) so the Guide asks again
+ * rather than claiming the county has nothing published.
+ */
+function toPollingPlace(r: PollingLookupResult): PollingPlace {
+  if (!r.ok) return { name: "", detail: "" };
+  const site = r.electionDay;
+  return {
+    name: site ? site.name || "Your polling place" : "",
+    detail: site?.address ?? "",
+    hours: site?.hours || undefined,
+    early: r.early.length > 0 ? r.early : undefined,
+    lookupUrl: r.lookupUrl ?? undefined,
+    checkedAt: Date.now(),
+  };
+}
+
 function AddressStep({
   hasGuide,
   onCancel,
@@ -161,7 +180,11 @@ function AddressStep({
     setZip,
     setResolvedLocation,
     clearResolvedLocation,
+    setPolling,
   } = usePrefs();
+  // Held while an address can't be matched to districts, so "Continue without
+  // my ballot" still keeps the polling place if that part did work.
+  const [heldPolling, setHeldPolling] = useState<PollingPlace | null>(null);
   const [draftStreet, setDraftStreet] = useState(streetAddress);
   const [draftCity, setDraftCity] = useState(city);
   const [draftState, setDraftState] = useState(state);
@@ -176,21 +199,19 @@ function AddressStep({
     if (draftZip.length === 5) setZip(draftZip);
   }
 
-  // Looks the typed address up and keeps the districts it resolves to, which
-  // is what scopes "Your Races" to the races this person actually votes in.
-  // Without a street address there is nothing to resolve (a ZIP crosses district
-  // lines), so the typed fields are saved, any earlier lookup is dropped so
-  // another address's districts never stay attached, and Your Races asks for
-  // the street address instead of guessing.
+  // Looks the typed address up and keeps what it resolves to: the districts,
+  // which scope "Your Races" and the ballot measures to this voter, and the
+  // polling place and early voting sites. A street address is required
+  // because a ZIP crosses district lines, so there is nothing reliable to
+  // look up without one. The two lookups run side by side; a polling failure
+  // never blocks the districts.
   function submit(e: FormEvent) {
     e.preventDefault();
     if (pending) return;
     setError(null);
     const street = draftStreet.trim();
     if (!street) {
-      clearResolvedLocation();
-      saveTypedFields();
-      onContinue();
+      setError("Enter your street address to continue. A ZIP code alone can't tell us which races are yours.");
       return;
     }
 
@@ -203,7 +224,11 @@ function AddressStep({
       .join(", ");
 
     start(async () => {
-      const res = await resolveAddress(query);
+      const [res, pollingRes] = await Promise.all([
+        resolveAddress(query),
+        lookupPollingPlace(query).catch((): PollingLookupResult => ({ ok: false, reason: "error" })),
+      ]);
+      const polling = toPollingPlace(pollingRes);
       if (res.ok) {
         setStreetAddress(street);
         setResolvedLocation({
@@ -213,9 +238,11 @@ function AddressStep({
           zip: res.zip ?? "",
           districtIds: res.districts.map((d) => d.id),
         });
+        setPolling(polling);
         onContinue();
         return;
       }
+      setHeldPolling(polling);
       // Different failures call for different sentences; see resolveAddress.
       setError(
         res.reason === "not_found"
@@ -232,6 +259,7 @@ function AddressStep({
   function continueWithoutLookup() {
     clearResolvedLocation();
     saveTypedFields();
+    setPolling(heldPolling ?? { name: "", detail: "" });
     onContinue();
   }
 
@@ -320,7 +348,7 @@ function AddressStep({
           <RustButton type="submit" style={{ flex: 1, opacity: pending ? 0.6 : 1 }}>
             {pending ? "Finding your ballot…" : "Continue"}
           </RustButton>
-          {error ? <GhostButton onClick={continueWithoutLookup}>Continue without my ballot</GhostButton> : null}
+          {error && heldPolling ? <GhostButton onClick={continueWithoutLookup}>Continue without my ballot</GhostButton> : null}
           {onCancel ? <GhostButton onClick={onCancel}>Cancel</GhostButton> : null}
         </div>
       </form>
@@ -482,7 +510,23 @@ function TileGrid({
   onEditIssues: () => void;
 }) {
   const router = useRouter();
-  const { topics, polling, districtIds, state } = usePrefs();
+  const { topics, polling, districtIds, state, matchedAddress, setPolling } = usePrefs();
+
+  // Look the polling place up again when what's stored is over 24 hours old (or
+  // was never looked up, e.g. an address saved before this existed). A failed
+  // refresh clears the old value rather than keeping data past its limit.
+  // Once per page load, so a failing lookup can't loop.
+  const refreshedPolling = useRef(false);
+  const pollingCheckedAt = polling.checkedAt;
+  useEffect(() => {
+    const age = pollingCheckedAt ? Date.now() - pollingCheckedAt : Infinity;
+    if (refreshedPolling.current || !matchedAddress || age < POLLING_MAX_AGE_MS) return;
+    if (Date.now() > new Date(ELECTION_ISO).getTime() + 86400000) return;
+    refreshedPolling.current = true;
+    lookupPollingPlace(matchedAddress)
+      .then((r) => setPolling(toPollingPlace(r)))
+      .catch(() => setPolling({ name: "", detail: "" }));
+  }, [matchedAddress, pollingCheckedAt, setPolling]);
   const knownIds = new Set(politicians.map((p) => p.id));
 
   // Only the races this address votes in. Unlike the Ballot and Feed pages,
@@ -498,6 +542,14 @@ function TileGrid({
     return filterRaces(allRaces, scope).filter((r) => scopeReasonFor(r, scope) !== "unknown-district");
   }, [allRaces, located, districtIds, state]);
   const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
+
+  // The ballot measures are Florida's constitutional amendments, so they show
+  // only for an address that resolved in Florida. Everyone else sees why the
+  // section is empty rather than another state's amendments.
+  const measures = located && state.toUpperCase() === "FL" ? bills : [];
+  const measuresEmpty = located
+    ? "We haven't loaded the ballot measures for your state yet."
+    : "Add your address and the measures you'll vote on will show up here.";
   const ballotPoliticians = useMemo(
     () => politicians.filter((p) => ballotIds.has(p.id)),
     [politicians, ballotIds],
@@ -529,7 +581,7 @@ function TileGrid({
 
       <VotingInformationSection polling={polling} />
 
-        {GUIDE_LEAD === "bills" ? <BillsSection bills={bills} /> : null}
+        {GUIDE_LEAD === "bills" ? <BillsSection bills={measures} emptyMessage={measuresEmpty} /> : null}
 
           {/*
         Your Races is scoped to the saved address. The address step resolves
@@ -687,7 +739,7 @@ function TileGrid({
       )}
       </div>
 
-      {GUIDE_LEAD === "races" ? <BillsSection bills={bills} /> : null}
+      {GUIDE_LEAD === "races" ? <BillsSection bills={measures} emptyMessage={measuresEmpty} /> : null}
     </>
   );
 }
@@ -765,7 +817,7 @@ function GuideAtAGlanceStrip({
   races: Race[];
   /** True once the saved address has resolved to districts; `races` is only meaningful then. */
   located: boolean;
-  polling: { name: string; detail: string };
+  polling: PollingPlace;
   onEditAddress: () => void;
   topics: string[];
   representatives: Politician[];
@@ -783,11 +835,10 @@ function GuideAtAGlanceStrip({
   // "303 N Laura St - 0.6 mi - Open 7am-7pm on election day" -> address +
   // distance. Same "split a seeded delimiter-joined string" pattern as
   // parseRaceTitle in guide.ts; hours (the third segment) isn't used here.
-  const [pollingAddress, pollingDistance] = polling.detail.split(" - ");
-  // `polling` is empty until the user looks one up (see prefs.tsx DEFAULTS),
-  // so these two carry the prompt rather than rendering blank lines.
-  const pollingName = polling.name || "Not looked up yet";
-  const pollingLine = polling.detail || "Look up where you vote";
+  // `polling` is empty until the address step looks it up (see prefs.tsx
+  // DEFAULTS), so the first two lines carry the prompt rather than blanks. A
+  // lookup that ran but found nothing says so instead of looking un-run.
+  const { name: pollingName, line: pollingLine } = pollingLabels(polling);
 
   return (
     <Card style={{ padding: 0, overflow: "hidden" }}>
@@ -960,9 +1011,9 @@ function GuideAtAGlanceStrip({
                 Your polling place
               </span>
               <span style={{ fontSize: 15, color: C.ink }}>{pollingName}</span>
-              <span style={{ fontSize: 11.5, color: C.muted }}>{pollingAddress || pollingLine}</span>
-              {pollingDistance ? (
-                <span style={{ fontSize: 11.5, color: C.muted }}>{pollingDistance} away</span>
+              <span style={{ fontSize: 11.5, color: C.muted }}>{pollingLine}</span>
+              {polling.hours ? (
+                <span style={{ fontSize: 11.5, color: C.muted }}>Open {polling.hours}</span>
               ) : null}
             </div>
             <span style={{ marginLeft: "auto", color: C.ink }} aria-hidden>→</span>
@@ -1070,29 +1121,50 @@ function GlanceIcon({ kind, size = 16, color = C.ink }: { kind: string; size?: n
  * "Check my registration" already is -- no ICS file, no backend, consistent
  * with every other external hand-off on this page.
  */
-function calendarHref(polling: { name: string }, cityStateZip: string): string {
+/** Google's terms: voting-location data may be kept for at most 24 hours. */
+const POLLING_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+/** What to show for the polling place before, and after, a lookup has run. */
+function pollingLabels(polling: PollingPlace): { name: string; line: string; found: boolean } {
+  // Google stops returning polling data once Election Day passes, so after it
+  // "not published" would be wrong. Say the election is over instead.
+  if (Date.now() > new Date(ELECTION_ISO).getTime() + 86400000) {
+    return { name: "Election Day has passed", line: "Polling places are no longer listed", found: false };
+  }
+  if (polling.name) return { name: polling.name, line: polling.detail, found: true };
+  return polling.checkedAt
+    ? { name: "Not published yet", line: "Your county hasn't posted your polling place", found: false }
+    : { name: "Not looked up yet", line: "Add your address to find where you vote", found: false };
+}
+
+/** The polling place's address for maps and calendar links, falling back to the reader's city. */
+function pollingWhere(polling: PollingPlace, cityStateZip: string): string {
+  return [polling.name, polling.detail || cityStateZip].filter(Boolean).join(", ");
+}
+
+function calendarHref(polling: PollingPlace, cityStateZip: string): string {
   const start = "20261103";
   const end = "20261104"; // Google's all-day `dates` end date is exclusive.
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: "Election Day - Vote",
     dates: `${start}/${end}`,
-    details: `Polling place: ${polling.name}`,
-    location: `${polling.name}, ${cityStateZip}`.trim(),
+    details: polling.name ? `Polling place: ${polling.name}` : "Election Day. Find your polling place before you go.",
+    location: polling.name ? pollingWhere(polling, cityStateZip) : cityStateZip,
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
-function directionsHref(polling: { name: string }, cityStateZip: string): string {
-  const destination = `${polling.name}, ${cityStateZip}`.trim();
+function directionsHref(polling: PollingPlace, cityStateZip: string): string {
+  const destination = pollingWhere(polling, cityStateZip);
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
 }
 
-function VotingInformationSection({ polling }: { polling: { name: string; detail: string } }) {
-  // `polling` is empty until the user looks one up (see prefs.tsx DEFAULTS),
-  // so these two carry the prompt rather than rendering blank lines.
-  const pollingName = polling.name || "Not looked up yet";
-  const pollingLine = polling.detail || "Look up where you vote";
+function VotingInformationSection({ polling }: { polling: PollingPlace }) {
+  // See pollingLabels: the prompt, or "not published yet" after a lookup that
+  // found nothing, rather than blank lines.
+  const { name: pollingName, line: pollingLine, found } = pollingLabels(polling);
+  const finderUrl = polling.lookupUrl || "https://www.vote.org/polling-place-locator/";
   const days = useDaysToElection();
   const { city, state, zip } = usePrefs();
   const cityStateZip = [city, state, zip].filter(Boolean).join(" ");
@@ -1191,10 +1263,26 @@ function VotingInformationSection({ polling }: { polling: { name: string; detail
           <Kicker size={10}>Where you vote</Kicker>
           <span style={{ fontSize: 16, lineHeight: 1.2 }}>{pollingName}</span>
           <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>{pollingLine}</span>
+          {polling.hours ? (
+            <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.4 }}>Open {polling.hours}</span>
+          ) : null}
+          {polling.early && polling.early.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 6 }}>
+              <Kicker size={10}>Early voting</Kicker>
+              {polling.early.slice(0, 3).map((site, i) => (
+                <span key={`${site.name}-${i}`} style={{ fontSize: 11.5, color: C.body, lineHeight: 1.35 }}>
+                  {[site.name, site.address].filter(Boolean).join(", ")}
+                  {site.hours ? ` · ${site.hours}` : ""}
+                </span>
+              ))}
+            </div>
+          ) : null}
           <button
             type="button"
             className="link-quiet"
-            onClick={() => window.open(directionsHref(polling, cityStateZip), "_blank", "noopener")}
+            onClick={() =>
+              window.open(found ? directionsHref(polling, cityStateZip) : finderUrl, "_blank", "noopener")
+            }
             style={{
               marginTop: "auto",
               alignSelf: "flex-start",
@@ -1207,7 +1295,7 @@ function VotingInformationSection({ polling }: { polling: { name: string; detail
               padding: 0,
             }}
           >
-            Get directions →
+            {found ? "Get directions →" : "Find your polling place →"}
           </button>
         </div>
       </Card>
