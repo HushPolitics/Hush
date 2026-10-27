@@ -252,8 +252,11 @@ async function civic<T>(path: string, params: Record<string, string>, key: strin
  * Counties often publish early voting hours as one line per day ("Mon, Oct 19:
  * 7 am - 7 pm" for two weeks straight), which is unreadable in a small box.
  * When every day has the same hours it becomes one line ("Oct 19 - Nov 1, daily
- * 7 am - 7 pm"). When the days differ it says so rather than guessing, since
- * the county's own schedule is what the voter should follow.
+ * 7 am - 7 pm"). When weekdays and weekends differ it groups them ("Oct 19 -
+ * Nov 1, Mon-Fri 7 am - 7 pm; Sat-Sun 7 am - 5 pm"). Only when one specific
+ * weekday has different hours on different weeks does it fall back to pointing
+ * at the county's schedule, since the county's own schedule is what the voter
+ * should follow.
  */
 function summarizeHours(raw: string): string {
   const lines = raw
@@ -267,13 +270,60 @@ function summarizeHours(raw: string): string {
     return m ? { date: m[1], time: m[2].trim() } : null;
   });
   if (parsed.every((p): p is { date: string; time: string } => p !== null)) {
-    const times = new Set(parsed.map((p) => p.time));
-    if (times.size === 1) return `${parsed[0].date} - ${parsed[parsed.length - 1].date}, daily ${parsed[0].time}`;
+    // Group days by their hours. Works when each weekday keeps the same hours
+    // all the way through the window (Mon-Fri one set, Sat-Sun another).
+    const timeForDay = new Map<number, string>();
+    const daysByTime = new Map<string, number[]>();
+    let consistent = true;
+    for (const p of parsed) {
+      const dow = weekdayIndex(p.date);
+      const seen = dow === null ? undefined : timeForDay.get(dow);
+      if (dow === null || (seen !== undefined && seen !== p.time)) {
+        consistent = false;
+        break;
+      }
+      timeForDay.set(dow, p.time);
+      daysByTime.set(p.time, [...(daysByTime.get(p.time) ?? []), dow]);
+    }
+    if (consistent) {
+      const groups = [...daysByTime.entries()]
+        .sort((a, b) => Math.min(...a[1]) - Math.min(...b[1]))
+        .map(([time, days]) => `${weekdayRuns(days)} ${time}`);
+      return `${parsed[0].date} - ${parsed[parsed.length - 1].date}, ${groups.join("; ")}`;
+    }
   }
   return "Hours vary by day; see the county's schedule";
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+/** Monday-first weekday index (0 = Mon ... 6 = Sun) for "Oct 19" in the election year. */
+function weekdayIndex(date: string): number | null {
+  const m = date.match(/^([A-Za-z]{3})\s+(\d{1,2})$/);
+  if (!m) return null;
+  const month = MONTHS.findIndex((x) => x.toLowerCase() === m[1].toLowerCase());
+  if (month < 0) return null;
+  const year = Number(ELECTION_ISO.slice(0, 4));
+  const sundayFirst = new Date(Date.UTC(year, month, Number(m[2]))).getUTCDay();
+  return (sundayFirst + 6) % 7;
+}
+
+/** [0,1,2,3,4] -> "Mon-Fri"; [5,6] -> "Sat-Sun"; [0,2] -> "Mon, Wed"; all seven -> "daily". */
+function weekdayRuns(days: number[]): string {
+  const sorted = [...new Set(days)].sort((a, b) => a - b);
+  if (sorted.length === 7) return "daily";
+  const runs: string[] = [];
+  let i = 0;
+  while (i < sorted.length) {
+    let j = i;
+    while (j + 1 < sorted.length && sorted[j + 1] === sorted[j] + 1) j++;
+    runs.push(j === i ? WEEKDAYS[sorted[i]] : `${WEEKDAYS[sorted[i]]}-${WEEKDAYS[sorted[j]]}`);
+    i = j + 1;
+  }
+  return runs.join(", ");
+}
 
 /** "2026-10-19" -> sortable number (month*100+day) and label "Oct 19". */
 function fromIso(iso: string | undefined): { key: number; label: string } | null {
