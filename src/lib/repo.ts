@@ -413,7 +413,19 @@ const CHAMBER_LABEL: Record<string, string> = {
 };
 
 /**
- * Bills currently before the legislature.
+ * Statuses that mean a bill actually moved. LegiScan marks everything that
+ * died in committee or on the calendar as "Failed", and a bill still sitting
+ * at "Introduced" when the session ends is dead too, so neither is listed.
+ * Revisit this (and add "Introduced") once a new session is under way.
+ */
+const LIVE_BILL_STATUSES = ["Engrossed", "Passed", "Vetoed"];
+
+/** Safety cap only -- the live set is a few hundred bills, not thousands. */
+const BILL_LIMIT = 300;
+
+/**
+ * Florida bills that cleared at least one chamber (see LIVE_BILL_STATUSES),
+ * newest first.
  *
  * `plain_summary` is the legislature's own official summary as carried by
  * LegiScan, so it maps to `description` (the tile's "short official-ish
@@ -430,8 +442,10 @@ export async function listBills(): Promise<Bill[]> {
   const { data, error } = await supabase
     .from("bills")
     .select("id, number, title, chamber, session_label, plain_summary, status, introduced_on, source_url, retrieved_at")
+    .in("status", LIVE_BILL_STATUSES)
+    .order("introduced_on", { ascending: false, nullsFirst: false })
     .order("number")
-    .limit(200);
+    .limit(BILL_LIMIT);
 
   if (error || !data) return [];
 
