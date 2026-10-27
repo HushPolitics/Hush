@@ -39,6 +39,10 @@ export type PollingLookupResult =
       early: PollingSite[];
       /** The state's own polling-place finder, when Google has one on file. */
       lookupUrl: string | null;
+      /** Span of the early voting sites' dates, e.g. "Oct 19 - Nov 1", when known. */
+      earlyWindow: string | null;
+      /** Counts only (no addresses), to tell "Google has none" from "we dropped it". */
+      diag: { electionId: string; polling: number; early: number; dropOff: number; retried: boolean };
     }
   | { ok: false; reason: "unconfigured" | "error" };
 
@@ -58,6 +62,8 @@ interface CivicAddress {
 
 interface CivicSite {
   name?: string;
+  startDate?: string;
+  endDate?: string;
   address?: CivicAddress;
   pollingHours?: string;
 }
@@ -65,6 +71,7 @@ interface CivicSite {
 interface VoterInfo {
   pollingLocations?: CivicSite[];
   earlyVoteSites?: CivicSite[];
+  dropOffLocations?: CivicSite[];
   state?: { electionAdministrationBody?: { votingLocationFinderUrl?: string } }[];
 }
 
@@ -104,6 +111,57 @@ function summarizeHours(raw: string): string {
   return "Hours vary by day; see the county's schedule";
 }
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "2026-10-19" -> sortable number (month*100+day) and label "Oct 19". */
+function fromIso(iso: string | undefined): { key: number; label: string } | null {
+  const m = iso?.match(/^\d{4}-(\d{2})-(\d{2})/);
+  if (!m) return null;
+  const month = Number(m[1]);
+  const day = Number(m[2]);
+  return month >= 1 && month <= 12 ? { key: month * 100 + day, label: `${MONTHS[month - 1]} ${day}` } : null;
+}
+
+/** "Oct 19 - Nov 1, daily 7 am - 7 pm" (see summarizeHours) -> the two dates. */
+function fromSummary(hours: string): { start: { key: number; label: string }; end: { key: number; label: string } } | null {
+  const m = hours.match(/^([A-Za-z]{3}) (\d{1,2}) - ([A-Za-z]{3}) (\d{1,2}),/);
+  if (!m) return null;
+  const mo = (name: string) => MONTHS.findIndex((x) => x.toLowerCase() === name.toLowerCase()) + 1;
+  const a = mo(m[1]);
+  const b = mo(m[3]);
+  if (!a || !b) return null;
+  return {
+    start: { key: a * 100 + Number(m[2]), label: `${MONTHS[a - 1]} ${Number(m[2])}` },
+    end: { key: b * 100 + Number(m[4]), label: `${MONTHS[b - 1]} ${Number(m[4])}` },
+  };
+}
+
+/**
+ * The span the early voting sites cover, from Google's own start/end dates when
+ * it sends them and otherwise from the dates in the published hours. Earliest
+ * start to latest end across the sites, since counties differ.
+ */
+function earlyWindowOf(raw: CivicSite[], sites: PollingSite[]): string | null {
+  const starts: { key: number; label: string }[] = [];
+  const ends: { key: number; label: string }[] = [];
+  raw.forEach((r, i) => {
+    const a = fromIso(r.startDate);
+    const b = fromIso(r.endDate);
+    const h = sites[i] ? fromSummary(sites[i].hours) : null;
+    if (a && b) {
+      starts.push(a);
+      ends.push(b);
+    } else if (h) {
+      starts.push(h.start);
+      ends.push(h.end);
+    }
+  });
+  if (starts.length === 0) return null;
+  const start = starts.reduce((x, y) => (y.key < x.key ? y : x));
+  const end = ends.reduce((x, y) => (y.key > x.key ? y : x));
+  return `${start.label} - ${end.label}`;
+}
+
 function toSite(s: CivicSite): PollingSite {
   const a = s.address ?? {};
   const street = [a.line1, a.line2, a.line3].filter(Boolean).join(" ");
@@ -129,17 +187,47 @@ export async function lookupPollingPlace(address: string): Promise<PollingLookup
   const list = await civic<{ elections?: { id: string; electionDay: string }[] }>("elections", {}, key);
   if (!list) return { ok: false, reason: "error" };
   const election = (list.elections ?? []).find((e) => e.electionDay === ELECTION_DAY);
-  if (!election) return { ok: true, electionDay: null, early: [], lookupUrl: null };
+  if (!election) {
+    return {
+      ok: true,
+      electionDay: null,
+      early: [],
+      lookupUrl: null,
+      earlyWindow: null,
+      diag: { electionId: "none", polling: 0, early: 0, dropOff: 0, retried: false },
+    };
+  }
 
-  const info = await civic<VoterInfo>("voterinfo", { address: query, electionId: election.id }, key);
+  let info = await civic<VoterInfo>("voterinfo", { address: query, electionId: election.id }, key);
   if (!info) return { ok: false, reason: "error" };
 
+  // Google's own advice is to also query without an election id, which lets it
+  // pick the election for the address. Tried only when the first answer has no
+  // Election Day place, and used only if it does.
+  let retried = false;
+  if ((info.pollingLocations ?? []).length === 0) {
+    retried = true;
+    const again = await civic<VoterInfo>("voterinfo", { address: query }, key);
+    if (again && (again.pollingLocations ?? []).length > 0) info = again;
+  }
+
   const polling = (info.pollingLocations ?? []).map(toSite).filter((s) => s.address || s.name);
-  const early = (info.earlyVoteSites ?? [])
-    .map(toSite)
-    .filter((s) => s.address || s.name)
-    .slice(0, MAX_EARLY_SITES);
+  const earlyRaw = (info.earlyVoteSites ?? []).filter((r) => toSite(r).address || toSite(r).name).slice(0, MAX_EARLY_SITES);
+  const early = earlyRaw.map(toSite);
   const lookupUrl = info.state?.[0]?.electionAdministrationBody?.votingLocationFinderUrl ?? null;
 
-  return { ok: true, electionDay: polling[0] ?? null, early, lookupUrl };
+  return {
+    ok: true,
+    electionDay: polling[0] ?? null,
+    early,
+    lookupUrl,
+    earlyWindow: earlyWindowOf(earlyRaw, early),
+    diag: {
+      electionId: election.id,
+      polling: (info.pollingLocations ?? []).length,
+      early: (info.earlyVoteSites ?? []).length,
+      dropOff: (info.dropOffLocations ?? []).length,
+      retried,
+    },
+  };
 }
