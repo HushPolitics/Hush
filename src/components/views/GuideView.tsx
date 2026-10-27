@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs, type PollingPlace } from "@/lib/prefs";
@@ -144,7 +144,7 @@ export default function GuideView({
 
 /**
  * A polling lookup result in the shape the prefs store keeps. A failed lookup
- * is stored as "not checked" (no `checked` flag) so the Guide asks again
+ * is stored as "not checked" (no `checkedAt`) so the Guide asks again
  * rather than claiming the county has nothing published.
  */
 function toPollingPlace(r: PollingLookupResult): PollingPlace {
@@ -156,7 +156,7 @@ function toPollingPlace(r: PollingLookupResult): PollingPlace {
     hours: site?.hours || undefined,
     early: r.early.length > 0 ? r.early : undefined,
     lookupUrl: r.lookupUrl ?? undefined,
-    checked: true,
+    checkedAt: Date.now(),
   };
 }
 
@@ -510,7 +510,23 @@ function TileGrid({
   onEditIssues: () => void;
 }) {
   const router = useRouter();
-  const { topics, polling, districtIds, state } = usePrefs();
+  const { topics, polling, districtIds, state, matchedAddress, setPolling } = usePrefs();
+
+  // Look the polling place up again when what's stored is over 24 hours old (or
+  // was never looked up, e.g. an address saved before this existed). A failed
+  // refresh clears the old value rather than keeping data past its limit.
+  // Once per page load, so a failing lookup can't loop.
+  const refreshedPolling = useRef(false);
+  const pollingCheckedAt = polling.checkedAt;
+  useEffect(() => {
+    const age = pollingCheckedAt ? Date.now() - pollingCheckedAt : Infinity;
+    if (refreshedPolling.current || !matchedAddress || age < POLLING_MAX_AGE_MS) return;
+    if (Date.now() > new Date(ELECTION_ISO).getTime() + 86400000) return;
+    refreshedPolling.current = true;
+    lookupPollingPlace(matchedAddress)
+      .then((r) => setPolling(toPollingPlace(r)))
+      .catch(() => setPolling({ name: "", detail: "" }));
+  }, [matchedAddress, pollingCheckedAt, setPolling]);
   const knownIds = new Set(politicians.map((p) => p.id));
 
   // Only the races this address votes in. Unlike the Ballot and Feed pages,
@@ -1105,10 +1121,18 @@ function GlanceIcon({ kind, size = 16, color = C.ink }: { kind: string; size?: n
  * "Check my registration" already is -- no ICS file, no backend, consistent
  * with every other external hand-off on this page.
  */
+/** Google's terms: voting-location data may be kept for at most 24 hours. */
+const POLLING_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
 /** What to show for the polling place before, and after, a lookup has run. */
 function pollingLabels(polling: PollingPlace): { name: string; line: string; found: boolean } {
+  // Google stops returning polling data once Election Day passes, so after it
+  // "not published" would be wrong. Say the election is over instead.
+  if (Date.now() > new Date(ELECTION_ISO).getTime() + 86400000) {
+    return { name: "Election Day has passed", line: "Polling places are no longer listed", found: false };
+  }
   if (polling.name) return { name: polling.name, line: polling.detail, found: true };
-  return polling.checked
+  return polling.checkedAt
     ? { name: "Not published yet", line: "Your county hasn't posted your polling place", found: false }
     : { name: "Not looked up yet", line: "Add your address to find where you vote", found: false };
 }
