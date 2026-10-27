@@ -451,6 +451,95 @@ export async function listBills(): Promise<Bill[]> {
   }));
 }
 
+/**
+ * Statewide constitutional amendments on the Nov 3, 2026 Florida ballot.
+ *
+ * Hand-written stopgap. The ballot-measures section needs these, and the
+ * `bills` table holds none of them (no joint resolutions were ever loaded).
+ * The LegiScan joint-resolution sync (/api/ingest?job=legiscan) is meant to
+ * replace this once its output is verified; delete this list then.
+ *
+ * Titles are the official ballot titles. Everything else is Hush's own
+ * plain-English paraphrase, which the card says is not the official language,
+ * and `sourceUrl` points at the Department of State's official booklet so the
+ * voter can read the real text. Amendment 3's ballot language was challenged
+ * in court in 2026; re-check the official text before relying on the summary.
+ */
+const BALLOT_SOURCE_URL =
+  "https://files.floridados.gov/media/711369/eng-2026-booklet-constitutional-amendpub-updated-20260903.pdf";
+
+export function ballotMeasures(): Bill[] {
+  const common = {
+    kind: "amendment" as const,
+    chamber: "Florida Legislature",
+    level: "State" as Level,
+    voteDate: "November 3, 2026",
+    voteStage: "Needs 60% of voters to pass",
+    sourceName: "Florida Department of State",
+    sourceUrl: BALLOT_SOURCE_URL,
+    dateAccessed: "2026-10-27",
+  };
+
+  return [
+    {
+      ...common,
+      id: "fl-2026-amendment-1",
+      number: "Amendment 1",
+      title: "Budget Stabilization Fund",
+      description: "Lets Florida's rainy-day fund grow larger and requires yearly deposits.",
+      explanation:
+        "Florida keeps an emergency savings account, the Budget Stabilization Fund, often called the rainy-day fund. This amendment would let it hold more and require the Legislature to keep adding to it.",
+      yesMeans: [
+        "Raise the fund's cap from 10% to 25% of the state's general revenue (today's cap is roughly $5 billion).",
+        "Require the Legislature to deposit $750 million a year, or less if that is enough to reach the cap.",
+        "Let lawmakers skip a year's deposit if money was already taken out that year, or by a two-thirds vote once every five years for a critical need costing more than $750 million.",
+      ],
+      noMeans: [
+        "Keep the fund's cap at 10% of general revenue.",
+        "Leave the fund's deposit and withdrawal rules as they are today.",
+      ],
+    },
+    {
+      ...common,
+      id: "fl-2026-amendment-2",
+      number: "Amendment 2",
+      title: "Exemption of Tangible Personal Property on Agricultural Land from Taxation",
+      description: "Exempts some farm equipment from property taxes.",
+      explanation:
+        "Farmers pay local property tax on equipment such as tractors and harvesting machines. This amendment would exempt certain equipment used for farming or agritourism.",
+      yesMeans: [
+        "Exempt certain tangible personal property on agricultural land, like tractors and harvesting machines, from property taxes if it is used for agricultural production or agritourism and owned by the person who owns or leases the land.",
+        "Apply first to tax year 2027.",
+        "Reduce local property tax revenue. A legislative analysis estimated about $31 million a year starting in fiscal year 2027-28.",
+      ],
+      noMeans: [
+        "Keep taxing that equipment under current property tax rules.",
+        "Leave local governments' property tax revenue from it unchanged.",
+      ],
+    },
+    {
+      ...common,
+      id: "fl-2026-amendment-3",
+      number: "Amendment 3",
+      title: "Increased Homestead Exemption; Lower Cap on Increases in Non-Homestead Property Assessments",
+      description: "Raises the homestead exemption and lowers the assessment cap on other property.",
+      explanation:
+        "This amendment changes how property taxes are figured. It raises the homestead exemption on non-school property taxes for homeowners and slows how fast the taxable value of other property can rise.",
+      yesMeans: [
+        "Raise the homestead exemption from non-school property taxes to $150,000 in 2027 and $250,000 in 2028, adjusted for inflation after that.",
+        "Lower the yearly cap on assessment increases for non-homestead property, such as rental and business property, from 10% to 5%.",
+        "Give people who were not Florida residents on Dec. 31, 2026 the current exemption at first, with the larger exemption starting in their fifth year, as far as the U.S. Constitution allows.",
+        "Require counties and cities to use property tax money mainly for set purposes such as public safety, education and infrastructure.",
+        "Reduce the property tax revenue local governments collect. Takes effect Jan. 1, 2027.",
+      ],
+      noMeans: [
+        "Keep today's homestead exemption and the 10% cap on non-homestead assessment increases.",
+        "Leave the rules on how local governments spend property tax money as they are.",
+      ],
+    },
+  ];
+}
+
 // ---------------------------------------------------------------------------
 // App content -- written by Hush, not ingested. Synchronous by design.
 // ---------------------------------------------------------------------------
