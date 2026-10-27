@@ -42,11 +42,12 @@ export type PollingLookupResult =
       /** Span of the early voting sites' dates, e.g. "Oct 19 - Nov 1", when known. */
       earlyWindow: string | null;
       /**
-       * A link to the county's own precinct finder with the voter's house number
-       * and street filled in, for counties where we have checked how it works.
-       * Null elsewhere. Used only when Google has no Election Day place.
+       * A link to the county's own polling place finder. `prefilled` is true when
+       * the voter's house number and street are in the link (counties where we
+       * have checked how the form works) and false when it is just the county's
+       * page. Null outside Florida. Used only when Google has no Election Day place.
        */
-      precinct: { url: string; county: string } | null;
+      precinct: { url: string; county: string; prefilled: boolean } | null;
       /** Counts only (no addresses), to tell "Google has none" from "we dropped it". */
       diag: { electionId: string; polling: number; early: number; dropOff: number; retried: boolean };
     }
@@ -69,6 +70,86 @@ const VOTERFOCUS_COUNTIES: Record<string, string> = {
   "12103": "FL-PIN", // Pinellas, checked against 855 Central Ave and 100 1st Ave N, St. Petersburg
 };
 
+/**
+ * Every Florida county's own page for finding a polling place, keyed by FIPS.
+ * For counties whose precinct finder we haven't opened and checked end to end
+ * (everything but VOTERFOCUS_COUNTIES) the voter lands on that page and types
+ * their address there, so nothing about the address is sent. Where a county's
+ * dedicated finder page couldn't be confirmed, the entry is the county
+ * elections office's home page instead of a guessed deep link.
+ * Sourced from each supervisor of elections' site and the FL Division of
+ * Elections list of precinct lookups; re-check before each election.
+ */
+const FL_COUNTY_FINDERS: Record<string, { name: string; url: string }> = {
+  "12001": { name: "Alachua", url: "https://www.votealachua.gov/207/Precinct-Voting" },
+  "12003": { name: "Baker", url: "https://votebakerfl.gov/precinct-finder/" },
+  "12005": { name: "Bay", url: "https://www.bayvotesfl.gov/" },
+  "12007": { name: "Bradford", url: "https://www.votebradfordfl.gov/voter/polling_locations.php" },
+  "12009": { name: "Brevard", url: "https://www.votebrevard.gov/Voter-Information/Find-Your-Precinct" },
+  "12011": { name: "Broward", url: "https://browardvotes.gov/voters/precinct-finder" },
+  "12013": { name: "Calhoun", url: "https://votecalhounfl.gov/" },
+  "12015": { name: "Charlotte", url: "https://www.soecharlottecountyfl.gov/" },
+  "12017": { name: "Citrus", url: "https://www.votecitrus.gov/230/Precinct-Finder" },
+  "12019": { name: "Clay", url: "https://www.clayelections.gov/Election-Information/Precinct-Finder" },
+  "12021": { name: "Collier", url: "https://www.colliervotes.gov/165/Find-My-Precinct" },
+  "12023": { name: "Columbia", url: "https://www.votecolumbiafl.gov/voter_information/precincts_and_maps.php" },
+  "12027": { name: "DeSoto", url: "https://votedesotofl.gov/voter-information/precinct-finder/" },
+  "12029": { name: "Dixie", url: "https://dixievotes.gov/voter-resources/precinct-finder/" },
+  "12031": { name: "Duval", url: "https://www.duvalelections.gov/204" },
+  "12033": { name: "Escambia", url: "https://escambiavotes.gov/precinct-finder" },
+  "12035": { name: "Flagler", url: "https://www.flaglerelections.gov/My-Voter-Info/Find-Your-Precinct" },
+  "12037": { name: "Franklin", url: "https://www.votefranklinfl.gov/voter_information/precinct.php" },
+  "12039": { name: "Gadsden", url: "https://votegadsdenfl.gov/election-info/precinct-information/precinct-lookup/" },
+  "12041": { name: "Gilchrist", url: "https://www.votegilchrist.com/information_for_voters/precinct_finder.php" },
+  "12043": { name: "Glades", url: "https://voteglades.gov/voting-info/precinct-finder/" },
+  "12045": { name: "Gulf", url: "https://votegulf.gov/voters/where-to-vote/" },
+  "12047": { name: "Hamilton", url: "https://www.hamiltonvotesfl.gov/" },
+  "12049": { name: "Hardee", url: "https://hardeeflvotes.gov/voter-information-sample-ballot/find-my-precinct/" },
+  "12051": { name: "Hendry", url: "https://hendryelections.gov/voter/precinct_finder.php" },
+  "12053": { name: "Hernando", url: "https://www.hernandovotes.gov/" },
+  "12055": { name: "Highlands", url: "https://www.votehighlands.gov/where-do-i-vote" },
+  "12057": { name: "Hillsborough", url: "https://votehillsborough.gov/Q5page" },
+  "12059": { name: "Holmes", url: "https://holmeselectionsfl.gov/voter-information/where-to-vote/precinct-finder/" },
+  "12061": { name: "Indian River", url: "https://www.voteindianriver.com/Polling-Places/Find-My-Polling-Place" },
+  "12063": { name: "Jackson", url: "https://www.votejacksonfl.gov/" },
+  "12065": { name: "Jefferson", url: "https://www.jeffersonvotesfl.gov/" },
+  "12067": { name: "Lafayette", url: "https://www.lafayettevotes.net/" },
+  "12069": { name: "Lake", url: "https://www.lakevotes.gov/164/Find-My-Precinct" },
+  "12071": { name: "Lee", url: "https://www.lee.vote/245/Precincts-and-Polling-Places" },
+  "12073": { name: "Leon", url: "https://www.leonvotes.gov/Registration/Check-Your-Info" },
+  "12075": { name: "Levy", url: "https://www.votelevy.gov/voters/where-to-vote-in-person/" },
+  "12077": { name: "Liberty", url: "https://libertycountyflsoe.gov/" },
+  "12079": { name: "Madison", url: "https://www.votemadison.com/where-to-vote-in-person/" },
+  "12081": { name: "Manatee", url: "https://www.votemanatee.gov/precinct-finder/" },
+  "12083": { name: "Marion", url: "https://www.votemarion.gov/335/Find-My-Voting-Location" },
+  "12085": { name: "Martin", url: "https://www.martinvotes.gov/election-information/precinct-maps/" },
+  "12086": { name: "Miami-Dade", url: "https://www.votemiamidade.gov/elections/voters/information.page" },
+  "12087": { name: "Monroe", url: "https://www.votemonroeflkeys.gov/Where-to-Vote/Search" },
+  "12089": { name: "Nassau", url: "https://www.votenassaufl.gov/where-do-i-vote" },
+  "12091": { name: "Okaloosa", url: "https://www.voteokaloosa.gov/voters/where-to-vote-in-person/" },
+  "12093": { name: "Okeechobee", url: "https://voteokeechobee.gov/voter-information/find-your-precinct/" },
+  "12095": { name: "Orange", url: "https://voteorangefl.gov/find-your-polling-place/" },
+  "12097": { name: "Osceola", url: "https://www.voteosceola.gov/" },
+  "12099": { name: "Palm Beach", url: "https://www.votepalmbeach.gov/Voters/Precinct-Finder" },
+  "12101": { name: "Pasco", url: "https://www.pascovotes.gov/precincts/precinct_finder.php" },
+  "12103": { name: "Pinellas", url: "https://www.voterfocus.com/PrecinctFinder/addressSearch?county=FL-PIN" },
+  "12105": { name: "Polk", url: "https://www.polkelections.gov/Voter-Services/Voting-Information" },
+  "12107": { name: "Putnam", url: "https://www.voteputnamflorida.gov/election_information/precinct_finder.php" },
+  "12109": { name: "St. Johns", url: "https://www.votesjc.gov/find-my-polling-place" },
+  "12111": { name: "St. Lucie", url: "https://www.stlucievotes.gov/voter_information/find_my_precinct.php" },
+  "12113": { name: "Santa Rosa", url: "https://votesantarosa.gov/election-information/list-of-precincts/" },
+  "12115": { name: "Sarasota", url: "https://sarasotavotes.gov/Voter-Information/Find-My-Polling-Place" },
+  "12117": { name: "Seminole", url: "https://voteseminole.dolphmap.com/" },
+  "12119": { name: "Sumter", url: "https://elections.sumtercountyfl.gov/" },
+  "12121": { name: "Suwannee", url: "https://www.suwanneevotes.com/where-to-vote-in-person/" },
+  "12123": { name: "Taylor", url: "https://www.taylorelectionsfl.gov/where-to-vote-in-person/" },
+  "12125": { name: "Union", url: "https://unionflvotes.com/voters/where-to-vote-in-person/" },
+  "12127": { name: "Volusia", url: "https://www.volusiaelections.gov/voterportal/index.stml" },
+  "12129": { name: "Wakulla", url: "https://wakullavotes.gov/" },
+  "12131": { name: "Walton", url: "https://votewalton.gov/where-do-i-vote/" },
+  "12133": { name: "Washington", url: "https://wcsoe.gov/find-my-precinct/" },
+};
+
 const CENSUS_GEOGRAPHIES = "https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress";
 
 interface CensusGeoMatch {
@@ -84,13 +165,13 @@ interface CensusGeoMatch {
 }
 
 /**
- * Builds the county precinct-finder link for an address, or null when the
- * county isn't one we have checked or the Census can't place the address.
+ * Builds the county polling-place finder link for an address, or null when the
+ * address isn't in a Florida county or the Census can't place it.
  * The county comes from the Census geocoder (the same agency and benchmark the
  * rest of the app uses), and the street parts from its parse of the address, so
  * "100 1st Ave N" is sent the way the county's own form sends it.
  */
-async function precinctFinderFor(address: string): Promise<{ url: string; county: string } | null> {
+async function precinctFinderFor(address: string): Promise<{ url: string; county: string; prefilled: boolean } | null> {
   const url =
     `${CENSUS_GEOGRAPHIES}?address=${encodeURIComponent(address)}` +
     `&benchmark=Public_AR_Current&vintage=Current_Current&format=json`;
@@ -104,10 +185,17 @@ async function precinctFinderFor(address: string): Promise<{ url: string; county
     return null;
   }
   const county = match?.geographies?.Counties?.[0];
-  const code = county?.STATE && county?.COUNTY ? VOTERFOCUS_COUNTIES[county.STATE + county.COUNTY] : undefined;
+  const fips = county?.STATE && county?.COUNTY ? county.STATE + county.COUNTY : undefined;
+  const finder = fips ? FL_COUNTY_FINDERS[fips] : undefined;
+  if (!fips || !finder) return null;
+  const countyName = county?.NAME ?? `${finder.name} County`;
+
+  // Counties we have checked get the voter's street filled in; the rest get the
+  // county's own page, where the voter types it themselves.
+  const code = VOTERFOCUS_COUNTIES[fips];
   const parts = match?.addressComponents;
   const houseNumber = match?.matchedAddress?.match(/^(\d+)/)?.[1];
-  if (!code || !parts?.streetName || !houseNumber) return null;
+  if (!code || !parts?.streetName || !houseNumber) return { url: finder.url, county: countyName, prefilled: false };
 
   // The county form encodes the street as "pre-direction|name|type|post-direction".
   const street = [parts.preDirection ?? "", parts.streetName, parts.suffixType ?? "", parts.suffixDirection ?? ""].join("|");
@@ -119,7 +207,8 @@ async function precinctFinderFor(address: string): Promise<{ url: string; county
   });
   return {
     url: `https://www.voterfocus.com/PrecinctFinder/addressSearchResults?${params.toString()}`,
-    county: county?.NAME ?? "your county",
+    county: countyName,
+    prefilled: true,
   };
 }
 
