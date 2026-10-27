@@ -156,6 +156,8 @@ function toPollingPlace(r: PollingLookupResult): PollingPlace {
     hours: site?.hours || undefined,
     early: r.early.length > 0 ? r.early : undefined,
     lookupUrl: r.lookupUrl ?? undefined,
+    earlyWindow: r.earlyWindow ?? undefined,
+    diag: r.diag,
     checkedAt: Date.now(),
   };
 }
@@ -1172,7 +1174,12 @@ function VotingInformationSection({ polling }: { polling: PollingPlace }) {
   // stays in its existing "Register / Early voting / Mail ballot" order
   // (used elsewhere in the app), this just walks through it plus Election
   // Day at the end, where it actually falls.
-  const timelinePoints: { label: string; value: string }[] = [...KEY_DATES, { label: "Election Day", value: "Nov 3" }];
+  // The early voting dates come from the county data when the lookup found
+  // them (they differ by county); the fixed date is only the fallback.
+  const timelinePoints: { label: string; value: string }[] = [
+    ...KEY_DATES.map((k) => (k.label === "Early voting" && polling.earlyWindow ? { ...k, value: polling.earlyWindow } : k)),
+    { label: "Election Day", value: "Nov 3" },
+  ];
   return (
     <section id="voting" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
