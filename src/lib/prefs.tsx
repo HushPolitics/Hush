@@ -30,6 +30,28 @@ export interface EmailPrefs {
   hushAnnouncements: boolean;
 }
 
+/**
+ * Where the reader votes, as looked up from their address (see
+ * actions/polling.ts). Everything beyond name/detail is optional so an older
+ * stored value, or a lookup that found nothing, still reads as valid.
+ *
+ *   name       venue name; empty until a lookup finds an assigned place
+ *   detail     that venue's street address
+ *   hours      Election Day hours as published
+ *   early      early voting sites as published
+ *   lookupUrl  the state's own polling-place finder, for when none is published
+ *   checked    true once a lookup has run, so "not published yet" can be told
+ *              apart from "never looked up"
+ */
+export interface PollingPlace {
+  name: string;
+  detail: string;
+  hours?: string;
+  early?: { name: string; address: string; hours: string }[];
+  lookupUrl?: string;
+  checked?: boolean;
+}
+
 export interface Prefs {
   /**
    * Ranked issues, most important first. The single shared issue list: it
@@ -121,7 +143,7 @@ export interface Prefs {
    */
   emailPrefs: EmailPrefs;
   picks: string[];
-  polling: { name: string; detail: string };
+  polling: PollingPlace;
   /**
    * Every answer ever given on Issue Finder, keyed by a stable question id
    * (`lib/issue-finder.ts`'s `questionId(issue, index)` — an index into
@@ -365,7 +387,7 @@ interface PrefsContextValue extends Prefs {
   setEmail: (email: string) => void;
   setEmailPref: (key: keyof EmailPrefs, value: boolean) => void;
   setPicks: (picks: string[]) => void;
-  setPolling: (p: { name: string; detail: string }) => void;
+  setPolling: (p: PollingPlace) => void;
   /**
    * Records one Issue Finder answer, stamped with the time it was
    * answered. Overwrites any prior answer to the same question id (e.g. from
