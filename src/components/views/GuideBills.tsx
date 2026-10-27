@@ -13,10 +13,18 @@ import { Card, Display, EmptyState, Kicker } from "@/components/ui";
  * The items are the statewide constitutional amendments on the Nov 3, 2026
  * ballot, from repo.ts's `ballotMeasures` (hand-written for now, with official
  * titles and a link to the official text). There is no Congress.gov or
- * municipal ingestion yet, and no district filter, so every user sees the
- * same statewide list.
+ * municipal ingestion yet. The Guide passes the list only for an address that
+ * resolved in Florida (the only state loaded), so it is a per-state list, not
+ * a per-district one.
  */
-export function BillsSection({ bills }: { bills: Bill[] }) {
+export function BillsSection({
+  bills,
+  emptyMessage = "No ballot measures to show yet.",
+}: {
+  bills: Bill[];
+  /** Shown when `bills` is empty, so the caller can say why (no address yet, state not loaded). */
+  emptyMessage?: string;
+}) {
   return (
     <section id="bills" style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 10 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -25,7 +33,7 @@ export function BillsSection({ bills }: { bills: Bill[] }) {
       </div>
 
       {bills.length === 0 ? (
-        <EmptyState>No ballot measures to show yet.</EmptyState>
+        <EmptyState>{emptyMessage}</EmptyState>
       ) : (
         <div
           style={{
