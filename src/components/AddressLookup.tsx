@@ -18,7 +18,14 @@ import { resolveAddress } from "@/app/actions/location";
  * kept in this browser, and mirrored to the account only when one is signed
  * in, so that looking up your own ballot never requires making an account.
  */
-export default function AddressLookup({ compact = false }: { compact?: boolean }) {
+export default function AddressLookup({
+  compact = false,
+  changeLabel = "Change or show all races",
+}: {
+  compact?: boolean;
+  /** Text of the reset link; the Guide never shows "all races", so it passes its own. */
+  changeLabel?: string;
+}) {
   const { matchedAddress, districtIds, setResolvedLocation, clearResolvedLocation } = usePrefs();
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +86,7 @@ export default function AddressLookup({ compact = false }: { compact?: boolean }
           onClick={clearResolvedLocation}
           style={{ marginLeft: "auto", fontSize: 12, color: C.rust, background: "none", border: "none", cursor: "pointer" }}
         >
-          Change or show all races
+          {changeLabel}
         </button>
       </div>
     );
