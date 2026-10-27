@@ -40,8 +40,10 @@ export interface EmailPrefs {
  *   hours      Election Day hours as published
  *   early      early voting sites as published
  *   lookupUrl  the state's own polling-place finder, for when none is published
- *   checked    true once a lookup has run, so "not published yet" can be told
- *              apart from "never looked up"
+ *   checkedAt  when the lookup ran (ms). Set once a lookup has run, so "not
+ *              published yet" can be told apart from "never looked up", and so
+ *              the Guide can look it up again: Google's terms don't allow
+ *              keeping voting-location data for more than 24 hours.
  */
 export interface PollingPlace {
   name: string;
@@ -49,7 +51,7 @@ export interface PollingPlace {
   hours?: string;
   early?: { name: string; address: string; hours: string }[];
   lookupUrl?: string;
-  checked?: boolean;
+  checkedAt?: number;
 }
 
 export interface Prefs {
