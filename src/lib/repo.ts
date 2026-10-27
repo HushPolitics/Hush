@@ -278,7 +278,17 @@ function toRace(row: RaceRow, slugById: Map<string, string>): Race {
   // "Defeated" and withdrawals come out; "Elected" and "Unopposed" stay,
   // because that person does hold the seat and a reader looking up the race
   // should see who won it.
-  const DECIDED_AGAINST = new Set(["defeated", "withdrawn"]);
+  const DECIDED_AGAINST = new Set([
+    "defeated",
+    "withdrawn",
+    // The state's vocabulary, which differs from the counties'. County feeds
+    // say "Withdrawn"; the Division of Elections says "Withdrew" and adds
+    // three more ways to not be on the ballot. Of 830 state and federal
+    // candidacies only 369 are actually running.
+    "did not qualify",
+    "removed",
+    "transferred",
+  ]);
   const running = (row.candidacies ?? []).filter(
     (c) => !c.withdrew && !DECIDED_AGAINST.has(String(c.status ?? "").toLowerCase()),
   );

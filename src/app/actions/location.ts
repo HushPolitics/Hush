@@ -52,22 +52,44 @@ export async function resolveAddress(address: string): Promise<ResolveAddressRes
   const supabase = createPublicClient();
   if (!supabase) return { ok: false, reason: "unconfigured" };
 
-  const { data, error } = await supabase.rpc("resolve_districts", {
-    p_lat: point.lat,
-    p_lng: point.lng,
-    p_as_of: new Date().toISOString().slice(0, 10),
-  });
+  // Resolved twice, against two different maps, and both kept.
+  //
+  // Florida redistricted. The congressional map in force today has 27 seats;
+  // the one the 2026 election fills has 28, and they do not agree about who
+  // lives where. 855 Central Ave in St. Petersburg is represented by FL-14
+  // today and votes in FL-16's race this November.
+  //
+  // Resolving only as of today would mean a voter never sees the congressional
+  // race they are about to vote in. Resolving only against the incoming map
+  // would mean "who represents me" named someone who does not. So both are
+  // resolved and unioned: today's map answers representation, the incoming map
+  // answers the ballot.
+  const TERM_START = "2027-01-03"; // when the seats on this ballot are filled
 
-  if (error) return { ok: false, reason: "unconfigured" };
+  const [now, atTerm] = await Promise.all([
+    supabase.rpc("resolve_districts", {
+      p_lat: point.lat,
+      p_lng: point.lng,
+      p_as_of: new Date().toISOString().slice(0, 10),
+    }),
+    supabase.rpc("resolve_districts", {
+      p_lat: point.lat,
+      p_lng: point.lng,
+      p_as_of: TERM_START,
+    }),
+  ]);
 
-  const districts: ResolvedDistrict[] = (data ?? []).map(
-    (r: { district_id: string; kind: string; name: string; via: string }) => ({
+  if (now.error && atTerm.error) return { ok: false, reason: "unconfigured" };
+
+  const seen = new Set<string>();
+  const districts: ResolvedDistrict[] = [...(now.data ?? []), ...(atTerm.data ?? [])]
+    .map((r: { district_id: string; kind: string; name: string; via: string }) => ({
       id: r.district_id,
       kind: r.kind,
       name: r.name,
       via: r.via,
-    }),
-  );
+    }))
+    .filter((d) => (seen.has(d.id) ? false : (seen.add(d.id), true)));
 
   if (districts.length === 0) return { ok: false, reason: "no_districts" };
 

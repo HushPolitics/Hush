@@ -486,13 +486,32 @@ function TileGrid({
                   ) : null}
                 </div>
                 <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, flex: 1, background: C.white }}>
-                {top ? (
+                {/* The candidate list renders whether or not anyone has a
+                    sourced position.
+
+                    It used to sit inside `{top ? ... }`, and `top` is undefined
+                    until some candidate has a position on one of the reader's
+                    ranked issues. No position research exists yet, so `top` was
+                    undefined for every race and every user, and the tile showed
+                    a race with no candidates in it at all. Who is running is
+                    the baseline fact of a race; what they said about an issue
+                    is the enhancement on top. Losing the former because we lack
+                    the latter is backwards. */}
+                {race.candidates.length === 0 ? (
+                  <span style={{ fontSize: 13, color: C.muted, fontStyle: "italic" }}>
+                    No candidates on file for this race yet.
+                  </span>
+                ) : (
                   <>
-                    <Kicker size={11}>Your #{top.rank} issue: {top.issue}</Kicker>
+                    {top ? (
+                      <Kicker size={11}>Your #{top.rank} issue: {top.issue}</Kicker>
+                    ) : (
+                      <Kicker size={11}>On the ballot</Kicker>
+                    )}
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                       {race.candidates.map((c) => {
-                        const pos = positions[c.politicianId]?.[top.issue];
+                        const pos = top ? positions[c.politicianId]?.[top.issue] : undefined;
                         const nameEl = knownIds.has(c.politicianId) ? (
                           <Link
                             href={`/politician/${c.politicianId}`}
@@ -546,10 +565,6 @@ function TileGrid({
                       })}
                     </div>
                   </>
-                ) : (
-                  <span style={{ fontSize: 13, color: C.muted, fontStyle: "italic" }}>
-                    No positions found yet on your top issues for this race.
-                  </span>
                 )}
 
                 <span style={{ fontSize: 11, color: C.muted, marginTop: "auto" }}>
