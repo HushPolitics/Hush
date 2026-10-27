@@ -53,6 +53,12 @@ export interface PollingPlace {
   lookupUrl?: string;
   /** Span of early voting, e.g. "Oct 19 - Nov 1", from the lookup. */
   earlyWindow?: string;
+  /**
+   * The county's own polling place finder. `prefilled` means the link carries the
+   * voter's house number and street. Absent only on values saved before this
+   * field existed, which were always prefilled, so only an explicit false means "not".
+   */
+  precinct?: { url: string; county: string; prefilled?: boolean };
   /** Counts from the last lookup, for telling "none published" from "dropped". */
   diag?: { electionId: string; polling: number; early: number; dropOff: number; retried: boolean };
   checkedAt?: number;
