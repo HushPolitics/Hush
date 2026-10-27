@@ -41,6 +41,12 @@ export type PollingLookupResult =
       lookupUrl: string | null;
       /** Span of the early voting sites' dates, e.g. "Oct 19 - Nov 1", when known. */
       earlyWindow: string | null;
+      /**
+       * A link to the county's own precinct finder with the voter's house number
+       * and street filled in, for counties where we have checked how it works.
+       * Null elsewhere. Used only when Google has no Election Day place.
+       */
+      precinct: { url: string; county: string } | null;
       /** Counts only (no addresses), to tell "Google has none" from "we dropped it". */
       diag: { electionId: string; polling: number; early: number; dropOff: number; retried: boolean };
     }
@@ -49,6 +55,73 @@ export type PollingLookupResult =
 const BASE = "https://www.googleapis.com/civicinfo/v2";
 const ELECTION_DAY = ELECTION_ISO.slice(0, 10); // "2026-11-03"
 const MAX_EARLY_SITES = 5;
+
+/**
+ * Counties whose own precinct finder (run by the vendor VoterFocus) we have
+ * opened and checked end to end, keyed by 5-digit FIPS (state + county) to the
+ * vendor's county code. Add a county only after trying its finder, because the
+ * codes are not guessable and a wrong one lands the voter on an empty form.
+ *
+ * We only build a link for the voter to click. We never fetch the vendor's
+ * pages ourselves: its robots.txt asks automated tools not to.
+ */
+const VOTERFOCUS_COUNTIES: Record<string, string> = {
+  "12103": "FL-PIN", // Pinellas, checked against 855 Central Ave and 100 1st Ave N, St. Petersburg
+};
+
+const CENSUS_GEOGRAPHIES = "https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress";
+
+interface CensusGeoMatch {
+  matchedAddress?: string;
+  addressComponents?: {
+    preDirection?: string;
+    streetName?: string;
+    suffixType?: string;
+    suffixDirection?: string;
+    zip?: string;
+  };
+  geographies?: { Counties?: { STATE?: string; COUNTY?: string; NAME?: string }[] };
+}
+
+/**
+ * Builds the county precinct-finder link for an address, or null when the
+ * county isn't one we have checked or the Census can't place the address.
+ * The county comes from the Census geocoder (the same agency and benchmark the
+ * rest of the app uses), and the street parts from its parse of the address, so
+ * "100 1st Ave N" is sent the way the county's own form sends it.
+ */
+async function precinctFinderFor(address: string): Promise<{ url: string; county: string } | null> {
+  const url =
+    `${CENSUS_GEOGRAPHIES}?address=${encodeURIComponent(address)}` +
+    `&benchmark=Public_AR_Current&vintage=Current_Current&format=json`;
+  let match: CensusGeoMatch | undefined;
+  try {
+    const res = await fetch(url, { next: { revalidate: 86400 } });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { result?: { addressMatches?: CensusGeoMatch[] } };
+    match = body.result?.addressMatches?.[0];
+  } catch {
+    return null;
+  }
+  const county = match?.geographies?.Counties?.[0];
+  const code = county?.STATE && county?.COUNTY ? VOTERFOCUS_COUNTIES[county.STATE + county.COUNTY] : undefined;
+  const parts = match?.addressComponents;
+  const houseNumber = match?.matchedAddress?.match(/^(\d+)/)?.[1];
+  if (!code || !parts?.streetName || !houseNumber) return null;
+
+  // The county form encodes the street as "pre-direction|name|type|post-direction".
+  const street = [parts.preDirection ?? "", parts.streetName, parts.suffixType ?? "", parts.suffixDirection ?? ""].join("|");
+  const params = new URLSearchParams({
+    streetNumber: houseNumber,
+    streetNameComponents: street,
+    zipCode: parts.zip ?? "",
+    county: code,
+  });
+  return {
+    url: `https://www.voterfocus.com/PrecinctFinder/addressSearchResults?${params.toString()}`,
+    county: county?.NAME ?? "your county",
+  };
+}
 
 interface CivicAddress {
   locationName?: string;
@@ -194,6 +267,7 @@ export async function lookupPollingPlace(address: string): Promise<PollingLookup
       early: [],
       lookupUrl: null,
       earlyWindow: null,
+      precinct: await precinctFinderFor(query),
       diag: { electionId: "none", polling: 0, early: 0, dropOff: 0, retried: false },
     };
   }
@@ -222,6 +296,8 @@ export async function lookupPollingPlace(address: string): Promise<PollingLookup
     early,
     lookupUrl,
     earlyWindow: earlyWindowOf(earlyRaw, early),
+    // Only worth a Census call when Google had no Election Day place to show.
+    precinct: polling[0] ? null : await precinctFinderFor(query),
     diag: {
       electionId: election.id,
       polling: (info.pollingLocations ?? []).length,
