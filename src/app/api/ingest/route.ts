@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { runLegiscanSync } from "@/lib/pipeline/legiscan";
 import { assessClaim, shouldAutoPublish, PROMPT_VERSION, type EvidenceDoc } from "@/lib/pipeline/assess";
 
 export const maxDuration = 300;
@@ -39,6 +40,18 @@ export async function GET(request: NextRequest) {
   const supabase = createServiceClient();
   if (!supabase) {
     return NextResponse.json({ error: "supabase not configured" }, { status: 503 });
+  }
+
+  // `?job=legiscan` runs the LegiScan joint-resolution sync instead of the
+  // queue. Dry run unless `&commit=1`. The daily cron sends no params, so it
+  // is unaffected.
+  const params = request.nextUrl.searchParams;
+  if (params.get("job") === "legiscan") {
+    try {
+      return NextResponse.json(await runLegiscanSync(supabase, { commit: params.get("commit") === "1" }));
+    } catch (e) {
+      return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 502 });
+    }
   }
 
   const { data: jobs, error } = await supabase
