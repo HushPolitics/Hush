@@ -51,6 +51,10 @@ export interface PollingPlace {
   hours?: string;
   early?: { name: string; address: string; hours: string }[];
   lookupUrl?: string;
+  /** Span of early voting, e.g. "Oct 19 - Nov 1", from the lookup. */
+  earlyWindow?: string;
+  /** Counts from the last lookup, for telling "none published" from "dropped". */
+  diag?: { electionId: string; polling: number; early: number; dropOff: number; retried: boolean };
   checkedAt?: number;
 }
 
