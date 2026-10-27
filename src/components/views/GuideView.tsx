@@ -1182,7 +1182,9 @@ function VotingInformationSection({ polling }: { polling: PollingPlace }) {
   const finderNote = !polling.checkedAt
     ? null
     : polling.precinct
-      ? `Google doesn't have Election Day places for ${polling.precinct.county} yet. The link below opens the county's own precinct finder with your house number and street already filled in, so your street address goes to their site when you click.`
+      ? polling.precinct.prefilled === false
+        ? `Google doesn't have Election Day places for ${polling.precinct.county} yet. The link below opens the county elections office's own site, where you enter your address yourself. We don't send it.`
+        : `Google doesn't have Election Day places for ${polling.precinct.county} yet. The link below opens the county's own precinct finder with your house number and street already filled in, so your street address goes to their site when you click.`
       : polling.lookupUrl
         ? "Google doesn't have an Election Day place for your address yet. The link below opens your state's polling place lookup, where you enter your address yourself. We don't send it."
         : "Google doesn't have an Election Day place for your address yet. The link below opens vote.org's polling place locator, where you enter your address yourself. We don't send it.";
