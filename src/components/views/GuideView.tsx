@@ -1138,13 +1138,10 @@ function pollingLabels(polling: PollingPlace): { name: string; line: string; fou
     return { name: "Election Day has passed", line: "Polling places are no longer listed", found: false };
   }
   if (polling.name) return { name: polling.name, line: polling.detail, found: true };
-  // A lookup that ran but found no place means Google doesn't have it, which is
-  // not the same as the county not having published one (Pinellas has, on its
-  // own finder), so the wording points at the lookup rather than claiming that.
+  // A lookup that ran but found no place (or couldn't run) sends the voter to a
+  // lookup site where they enter their address, so the wording stays general.
   if (polling.checkedAt) {
-    return polling.precinct
-      ? { name: "Look up your polling place", line: `Use ${polling.precinct.county}'s precinct finder`, found: false }
-      : { name: "Not shown here yet", line: "Use the lookup link to find your polling place", found: false };
+    return { name: "Find your polling place", line: "Use the link below and enter your address", found: false };
   }
   return { name: "Not looked up yet", line: "Add your address to find where you vote", found: false };
 }
@@ -1182,21 +1179,16 @@ function VotingInformationSection({ polling }: { polling: PollingPlace }) {
   // the box says which, since the first one sends the street to the county's site.
   const finderUrl =
     polling.precinct?.url || polling.lookupUrl || "https://www.vote.org/polling-place-locator/";
-  const gDown = polling.unavailable ? "Google's polling place service isn't responding right now, so we can't show your place or early voting sites here. " : null;
+  const lead = polling.unavailable
+    ? "We can't load polling place details right now. "
+    : "We don't have your polling place listed yet. ";
+  const prefilled = !!polling.precinct && polling.precinct.prefilled !== false;
   const finderNote = !polling.checkedAt
     ? null
-    : polling.precinct
-      ? polling.precinct.prefilled === false
-        ? `${gDown ?? `Google doesn't have Election Day places for ${polling.precinct.county} yet. `}The link below opens the county elections office's own site, where you enter your address yourself. We don't send it.`
-        : `${gDown ?? `Google doesn't have Election Day places for ${polling.precinct.county} yet. `}The link below opens the county's own precinct finder with your house number and street already filled in, so your street address goes to their site when you click.`
-      : polling.unavailable
-        ? "Google's polling place service isn't responding right now, so we can't show your place or early voting sites here. The link below opens vote.org's polling place locator, where you enter your address yourself. We don't send it."
-      : polling.lookupUrl
-        ? "Google doesn't have an Election Day place for your address yet. The link below opens your state's polling place lookup, where you enter your address yourself. We don't send it."
-        : "Google doesn't have an Election Day place for your address yet. The link below opens vote.org's polling place locator, where you enter your address yourself. We don't send it.";
-  const finderLabel = polling.precinct
-    ? "Find my polling place on the county site →"
-    : "Find your polling place →";
+    : prefilled
+      ? `${lead}The link below opens a site that looks up your polling place, with your house number and street already filled in, so they go to that site when you click.`
+      : `${lead}The link below opens a site where you enter your address to find your polling place. We don't send it.`;
+  const finderLabel = "Find your polling place →";
   const days = useDaysToElection();
   const { city, state, zip } = usePrefs();
   const cityStateZip = [city, state, zip].filter(Boolean).join(" ");
