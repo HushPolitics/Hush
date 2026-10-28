@@ -159,7 +159,10 @@ function toPollingPlace(r: PollingLookupResult): PollingPlace {
     earlyWindow: r.earlyWindow ?? undefined,
     precinct: r.precinct ?? undefined,
     diag: r.diag,
-    checkedAt: Date.now(),
+    // When Google was down the answer is "unknown", so look again soon (next
+    // visit after 15 minutes) rather than waiting out the full 24 hours.
+    checkedAt: r.unavailable ? Date.now() - POLLING_MAX_AGE_MS + 15 * 60 * 1000 : Date.now(),
+    unavailable: r.unavailable ? true : undefined,
   };
 }
 
@@ -1179,12 +1182,15 @@ function VotingInformationSection({ polling }: { polling: PollingPlace }) {
   // the box says which, since the first one sends the street to the county's site.
   const finderUrl =
     polling.precinct?.url || polling.lookupUrl || "https://www.vote.org/polling-place-locator/";
+  const gDown = polling.unavailable ? "Google's polling place service isn't responding right now, so we can't show your place or early voting sites here. " : null;
   const finderNote = !polling.checkedAt
     ? null
     : polling.precinct
       ? polling.precinct.prefilled === false
-        ? `Google doesn't have Election Day places for ${polling.precinct.county} yet. The link below opens the county elections office's own site, where you enter your address yourself. We don't send it.`
-        : `Google doesn't have Election Day places for ${polling.precinct.county} yet. The link below opens the county's own precinct finder with your house number and street already filled in, so your street address goes to their site when you click.`
+        ? `${gDown ?? `Google doesn't have Election Day places for ${polling.precinct.county} yet. `}The link below opens the county elections office's own site, where you enter your address yourself. We don't send it.`
+        : `${gDown ?? `Google doesn't have Election Day places for ${polling.precinct.county} yet. `}The link below opens the county's own precinct finder with your house number and street already filled in, so your street address goes to their site when you click.`
+      : polling.unavailable
+        ? "Google's polling place service isn't responding right now, so we can't show your place or early voting sites here. The link below opens vote.org's polling place locator, where you enter your address yourself. We don't send it."
       : polling.lookupUrl
         ? "Google doesn't have an Election Day place for your address yet. The link below opens your state's polling place lookup, where you enter your address yourself. We don't send it."
         : "Google doesn't have an Election Day place for your address yet. The link below opens vote.org's polling place locator, where you enter your address yourself. We don't send it.";
