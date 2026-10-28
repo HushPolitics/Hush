@@ -51,7 +51,7 @@ export type PollingLookupResult =
       /** Counts only (no addresses), to tell "Google has none" from "we dropped it". */
       diag: { electionId: string; polling: number; early: number; dropOff: number; retried: boolean };
     }
-  | { ok: false; reason: "unconfigured" | "error" };
+  | { ok: false; reason: "unconfigured" | "error"; /** Which call failed and Google's own status, for diagnosis. Never contains the key. */ detail?: string };
 
 const BASE = "https://www.googleapis.com/civicinfo/v2";
 const ELECTION_DAY = ELECTION_ISO.slice(0, 10); // "2026-11-03"
@@ -237,14 +237,33 @@ interface VoterInfo {
   state?: { electionAdministrationBody?: { votingLocationFinderUrl?: string } }[];
 }
 
-async function civic<T>(path: string, params: Record<string, string>, key: string): Promise<T | null> {
+/**
+ * Calls the Civic API. On failure returns a short description (HTTP status plus
+ * Google's own error status and message) so a failed lookup can say why instead
+ * of just "error". The key is never part of it: Google's messages don't echo it,
+ * and it is stripped anyway.
+ */
+async function civic<T>(
+  path: string,
+  params: Record<string, string>,
+  key: string,
+): Promise<{ data: T; error?: undefined } | { data?: undefined; error: string }> {
   const qs = new URLSearchParams({ ...params, key });
   try {
     const res = await fetch(`${BASE}/${path}?${qs.toString()}`, { cache: "no-store" });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
-  } catch {
-    return null;
+    if (!res.ok) {
+      let why = "";
+      try {
+        const body = (await res.json()) as { error?: { status?: string; message?: string } };
+        why = [body.error?.status, body.error?.message].filter(Boolean).join(": ");
+      } catch {
+        // not JSON; the status alone will do
+      }
+      return { error: `${path} ${res.status} ${why}`.replaceAll(key, "[key]").slice(0, 300).trim() };
+    }
+    return { data: (await res.json()) as T };
+  } catch (e) {
+    return { error: `${path} network: ${e instanceof Error ? e.message : "failed"}`.replaceAll(key, "[key]").slice(0, 300) };
   }
 }
 
@@ -396,9 +415,12 @@ export async function lookupPollingPlace(address: string): Promise<PollingLookup
   // Find Google's id for the Nov 3 election rather than hardcoding one: ids are
   // assigned per election by Google, and the API only returns polling data for
   // an election it has on file for the address.
-  const list = await civic<{ elections?: { id: string; electionDay: string }[] }>("elections", {}, key);
-  if (!list) return { ok: false, reason: "error" };
-  const election = (list.elections ?? []).find((e) => e.electionDay === ELECTION_DAY);
+  const listed = await civic<{ elections?: { id: string; electionDay: string }[] }>("elections", {}, key);
+  if (listed.error !== undefined) {
+    console.error("polling lookup failed:", listed.error);
+    return { ok: false, reason: "error", detail: listed.error };
+  }
+  const election = (listed.data.elections ?? []).find((e) => e.electionDay === ELECTION_DAY);
   if (!election) {
     return {
       ok: true,
@@ -411,8 +433,12 @@ export async function lookupPollingPlace(address: string): Promise<PollingLookup
     };
   }
 
-  let info = await civic<VoterInfo>("voterinfo", { address: query, electionId: election.id }, key);
-  if (!info) return { ok: false, reason: "error" };
+  const first = await civic<VoterInfo>("voterinfo", { address: query, electionId: election.id }, key);
+  if (first.error !== undefined) {
+    console.error("polling lookup failed:", first.error);
+    return { ok: false, reason: "error", detail: first.error };
+  }
+  let info = first.data;
 
   // Google's own advice is to also query without an election id, which lets it
   // pick the election for the address. Tried only when the first answer has no
@@ -421,7 +447,7 @@ export async function lookupPollingPlace(address: string): Promise<PollingLookup
   if ((info.pollingLocations ?? []).length === 0) {
     retried = true;
     const again = await civic<VoterInfo>("voterinfo", { address: query }, key);
-    if (again && (again.pollingLocations ?? []).length > 0) info = again;
+    if (again.data && (again.data.pollingLocations ?? []).length > 0) info = again.data;
   }
 
   const polling = (info.pollingLocations ?? []).map(toSite).filter((s) => s.address || s.name);
