@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { C, GUIDE_SOURCE_KIND, PARTY_LABEL, STATUS_STYLE, cond, progressColor, trustBand } from "@/lib/theme";
+import { C, GUIDE_SOURCE_KIND, PARTY_LABEL, STATUS_STYLE, cond, positionNotice, progressColor, trustBand } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { promiseSplit } from "@/lib/scoring";
 import { useRegisterSectionNav } from "@/lib/sectionNav";
 import { isCustomCompareEligible } from "@/lib/compare";
 import type { FactCheck, FundingSummary, IssuePosition, Politician, PromiseStatus, StanceCell } from "@/lib/types";
-import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, SourceAttribution } from "@/components/ui";
+import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, PositionNotice, SourceAttribution } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 import { FactCheckCard, VerdictKey } from "./FactCheckView";
 
@@ -524,6 +524,7 @@ export default function PoliticianView({
                           href={pos.sourceUrl}
                           actionLabel="View original →"
                         />
+                        <PositionNotice notice={positionNotice(pos.sourceType)} />
                       </div>
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>

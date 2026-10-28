@@ -154,6 +154,14 @@ export function Chip({ on, onClick, children, dot, activeBg = C.ink, activeFg = 
   );
 }
 
+/** Small italic note shown under a quoted position that isn't from the campaign site. */
+export function PositionNotice({ notice, style }: { notice: string | null; style?: CSSProperties }) {
+  if (!notice) return null;
+  return (
+    <span style={{ fontSize: 11, color: C.muted, fontStyle: "italic", lineHeight: 1.4, ...style }}>{notice}</span>
+  );
+}
+
 /**
  * Restrained source-attribution block for any sourced political claim --
  * a position, vote, statement, or bill. One shared visual treatment for

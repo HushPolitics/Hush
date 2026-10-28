@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { C } from "@/lib/theme";
+import { C, positionNotice } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
 import type { IssuePosition, Politician, Race } from "@/lib/types";
-import { Card, Display, EmptyState, Kicker, RustButton } from "@/components/ui";
+import { Card, Display, EmptyState, Kicker, PositionNotice, RustButton } from "@/components/ui";
 
 /**
  * Election Comparison Page — one section per issue the user picked in HUSH
@@ -175,6 +175,7 @@ function CandidatePositionCard({
           <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: C.body, fontStyle: "italic" }}>
             &ldquo;{position.excerpt}&rdquo;
           </p>
+          <PositionNotice notice={positionNotice(position.sourceType)} />
           <div
             style={{
               display: "flex",
