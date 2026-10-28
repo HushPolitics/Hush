@@ -48,6 +48,14 @@ export type PollingLookupResult =
        * page. Null outside Florida. Used only when Google has no Election Day place.
        */
       precinct: { url: string; county: string; prefilled: boolean } | null;
+      /**
+       * True when Google could not answer (an outage or error on its side), as
+       * opposed to answering with no Election Day place. Early voting and the
+       * polling place are then unknown, not absent, and only the county link
+       * is offered. `detail` says what failed.
+       */
+      unavailable?: boolean;
+      detail?: string;
       /** Counts only (no addresses), to tell "Google has none" from "we dropped it". */
       diag: { electionId: string; polling: number; early: number; dropOff: number; retried: boolean };
     }
@@ -247,7 +255,7 @@ async function civic<T>(
   path: string,
   params: Record<string, string>,
   key: string,
-): Promise<{ data: T; error?: undefined } | { data?: undefined; error: string }> {
+): Promise<{ data: T; error?: undefined } | { data?: undefined; error: string; transient: boolean }> {
   const qs = new URLSearchParams({ ...params, key });
   try {
     const res = await fetch(`${BASE}/${path}?${qs.toString()}`, { cache: "no-store" });
@@ -259,12 +267,27 @@ async function civic<T>(
       } catch {
         // not JSON; the status alone will do
       }
-      return { error: `${path} ${res.status} ${why}`.replaceAll(key, "[key]").slice(0, 300).trim() };
+      return {
+        error: `${path} ${res.status} ${why}`.replaceAll(key, "[key]").slice(0, 300).trim(),
+        // 5xx and rate limits come and go; 4xx (bad key, bad request) will not.
+        transient: res.status >= 500 || res.status === 429,
+      };
     }
     return { data: (await res.json()) as T };
   } catch (e) {
-    return { error: `${path} network: ${e instanceof Error ? e.message : "failed"}`.replaceAll(key, "[key]").slice(0, 300) };
+    return {
+      error: `${path} network: ${e instanceof Error ? e.message : "failed"}`.replaceAll(key, "[key]").slice(0, 300),
+      transient: true,
+    };
   }
+}
+
+/** One retry after a short pause when Google fails in a way that usually clears. */
+async function civicRetry<T>(path: string, params: Record<string, string>, key: string) {
+  const first = await civic<T>(path, params, key);
+  if (first.error === undefined || !first.transient) return first;
+  await new Promise((r) => setTimeout(r, 700));
+  return civic<T>(path, params, key);
 }
 
 /**
@@ -415,11 +438,25 @@ export async function lookupPollingPlace(address: string): Promise<PollingLookup
   // Find Google's id for the Nov 3 election rather than hardcoding one: ids are
   // assigned per election by Google, and the API only returns polling data for
   // an election it has on file for the address.
-  const listed = await civic<{ elections?: { id: string; electionDay: string }[] }>("elections", {}, key);
-  if (listed.error !== undefined) {
-    console.error("polling lookup failed:", listed.error);
-    return { ok: false, reason: "error", detail: listed.error };
-  }
+  // When Google can't answer, the county's own finder still works and does not
+  // depend on Google, so the voter gets that link instead of nothing.
+  const unavailable = async (detail: string): Promise<PollingLookupResult> => {
+    console.error("polling lookup failed:", detail);
+    return {
+      ok: true,
+      electionDay: null,
+      early: [],
+      lookupUrl: null,
+      earlyWindow: null,
+      precinct: await precinctFinderFor(query),
+      unavailable: true,
+      detail,
+      diag: { electionId: "unavailable", polling: 0, early: 0, dropOff: 0, retried: true },
+    };
+  };
+
+  const listed = await civicRetry<{ elections?: { id: string; electionDay: string }[] }>("elections", {}, key);
+  if (listed.error !== undefined) return unavailable(listed.error);
   const election = (listed.data.elections ?? []).find((e) => e.electionDay === ELECTION_DAY);
   if (!election) {
     return {
@@ -433,18 +470,21 @@ export async function lookupPollingPlace(address: string): Promise<PollingLookup
     };
   }
 
-  const first = await civic<VoterInfo>("voterinfo", { address: query, electionId: election.id }, key);
+  // Google's own advice is to also query without an election id, which lets it
+  // pick the election for the address. That is the second attempt when the
+  // first one errors, and is also tried when the first answer has no Election
+  // Day place; it is used only if it gives us something.
+  let retried = false;
+  let first = await civicRetry<VoterInfo>("voterinfo", { address: query, electionId: election.id }, key);
   if (first.error !== undefined) {
-    console.error("polling lookup failed:", first.error);
-    return { ok: false, reason: "error", detail: first.error };
+    retried = true;
+    const bare = await civicRetry<VoterInfo>("voterinfo", { address: query }, key);
+    if (bare.error !== undefined) return unavailable(first.error);
+    first = bare;
   }
   let info = first.data;
 
-  // Google's own advice is to also query without an election id, which lets it
-  // pick the election for the address. Tried only when the first answer has no
-  // Election Day place, and used only if it does.
-  let retried = false;
-  if ((info.pollingLocations ?? []).length === 0) {
+  if ((info.pollingLocations ?? []).length === 0 && !retried) {
     retried = true;
     const again = await civic<VoterInfo>("voterinfo", { address: query }, key);
     if (again.data && (again.data.pollingLocations ?? []).length > 0) info = again.data;
