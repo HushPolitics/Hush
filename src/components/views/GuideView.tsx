@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type CSSProperties, type FormEvent, type ReactNode } from "react";
-import { C, cond } from "@/lib/theme";
+import { C, cond, positionNotice } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs, type PollingPlace } from "@/lib/prefs";
 import { useMounted } from "@/lib/hooks";
@@ -17,7 +17,7 @@ import {
   topRankedIssueForRace,
 } from "@/lib/guide";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
-import { Card, Chip, Display, EmptyState, ExpandableQuote, GhostButton, Kicker, RustButton } from "@/components/ui";
+import { Card, Chip, Display, EmptyState, ExpandableQuote, GhostButton, Kicker, PositionNotice, RustButton } from "@/components/ui";
 import RepresentativesCard from "@/components/RepresentativesCard";
 import AddressLookup from "@/components/AddressLookup";
 import { resolveAddress } from "@/app/actions/location";
@@ -718,6 +718,7 @@ function TileGrid({
                                 ) : null}
                               </span>
                             ) : null}
+                            {pos ? <PositionNotice notice={positionNotice(pos.sourceType)} /> : null}
                           </div>
                         );
                       })}

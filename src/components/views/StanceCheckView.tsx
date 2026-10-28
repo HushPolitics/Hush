@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { C, GUIDE_SOURCE_KIND, PARTIES, PARTY, PARTY_LABEL, cond } from "@/lib/theme";
+import { C, GUIDE_SOURCE_KIND, PARTIES, PARTY, PARTY_LABEL, cond, positionNotice } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
 import { jumpToSection } from "@/lib/sectionNav";
 import type { FactCheck, Party, Politician, Race, StanceCheckAnswer, StanceCheckPosition } from "@/lib/types";
-import { Card, Display, GhostButton, Kicker, Pill, RustButton, SourceAttribution } from "@/components/ui";
+import { Card, Display, GhostButton, Kicker, Pill, PositionNotice, RustButton, SourceAttribution } from "@/components/ui";
 import { FactCheckCard } from "./FactCheckView";
 import { IssuesStep } from "./GuideView";
 
@@ -741,6 +741,7 @@ function CandidateCard({
             href={position.sourceUrl}
             actionLabel="View original →"
           />
+          <PositionNotice notice={positionNotice(position.sourceType)} />
           {check ? (
             <div style={{ paddingTop: 4 }}>
               <FactCheckCard check={check} showSources={false} />
