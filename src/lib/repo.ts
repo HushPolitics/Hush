@@ -351,8 +351,13 @@ async function politicianSlugsByUuid(
   const unique = [...new Set(ids)];
   if (unique.length === 0) return new Map();
 
-  const { data } = await supabase.from("politicians").select("id, slug").in("id", unique);
-  return new Map((data ?? []).map((r) => [r.id as string, r.slug as string]));
+  // Chunked so a long id list never overflows the request URL.
+  const out = new Map<string, string>();
+  for (let i = 0; i < unique.length; i += 100) {
+    const { data } = await supabase.from("politicians").select("id, slug").in("id", unique.slice(i, i + 100));
+    for (const r of data ?? []) out.set(r.id as string, r.slug as string);
+  }
+  return out;
 }
 
 export async function listRaces(): Promise<Race[]> {
@@ -625,7 +630,7 @@ interface CandidatePositionRow {
 }
 
 /**
- * Verified candidate positions, keyed politician id -> issue. Rows only
+ * Verified candidate positions, keyed politician slug -> issue. Rows only
  * exist if `record_position` confirmed the excerpt appears character for
  * character in the captured page (and RLS only exposes `verified = true`).
  * One position per candidate per issue: the most recently retrieved wins.
@@ -642,9 +647,17 @@ export async function guidePositions(): Promise<Record<string, Record<string, Is
 
   if (error || !data) return {};
 
+  // The app addresses a politician by slug (Politician.id is the slug), while
+  // candidate_positions stores the uuid. Key the result by slug so lookups
+  // from the profile, Guide and Stance Check pages actually match.
+  const rows = data as unknown as CandidatePositionRow[];
+  const slugById = await politicianSlugsByUuid(supabase, rows.map((r) => r.politician_id));
+
   const out: Record<string, Record<string, IssuePosition>> = {};
-  for (const row of data as unknown as CandidatePositionRow[]) {
-    const byIssue = (out[row.politician_id] ??= {});
+  for (const row of rows) {
+    const slug = slugById.get(row.politician_id);
+    if (!slug) continue;
+    const byIssue = (out[slug] ??= {});
     if (byIssue[row.issue]) continue; // rows are newest-first
     const kind = GUIDE_SOURCE_TYPES.find((t) => t === row.source_kind);
     if (!kind) continue; // never mislabel a source we can't classify
