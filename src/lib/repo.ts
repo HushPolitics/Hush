@@ -38,6 +38,7 @@ import type {
   FactCheck,
   Race,
   RaceCandidate,
+  GuideSourceType,
   IssuePosition,
   StanceCell,
   StanceCheckPosition,
@@ -604,9 +605,58 @@ export async function factChecksFor(_politicianId: string): Promise<FactCheck[]>
   return [];
 }
 
-/** EMPTY: needs sourced position research (`policy_positions` is 0 rows). */
+const GUIDE_SOURCE_TYPES: readonly GuideSourceType[] = [
+  "Campaign site",
+  "Official government site",
+  "Official platform document",
+  "Official press release",
+  "Official social media",
+];
+
+interface CandidatePositionRow {
+  politician_id: string;
+  issue: string;
+  excerpt: string;
+  source_url: string;
+  source_title: string | null;
+  source_kind: string | null;
+  published_on: string | null;
+  retrieved_at: string | null;
+}
+
+/**
+ * Verified candidate positions, keyed politician id -> issue. Rows only
+ * exist if `record_position` confirmed the excerpt appears character for
+ * character in the captured page (and RLS only exposes `verified = true`).
+ * One position per candidate per issue: the most recently retrieved wins.
+ */
 export async function guidePositions(): Promise<Record<string, Record<string, IssuePosition>>> {
-  return {};
+  const supabase = createPublicClient();
+  if (!supabase) return {};
+
+  const { data, error } = await supabase
+    .from("candidate_positions")
+    .select("politician_id, issue, excerpt, source_url, source_title, source_kind, published_on, retrieved_at")
+    .eq("verified", true)
+    .order("retrieved_at", { ascending: false });
+
+  if (error || !data) return {};
+
+  const out: Record<string, Record<string, IssuePosition>> = {};
+  for (const row of data as unknown as CandidatePositionRow[]) {
+    const byIssue = (out[row.politician_id] ??= {});
+    if (byIssue[row.issue]) continue; // rows are newest-first
+    const kind = GUIDE_SOURCE_TYPES.find((t) => t === row.source_kind);
+    if (!kind) continue; // never mislabel a source we can't classify
+    byIssue[row.issue] = {
+      excerpt: row.excerpt,
+      sourceTitle: row.source_title ?? row.source_url,
+      sourceType: kind,
+      sourceUrl: row.source_url,
+      ...(row.published_on ? { date: row.published_on } : {}),
+    };
+  }
+  return out;
 }
 
 /** EMPTY: the Compare stance grid is derived from sourced positions. */
