@@ -62,6 +62,8 @@ export interface PollingPlace {
   /** Counts from the last lookup, for telling "none published" from "dropped". */
   diag?: { electionId: string; polling: number; early: number; dropOff: number; retried: boolean };
   checkedAt?: number;
+  /** Google couldn't answer on the last lookup (its outage, not an empty result). */
+  unavailable?: boolean;
 }
 
 export interface Prefs {
