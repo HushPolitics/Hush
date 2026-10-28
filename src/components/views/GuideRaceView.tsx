@@ -31,22 +31,6 @@ export default function GuideRaceView({
   const knownIds = new Set(politicians.map((p) => p.id));
   const { office, district } = parseRaceTitle(race.title);
 
-  if (topics.length === 0) {
-    return (
-      <div style={{ padding: "24px 28px" }}>
-        <Card style={{ maxWidth: 520, padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
-          <Display size={21}>Set up HUSH. Guide first</Display>
-          <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
-            Pick the issues you want researched before opening a comparison page.
-          </span>
-          <RustButton onClick={() => router.push("/hush-guide")} style={{ alignSelf: "flex-start" }}>
-            Go to HUSH. Guide
-          </RustButton>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
       <button
@@ -71,7 +55,9 @@ export default function GuideRaceView({
         <span style={{ fontSize: 13, color: C.muted }}>{race.meta}</span>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <Kicker>Candidates</Kicker>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         {race.candidates.map((c) =>
           knownIds.has(c.politicianId) ? (
             <Link
@@ -104,11 +90,26 @@ export default function GuideRaceView({
             </span>
           ),
         )}
+        </div>
       </div>
 
-      {topics.map((issue) => (
-        <IssueSection key={issue} issue={issue} race={race} positions={positions} />
-      ))}
+      {topics.length > 0 ? (
+        topics.map((issue) => <IssueSection key={issue} issue={issue} race={race} positions={positions} />)
+      ) : (
+        // Who is running is the baseline fact of a race and shows regardless.
+        // Positions are the layer on top, which needs the reader's issues, so
+        // without them this invites them to rank issues instead of blocking.
+        <Card style={{ maxWidth: 520, padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+          <Display size={19}>See where they stand on your issues</Display>
+          <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
+            Rank the issues that matter to you in HUSH. Guide and this page will show each candidate&apos;s position on
+            them, side by side, with the source.
+          </span>
+          <RustButton onClick={() => router.push("/hush-guide")} style={{ alignSelf: "flex-start" }}>
+            Rank my issues
+          </RustButton>
+        </Card>
+      )}
     </div>
   );
 }
