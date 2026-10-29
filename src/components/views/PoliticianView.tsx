@@ -524,12 +524,12 @@ export default function PoliticianView({
                           href={pos.sourceUrl}
                           actionLabel="View original →"
                         />
-                        <PositionNotice notice={positionNotice(pos.sourceType)} />
+                        <PositionNotice notice={positionNotice(pos.sourceType, pos.sourceTitle)} />
                       </div>
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                         <span style={{ fontSize: 13, color: C.ink }}>
-                          No public position found
+                          No official position found
                         </span>
                         <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.4 }}>
                           HUSH. couldn&apos;t find a stated position on this issue in the sources we track.

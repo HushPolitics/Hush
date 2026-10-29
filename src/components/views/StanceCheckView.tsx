@@ -741,7 +741,7 @@ function CandidateCard({
             href={position.sourceUrl}
             actionLabel="View original →"
           />
-          <PositionNotice notice={positionNotice(position.sourceType)} />
+          <PositionNotice notice={positionNotice(position.sourceType, position.sourceTitle)} />
           {check ? (
             <div style={{ paddingTop: 4 }}>
               <FactCheckCard check={check} showSources={false} />
@@ -750,7 +750,7 @@ function CandidateCard({
         </>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <span style={{ fontSize: 12, color: C.ink }}>No public position found</span>
+          <span style={{ fontSize: 12, color: C.ink }}>No official position found</span>
           <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
             HUSH. couldn&apos;t find a stated position on this issue in the sources we track.
           </span>

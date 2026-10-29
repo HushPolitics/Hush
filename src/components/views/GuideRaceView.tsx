@@ -175,7 +175,7 @@ function CandidatePositionCard({
           <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: C.body, fontStyle: "italic" }}>
             &ldquo;{position.excerpt}&rdquo;
           </p>
-          <PositionNotice notice={positionNotice(position.sourceType)} />
+          <PositionNotice notice={positionNotice(position.sourceType, position.sourceTitle)} />
           <div
             style={{
               display: "flex",
