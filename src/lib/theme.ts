@@ -226,6 +226,7 @@ export const GUIDE_SOURCE_KIND: Record<GuideSourceType, string> = {
   "Official platform document": "Primary source",
   "Official press release": "Primary source",
   "Official social media": "Primary source",
+  "Candidate questionnaire": "Primary source",
 };
 
 /**
@@ -233,7 +234,10 @@ export const GUIDE_SOURCE_KIND: Record<GuideSourceType, string> = {
  * campaign website. HUSH. looks at the campaign site first; anything else is
  * a fallback to another primary source and says so, in plain words.
  */
-export function positionNotice(sourceType: GuideSourceType): string | null {
+export function positionNotice(sourceType: GuideSourceType, sourceTitle?: string): string | null {
   if (sourceType === "Campaign site") return null;
+  if (sourceType === "Candidate questionnaire") {
+    return `* Pulled directly from the ${sourceTitle || "candidate questionnaire"}. Not taken from this candidate's own campaign website.`;
+  }
   return `Not taken from this candidate's own campaign website. Source: ${sourceType}.`;
 }
