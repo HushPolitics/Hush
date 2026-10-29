@@ -725,9 +725,57 @@ export async function stanceGrid(): Promise<Record<string, Record<string, Stance
   return {};
 }
 
-/** EMPTY: see guidePositions. */
+interface StancePositionRow {
+  politician_id: string;
+  issue: string;
+  stance: string;
+  excerpt: string;
+  source_url: string;
+  source_title: string | null;
+  source_kind: string | null;
+  published_on: string | null;
+}
+
+/**
+ * Stance Check answers, keyed politician slug -> issue. Each row is a
+ * candidate's own verified quote that directly answers the Stance Check
+ * statement (classified Agree / Neutral / Disagree); where no quote directly
+ * addresses a statement there is no row and the page shows "No record".
+ */
 export async function stancePositions(): Promise<Record<string, Record<string, StanceCheckPosition>>> {
-  return {};
+  const supabase = createPublicClient();
+  if (!supabase) return {};
+
+  const data = await fetchAllRows((from, to) =>
+    supabase
+      .from("stance_check_positions")
+      .select("politician_id, issue, stance, excerpt, source_url, source_title, source_kind, published_on")
+      .eq("verified", true)
+      .order("id")
+      .range(from, to),
+  );
+  if (!data) return {};
+
+  const rows = data as unknown as StancePositionRow[];
+  const slugById = await politicianSlugsByUuid(supabase, rows.map((r) => r.politician_id));
+
+  const out: Record<string, Record<string, StanceCheckPosition>> = {};
+  for (const row of rows) {
+    const slug = slugById.get(row.politician_id);
+    if (!slug) continue;
+    const kind = GUIDE_SOURCE_TYPES.find((t) => t === row.source_kind);
+    if (!kind) continue; // never mislabel a source we can't classify
+    if (row.stance !== "Agree" && row.stance !== "Neutral" && row.stance !== "Disagree") continue;
+    (out[slug] ??= {})[row.issue] = {
+      stance: row.stance,
+      excerpt: row.excerpt,
+      sourceTitle: row.source_title ?? row.source_url,
+      sourceType: kind,
+      sourceUrl: row.source_url,
+      ...(row.published_on ? { date: row.published_on } : {}),
+    };
+  }
+  return out;
 }
 
 /** EMPTY: needs the feed pipeline (`feed_items` is 0 rows). */
