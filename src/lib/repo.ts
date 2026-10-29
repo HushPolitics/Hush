@@ -80,6 +80,27 @@ const POLITICIAN_SELECT = `
   )
 `;
 
+/**
+ * PostgREST caps every response at 1000 rows, silently. A table that grows past
+ * that limit loses rows from the end of whatever order the query uses -- no
+ * error, just missing data (races after "S", older candidate positions, the
+ * tail of the politician directory). Anything that can exceed 1000 rows reads
+ * through this, which pages with `range` until a short page comes back. The
+ * query needs a total order (end with a unique column) so pages never overlap.
+ */
+async function fetchAllRows<T>(
+  page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>,
+): Promise<T[] | null> {
+  const PAGE = 1000;
+  const all: T[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await page(from, from + PAGE - 1);
+    if (error || !data) return null;
+    all.push(...data);
+    if (data.length < PAGE) return all;
+  }
+}
+
 function first<T>(v: T[] | T | null | undefined): T | null {
   if (Array.isArray(v)) return v[0] ?? null;
   return v ?? null;
@@ -202,13 +223,17 @@ export async function listPoliticians(): Promise<Politician[]> {
   const supabase = createPublicClient();
   if (!supabase) return [];
 
-  const { data, error } = await supabase
-    .from("politicians")
-    .select(POLITICIAN_SELECT)
-    .eq("is_active", true)
-    .order("full_name");
+  const data = await fetchAllRows((from, to) =>
+    supabase
+      .from("politicians")
+      .select(POLITICIAN_SELECT)
+      .eq("is_active", true)
+      .order("full_name")
+      .order("slug")
+      .range(from, to),
+  );
 
-  if (error || !data) return [];
+  if (!data) return [];
   // The directory lists people who hold a seat or are still on the ballot.
   // Someone who lost their primary, withdrew or never qualified has neither,
   // and showing them as "running for" a race they are out of is wrong.
@@ -380,8 +405,10 @@ export async function listRaces(): Promise<Race[]> {
   const supabase = createPublicClient();
   if (!supabase) return [];
 
-  const { data, error } = await supabase.from("races").select(RACE_SELECT).order("title");
-  if (error || !data) return [];
+  const data = await fetchAllRows((from, to) =>
+    supabase.from("races").select(RACE_SELECT).order("title").order("id").range(from, to),
+  );
+  if (!data) return [];
 
   const rows = data as unknown as RaceRow[];
   const linked = rows.flatMap((r) => (r.candidacies ?? []).map((c) => c.politician_id)).filter(Boolean) as string[];
@@ -656,13 +683,17 @@ export async function guidePositions(): Promise<Record<string, Record<string, Is
   const supabase = createPublicClient();
   if (!supabase) return {};
 
-  const { data, error } = await supabase
-    .from("candidate_positions")
-    .select("politician_id, issue, excerpt, source_url, source_title, source_kind, published_on, retrieved_at")
-    .eq("verified", true)
-    .order("retrieved_at", { ascending: false });
+  const data = await fetchAllRows((from, to) =>
+    supabase
+      .from("candidate_positions")
+      .select("politician_id, issue, excerpt, source_url, source_title, source_kind, published_on, retrieved_at")
+      .eq("verified", true)
+      .order("retrieved_at", { ascending: false })
+      .order("id")
+      .range(from, to),
+  );
 
-  if (error || !data) return {};
+  if (!data) return {};
 
   // The app addresses a politician by slug (Politician.id is the slug), while
   // candidate_positions stores the uuid. Key the result by slug so lookups
