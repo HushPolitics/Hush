@@ -75,6 +75,7 @@ const POLITICIAN_SELECT = `
     offices( title, level, districts( name, state_code ) )
   ),
   candidacies(
+    status, withdrew,
     races( offices( title, level, districts( name, state_code ) ) )
   )
 `;
@@ -101,6 +102,25 @@ function toLevel(v: unknown): Level {
   return s === "Local" || s === "State" || s === "Federal" ? s : "Federal";
 }
 
+/**
+ * Candidacy statuses that mean the person is not on the November ballot.
+ * Shared by the race builder (who appears in a race) and the politician
+ * directory (whether someone is still "running for" anything), so the two
+ * can never disagree about a candidate who lost their primary.
+ */
+const DECIDED_AGAINST = new Set([
+  "defeated",
+  "withdrawn",
+  "withdrew",
+  "did not qualify",
+  "removed",
+  "transferred",
+]);
+
+function isStillRunning(c: { withdrew?: boolean | null; status?: string | null }): boolean {
+  return !c.withdrew && !DECIDED_AGAINST.has(String(c.status ?? "").toLowerCase());
+}
+
 interface PoliticianRow {
   slug: string;
   full_name: string;
@@ -115,7 +135,11 @@ interface PoliticianRow {
   fec_candidate_id: string | null;
   in_office_since: number | null;
   politician_offices?: { offices?: unknown }[] | null;
-  candidacies?: { races?: unknown }[] | null;
+  candidacies?: { status?: string | null; withdrew?: boolean | null; races?: unknown }[] | null;
+}
+
+function runningCandidacies(row: PoliticianRow) {
+  return (row.candidacies ?? []).filter(isStillRunning);
 }
 
 function toPolitician(row: PoliticianRow): Politician {
@@ -131,7 +155,7 @@ function toPolitician(row: PoliticianRow): Politician {
 
   const soughtOffice = heldOffice
     ? null
-    : ((first(first(row.candidacies)?.races) as { offices?: unknown } | null)?.offices as
+    : ((first(first(runningCandidacies(row))?.races) as { offices?: unknown } | null)?.offices as
         | { title?: string; level?: string; districts?: unknown }
         | null
         | undefined);
@@ -185,7 +209,12 @@ export async function listPoliticians(): Promise<Politician[]> {
     .order("full_name");
 
   if (error || !data) return [];
-  return (data as unknown as PoliticianRow[]).map(toPolitician);
+  // The directory lists people who hold a seat or are still on the ballot.
+  // Someone who lost their primary, withdrew or never qualified has neither,
+  // and showing them as "running for" a race they are out of is wrong.
+  return (data as unknown as PoliticianRow[])
+    .filter((r) => (r.politician_offices?.length ?? 0) > 0 || runningCandidacies(r).length > 0)
+    .map(toPolitician);
 }
 
 /**
@@ -279,20 +308,7 @@ function toRace(row: RaceRow, slugById: Map<string, string>): Race {
   // "Defeated" and withdrawals come out; "Elected" and "Unopposed" stay,
   // because that person does hold the seat and a reader looking up the race
   // should see who won it.
-  const DECIDED_AGAINST = new Set([
-    "defeated",
-    "withdrawn",
-    // The state's vocabulary, which differs from the counties'. County feeds
-    // say "Withdrawn"; the Division of Elections says "Withdrew" and adds
-    // three more ways to not be on the ballot. Of 830 state and federal
-    // candidacies only 369 are actually running.
-    "did not qualify",
-    "removed",
-    "transferred",
-  ]);
-  const running = (row.candidacies ?? []).filter(
-    (c) => !c.withdrew && !DECIDED_AGAINST.has(String(c.status ?? "").toLowerCase()),
-  );
+  const running = (row.candidacies ?? []).filter(isStillRunning);
 
   const candidates: RaceCandidate[] = running
     .slice()
