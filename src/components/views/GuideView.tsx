@@ -718,7 +718,7 @@ function TileGrid({
                                 ) : null}
                               </span>
                             ) : null}
-                            {pos ? <PositionNotice notice={positionNotice(pos.sourceType)} /> : null}
+                            {pos ? <PositionNotice notice={positionNotice(pos.sourceType, pos.sourceTitle)} /> : null}
                           </div>
                         );
                       })}
