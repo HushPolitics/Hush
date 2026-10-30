@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { C, positionNotice } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
-import type { IssuePosition, Politician, Race } from "@/lib/types";
+import type { IssuePosition, Race } from "@/lib/types";
 import { Card, Display, EmptyState, Kicker, PositionNotice, RustButton } from "@/components/ui";
 
 /**
@@ -19,16 +19,16 @@ import { Card, Display, EmptyState, Kicker, PositionNotice, RustButton } from "@
  */
 export default function GuideRaceView({
   race,
-  politicians,
+  knownPoliticianIds,
   positions,
 }: {
   race: Race;
-  politicians: Politician[];
+  knownPoliticianIds: string[];
   positions: Record<string, Record<string, IssuePosition>>;
 }) {
   const router = useRouter();
   const { topics } = usePrefs();
-  const knownIds = new Set(politicians.map((p) => p.id));
+  const knownIds = new Set(knownPoliticianIds);
   const { office, district } = parseRaceTitle(race.title);
 
   return (
