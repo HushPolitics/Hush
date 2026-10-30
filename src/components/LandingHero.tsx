@@ -55,7 +55,7 @@ function HomeHero() {
             on an ordinary browser window, which is what read as "way too
             big." New range tops out at 92px instead, same scaling behavior
             (a percentage of window width, floored on small screens). */}
-        <h1 style={{ margin: "18px 0 0", fontFamily: cond, fontWeight: 400, fontSize: "clamp(40px, 6vw, 92px)", lineHeight: 0.9, color: C.onDark }}>
+        <h1 style={{ margin: "18px 0 0", fontFamily: cond, fontWeight: 400, fontSize: "clamp(40px, 6vw, 92px)", lineHeight: 0.9, letterSpacing: "-0.01em", color: C.onDark }}>
           POLITICS
           <br />
           IS NOISY.
@@ -74,14 +74,14 @@ function HomeHero() {
         >
           {/* Was clamp(42px, 6.9vw, 108px) -- same proportional reduction as
               the headline above. */}
-          <span style={{ display: "block", fontFamily: cond, fontWeight: 400, fontSize: "clamp(32px, 4.6vw, 72px)", lineHeight: 0.94, color: C.ink }}>
+          <span style={{ display: "block", fontFamily: cond, fontWeight: 400, fontSize: "clamp(32px, 4.6vw, 72px)", lineHeight: 0.94, letterSpacing: "-0.01em", color: C.ink }}>
             YOUR VOTE
             <br />
             SHOULDN&apos;T BE.
           </span>
         </div>
 
-        <p style={{ marginTop: 40, maxWidth: "46ch", fontWeight: 400, fontSize: "clamp(18px, 1.6vw, 23px)", lineHeight: 1.58, color: V11.bodyMuted }}>
+        <p style={{ marginTop: 40, maxWidth: "46ch", fontWeight: 400, fontSize: "clamp(18px, 1.6vw, 23px)", lineHeight: 1.58, letterSpacing: "-0.008em", color: V11.bodyMuted }}>
           {/* Per the v11 design spec: "HUSH." takes the verb as a singular
               brand subject ("HUSH. gives you..."), not the plural "give." */}
           HUSH. gives you direct quotes, verified sources, and a clear way to compare candidates — so
@@ -92,14 +92,14 @@ function HomeHero() {
           <Link
             href="/signup"
             className="home-btn-primary"
-            style={{ background: C.rust, color: C.ink, fontWeight: 700, fontSize: "clamp(16px, 1.35vw, 19px)", padding: "24px 38px", textDecoration: "none" }}
+            style={{ background: C.rust, color: C.ink, fontWeight: 700, fontSize: "clamp(16px, 1.35vw, 19px)", letterSpacing: "-0.012em", padding: "24px 38px", textDecoration: "none" }}
           >
             Join the Movement
           </Link>
           <Link
-            href="/feed"
+            href="/how-it-works"
             className="home-link-underline"
-            style={{ color: C.onDark, fontWeight: 600, fontSize: "clamp(16px, 1.35vw, 19px)", textDecoration: "none", borderBottom: `2px solid ${C.onDark}`, paddingBottom: 4 }}
+            style={{ color: C.onDark, fontWeight: 600, fontSize: "clamp(16px, 1.35vw, 19px)", letterSpacing: "-0.012em", textDecoration: "none", borderBottom: `2px solid ${C.onDark}`, paddingBottom: 4 }}
           >
             See How It Works →
           </Link>
