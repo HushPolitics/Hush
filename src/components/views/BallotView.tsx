@@ -7,7 +7,8 @@ import { Display } from "@/components/ui";
 import { stripPartySuffix } from "@/lib/guide";
 import { usePrefs } from "@/lib/prefs";
 import AddressLookup from "@/components/AddressLookup";
-import { filterRaces, scopeLabel, scopeReasonFor } from "@/lib/ballot-scope";
+import { filterRaces, lacksLocalRaces, scopeLabel, scopeReasonFor } from "@/lib/ballot-scope";
+import BallotGapNote from "@/components/BallotGapNote";
 import type { Politician, Race } from "@/lib/types";
 
 /**
@@ -49,6 +50,7 @@ export default function BallotView({ races, politicians }: { races: Race[]; poli
             Every race we have loaded. Add your address above to see only yours.
           </span>
         )}
+        {narrowed && shown.length > 0 && lacksLocalRaces(races, scope) ? <BallotGapNote /> : null}
         {narrowed && shown.length === 0 ? (
           <span style={{ fontSize: 13, color: C.body, lineHeight: 1.6 }}>
             We resolved your address but matched none of the races loaded so far. That is a gap in
