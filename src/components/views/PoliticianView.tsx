@@ -11,6 +11,7 @@ import { isCustomCompareEligible } from "@/lib/compare";
 import type { FactCheck, FundingSummary, IssuePosition, Politician, PromiseStatus, StanceCell } from "@/lib/types";
 import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, PositionNotice, SourceAttribution } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
+import { openFeedback } from "@/components/BetaFeedback";
 import { FactCheckCard, VerdictKey } from "./FactCheckView";
 
 const LEDGER_FILTERS: (PromiseStatus | "All")[] = ["All", "Delivered", "In progress", "No movement"];
@@ -213,6 +214,34 @@ export default function PoliticianView({
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.body, textWrap: "pretty", maxWidth: 720 }}>
           {p.bio}
         </p>
+
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "4px 10px",
+            alignItems: "baseline",
+            padding: "10px 14px",
+            border: `1px dashed ${C.lineHard}`,
+            borderRadius: 8,
+            fontSize: 13,
+            lineHeight: 1.5,
+            color: C.body,
+            maxWidth: 720,
+          }}
+        >
+          <span>
+            Candidate pages are still being built out. Some sections may be thin or empty. Where we
+            haven&apos;t found a candidate&apos;s own words, we say so instead of guessing.
+          </span>
+          <button
+            type="button"
+            onClick={() => openFeedback({ kind: "wrong_info", context: p.name })}
+            style={{ border: 0, background: "transparent", padding: 0, color: C.rust, fontSize: 13, cursor: "pointer", textDecoration: "underline" }}
+          >
+            Something wrong or missing? Tell us
+          </button>
+        </div>
       </div>
 
       {/* Sections 2-7 */}
@@ -525,6 +554,13 @@ export default function PoliticianView({
                           actionLabel="View original →"
                         />
                         <PositionNotice notice={positionNotice(pos.sourceType, pos.sourceTitle)} />
+                        <button
+                          type="button"
+                          onClick={() => openFeedback({ kind: "wrong_info", context: `${p.name} · ${issue}` })}
+                          style={{ alignSelf: "flex-start", border: 0, background: "transparent", padding: 0, color: C.muted, fontSize: 12, cursor: "pointer", textDecoration: "underline" }}
+                        >
+                          Report a problem with this
+                        </button>
                       </div>
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -534,6 +570,13 @@ export default function PoliticianView({
                         <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.4 }}>
                           HUSH. couldn&apos;t find a stated position on this issue in the sources we track.
                         </span>
+                        <button
+                          type="button"
+                          onClick={() => openFeedback({ kind: "wrong_info", context: `${p.name} · ${issue}` })}
+                          style={{ alignSelf: "flex-start", border: 0, background: "transparent", padding: 0, color: C.muted, fontSize: 12, cursor: "pointer", textDecoration: "underline" }}
+                        >
+                          Know where they stand? Send a source
+                        </button>
                       </div>
                     )}
                   </div>
