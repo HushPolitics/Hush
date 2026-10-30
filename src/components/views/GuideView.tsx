@@ -111,18 +111,19 @@ export default function GuideView({
   const setupDone = hasGuide && guideSetupDone;
   const step: Step = manualStep ?? (setupDone ? "grid" : welcome ? "welcome" : "address");
 
-  // The first time the grid shows for a signed-in account that hasn't been
-  // marked onboarded, save what Guide setup collected (address, ranked
-  // issues) to the account and mark setup finished. Signup no longer does
-  // this: it only creates the account.
+  // The first time the grid shows for an account that hasn't been marked
+  // onboarded, setup is finished from the person's side. Mark that locally
+  // right away (it must not depend on the account sync below succeeding), then
+  // make a best-effort save of what Guide setup collected. Signup no longer
+  // does this: it only creates the account.
   useEffect(() => {
     if (step !== "grid" || onboarded) return;
+    setOnboarded(true);
     const supabase = createClient();
     if (!supabase) return;
-    let cancelled = false;
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (cancelled || !data.user) return;
-      const synced = await syncOnboardingToSupabase({
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) return;
+      void syncOnboardingToSupabase({
         firstName,
         lastName,
         streetAddress,
@@ -131,11 +132,7 @@ export default function GuideView({
         rankedTopics: topics,
         markOnboarded: true,
       });
-      if (synced && !cancelled) setOnboarded(true);
     });
-    return () => {
-      cancelled = true;
-    };
     // Only when the grid first appears or onboarding flips.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, onboarded]);
