@@ -7,6 +7,7 @@ import { ClosingQuote } from "@/components/marketing/ClosingQuote";
 import { SectionLabel } from "@/components/marketing/SectionLabel";
 import { APP_SAMPLE as APP } from "@/lib/appSampleTheme";
 import { SampleCaption, SampleCard, SampleKicker } from "@/components/marketing/AppSample";
+import { ScaleToFit } from "@/components/marketing/ScaleToFit";
 
 const RACES = [
   { name: "U.S. Senate", sub: "2 candidates" },
@@ -199,7 +200,8 @@ function BallotListCard({ title, rows }: { title: string; rows: { name: string; 
 function LaptopPreview() {
   return (
     <div>
-      <div style={{ background: C.ink, borderRadius: "14px 14px 0 0", padding: "12px 12px 0" }}>
+      <ScaleToFit minWidth={480}>
+<div style={{ background: C.ink, borderRadius: "14px 14px 0 0", padding: "12px 12px 0" }}>
         <div style={{ background: APP.bg, borderRadius: "4px 4px 0 0", display: "flex", flexDirection: "column", overflow: "hidden" }}>
           <AppHeaderSample />
           <div style={{ padding: "16px 18px 14px", minWidth: 0 }}>
@@ -242,7 +244,8 @@ function LaptopPreview() {
         </div>
       </div>
       <div style={{ height: 12, background: "linear-gradient(#3A3530,#1C1917)", borderRadius: "0 0 12px 12px", margin: "0 -18px" }} />
-      <SampleCaption text="Sample ballot for illustration." />
+      </ScaleToFit>
+<SampleCaption text="Sample ballot for illustration." />
     </div>
   );
 }
@@ -250,7 +253,7 @@ function LaptopPreview() {
 function AtAGlance() {
   return (
     <section style={{ background: MK.paper, padding: "72px 34px 80px", borderBottom: `1px solid ${MK.rule}` }}>
-      <div className="story-two-col" style={{ gridTemplateColumns: "minmax(0,0.8fr) minmax(0,1.2fr)", gap: 56, alignItems: "center" }}>
+      <div className="guide-two-col" style={{ gridTemplateColumns: "minmax(0,0.8fr) minmax(0,1.2fr)", gap: 56, alignItems: "center" }}>
         <div>
           <SectionLabel>Your ballot at a glance</SectionLabel>
           <h2
@@ -635,7 +638,7 @@ function HowItWorksSteps() {
 function WhyWorthIt() {
   return (
     <section style={{ background: C.rust, color: C.ink, padding: "56px 34px", borderBottom: `1px solid ${C.ink}` }}>
-      <div className="story-two-col" style={{ gridTemplateColumns: "minmax(0,1.1fr) minmax(0,0.9fr)", gap: 48, alignItems: "end" }}>
+      <div className="guide-two-col" style={{ gridTemplateColumns: "minmax(0,1.1fr) minmax(0,0.9fr)", gap: 48, alignItems: "end" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <span aria-hidden style={{ width: 44, height: 3, background: C.ink, display: "block" }} />
