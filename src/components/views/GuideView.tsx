@@ -224,6 +224,10 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
         you can check it yourself. And where we couldn&apos;t find a candidate&apos;s own words, we tell
         you that instead of guessing.
       </span>
+      <span style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>
+        HUSH. is an early release through the election. If something looks wrong or missing, use
+        the Beta tab in the corner and tell us. We read every note.
+      </span>
       <RustButton onClick={onStart} style={{ alignSelf: "flex-start" }}>
         Get started →
       </RustButton>
