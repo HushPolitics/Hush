@@ -286,9 +286,6 @@ function BetaCard() {
       <p style={{ margin: 0, fontSize: 16.5, lineHeight: 1.62, color: "#CFC9BD", maxWidth: "52ch" }}>
         While HUSH. is in beta, every part of it is free through the 2026 midterms, including the HUSH. Guide. No card, no trial clock, nothing locked.
       </p>
-      <p style={{ margin: 0, fontSize: 16.5, lineHeight: 1.62, color: "#CFC9BD", maxWidth: "52ch" }}>
-        If you want to help keep it running, you can contribute any amount. It’s optional and it doesn’t unlock anything. It just means the money behind HUSH. keeps coming from voters.
-      </p>
       <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <a
           href="/signup"
@@ -298,17 +295,9 @@ function BetaCard() {
           <span>Create your free account</span>
           <span>→</span>
         </a>
-        <a
-          href={CONTRIBUTE_HREF}
-          className="fund-beta-secondary"
-          style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 21px", border: `1.5px solid ${C.onDark}`, color: C.onDark, fontSize: 15, fontWeight: 700, textDecoration: "none" }}
-        >
-          <span>Contribute</span>
-          <span>→</span>
-        </a>
       </div>
       <span style={{ paddingTop: 16, borderTop: "1px solid #3A342C", fontSize: 13, lineHeight: 1.55, color: "#8C8477" }}>
-        HUSH. isn’t a nonprofit, so contributions aren’t tax-deductible. The plans behind this card start after the midterms.
+        HUSH. isn’t a nonprofit. The plans behind this card start after the midterms.
       </span>
     </div>
   );
@@ -355,8 +344,8 @@ export default function FundHush() {
         attributionName="James Madison"
         attributionSource="Letter to W. T. Barry, 1822"
         line="Information needs a means of acquiring it. Here, that’s you."
-        ctaLabel="Contribute"
-        ctaHref="#membership"
+        ctaLabel="Create your free account"
+        ctaHref="/signup"
       />
       <MarketingFooter />
     </div>
