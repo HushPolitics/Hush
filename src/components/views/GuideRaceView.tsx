@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { C, positionNotice } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { parseRaceTitle, splitHeadToHead, stripPartySuffix } from "@/lib/guide";
+import { hasRaceInfo, parseRaceTitle, splitHeadToHead, stripPartySuffix } from "@/lib/guide";
 import type { IssuePosition, Party, Race, RaceCandidate } from "@/lib/types";
 import { Card, Display, EmptyState, GhostButton, Kicker, PositionNotice, RustButton } from "@/components/ui";
 
@@ -37,6 +37,19 @@ export default function GuideRaceView({
   // is empty, and nothing below changes.
   const { main, others } = splitHeadToHead(race);
   const [showOthers, setShowOthers] = useState(false);
+
+  // No candidate has a sourced position on the issues this voter picked (or,
+  // with no issues picked, on any issue): one short note instead of the same
+  // "No official position found" box under every issue.
+  const noInfo = !hasRaceInfo(race, topics, positions);
+
+  // One "submit your positions" link per candidate, under the first picked
+  // issue where they have nothing, rather than under every empty box.
+  const submitLinkIssue = new Map<string, string>();
+  for (const c of main) {
+    const first = topics.find((issue) => !positions[c.politicianId]?.[issue]);
+    if (first) submitLinkIssue.set(c.politicianId, first);
+  }
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
@@ -105,8 +118,23 @@ export default function GuideRaceView({
         </div>
       </div>
 
-      {topics.length > 0 ? (
-        topics.map((issue) => <IssueSection key={issue} issue={issue} candidates={main} positions={positions} />)
+      {noInfo ? (
+        <NoPositionsCard
+          race={race}
+          hasOtherInfo={hasRaceInfo(race, [], positions)}
+          onEditIssues={() => router.push("/hush-guide")}
+        />
+      ) : topics.length > 0 ? (
+        topics.map((issue) => (
+          <IssueSection
+            key={issue}
+            issue={issue}
+            candidates={main}
+            positions={positions}
+            raceTitle={race.title}
+            submitLinkIssue={submitLinkIssue}
+          />
+        ))
       ) : (
         // Who is running is the baseline fact of a race and shows regardless.
         // Positions are the layer on top, which needs the reader's issues, so
@@ -139,10 +167,14 @@ function IssueSection({
   issue,
   candidates,
   positions,
+  raceTitle,
+  submitLinkIssue,
 }: {
   issue: string;
   candidates: RaceCandidate[];
   positions: Record<string, Record<string, IssuePosition>>;
+  raceTitle: string;
+  submitLinkIssue: Map<string, string>;
 }) {
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -173,6 +205,11 @@ function IssueSection({
             key={c.politicianId}
             name={stripPartySuffix(c.name)}
             position={positions[c.politicianId]?.[issue]}
+            submitHref={
+              submitLinkIssue.get(c.politicianId) === issue
+                ? `/contact?topic=candidate&race=${encodeURIComponent(raceTitle)}&candidate=${encodeURIComponent(stripPartySuffix(c.name))}`
+                : undefined
+            }
           />
         ))}
       </div>
@@ -183,9 +220,11 @@ function IssueSection({
 function CandidatePositionCard({
   name,
   position,
+  submitHref,
 }: {
   name: string;
   position?: IssuePosition;
+  submitHref?: string;
 }) {
   return (
     <Card
@@ -230,9 +269,16 @@ function CandidatePositionCard({
           </div>
         </>
       ) : (
-        <span style={{ fontSize: 13, color: C.muted, fontStyle: "italic" }}>
-          No official position found
-        </span>
+        <>
+          <span style={{ fontSize: 13, color: C.muted, fontStyle: "italic" }}>
+            No official position found
+          </span>
+          {submitHref ? (
+            <Link href={submitHref} style={{ fontSize: 12, color: C.rust, lineHeight: 1.4 }}>
+              Are you this candidate? Submit your positions →
+            </Link>
+          ) : null}
+        </>
       )}
     </Card>
   );
@@ -314,5 +360,60 @@ function OtherCandidates({
         </div>
       ) : null}
     </section>
+  );
+}
+
+/**
+ * Shown instead of the per-issue sections when nobody in the race has a
+ * sourced position on the voter's picked issues. Same rule as everywhere else
+ * on HUSH.: a position appears only when it can be quoted word for word and
+ * linked to where it was said, so the honest answer here is "not yet" plus a
+ * way for the candidates to change that.
+ */
+function NoPositionsCard({
+  race,
+  hasOtherInfo,
+  onEditIssues,
+}: {
+  race: Race;
+  hasOtherInfo: boolean;
+  onEditIssues: () => void;
+}) {
+  const router = useRouter();
+  return (
+    <Card style={{ maxWidth: 560, padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+      <Display size={19}>We haven&apos;t found candidate positions for this race yet</Display>
+      <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
+        HUSH. only shows a position when we can quote it word for word and link to where it was said. For the
+        issues you picked, we haven&apos;t found that from anyone in this race. The candidates are listed above, and
+        their profile pages have everything we do have.
+      </span>
+      {hasOtherInfo ? (
+        <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
+          We do have positions on other issues in this race.{" "}
+          <button
+            type="button"
+            className="link-quiet"
+            onClick={onEditIssues}
+            style={{ border: 0, background: "transparent", color: C.rust, fontSize: 13, cursor: "pointer", padding: 0 }}
+          >
+            Change my issues →
+          </button>
+        </span>
+      ) : null}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 12, borderTop: `1px solid ${C.lineSoft}` }}>
+        <span style={{ fontSize: 14, color: C.ink }}>Are you a candidate in this race?</span>
+        <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
+          Send us a link to where you&apos;ve said it publicly (your website, a speech, an interview or a filing), or
+          a direct quote you want on the record. We add a position only with a source anyone can check.
+        </span>
+        <GhostButton
+          onClick={() => router.push(`/contact?topic=candidate&race=${encodeURIComponent(race.title)}`)}
+          style={{ alignSelf: "flex-start" }}
+        >
+          Submit your positions
+        </GhostButton>
+      </div>
+    </Card>
   );
 }
