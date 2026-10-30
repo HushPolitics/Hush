@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AppShell from "@/components/AppShell";
@@ -5,10 +6,13 @@ import PoliticianView from "@/components/views/PoliticianView";
 import {
   factChecksFor,
   getFundingSummary,
-  getPolitician,
+  getPolitician as fetchPolitician,
   guidePositions,
   stanceGrid,
 } from "@/lib/repo";
+
+/** Deduped within a request: the title and the page both need the politician. */
+const getPolitician = cache(fetchPolitician);
 
 /**
  * Records change between deploys, so this page is rebuilt in the background
@@ -58,7 +62,7 @@ export default async function PoliticianPage({
 
   const [checks, positions, funding, stances] = await Promise.all([
     factChecksFor(id),
-    guidePositions(),
+    guidePositions([id]),
     getFundingSummary(id),
     stanceGrid(),
   ]);
