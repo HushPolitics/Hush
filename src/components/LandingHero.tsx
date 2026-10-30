@@ -97,11 +97,11 @@ function HomeHero() {
             Join the Movement
           </Link>
           <Link
-            href="/how-it-works"
+            href="/contact?topic=feedback"
             className="home-link-underline"
             style={{ color: C.onDark, fontWeight: 600, fontSize: "clamp(16px, 1.35vw, 19px)", letterSpacing: "-0.012em", textDecoration: "none", borderBottom: `2px solid ${C.onDark}`, paddingBottom: 4 }}
           >
-            See How It Works →
+            Send feedback →
           </Link>
         </div>
       </div>
