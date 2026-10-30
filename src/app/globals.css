@@ -289,6 +289,17 @@ input::placeholder {
    stacked column per row — one small card per record — rather than
    shrinking columns until the text is unreadable. */
 @media (max-width: 640px) {
+  /* Comparison page, two candidates side by side: tighter gap and card
+     padding so each column has room for a quote on a ~390px screen, and
+     long source titles or URLs wrap instead of pushing a column wider. */
+  .guide-compare-h2h {
+    gap: 8px !important;
+  }
+  .guide-compare-h2h > * {
+    padding: 12px !important;
+    overflow-wrap: anywhere;
+  }
+
   /* Generic helper for a flex row of side-by-side panels that use a fixed
      pixel width or minWidth (e.g. `width: 360`, `minWidth: 420`). Same
      stacking pattern as `.split` above, for panels that don't use `.split`
