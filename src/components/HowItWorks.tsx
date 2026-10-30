@@ -40,7 +40,7 @@ const SIGN_IN_CARDS = [
     headline: "Your ballot, researched.",
     body: "A guide built around your ballot and the issues you care about, with direct quotes and real sources.",
     linkLabel: "Explore the Guide",
-    href: "/hush-guide",
+    href: "/guide-overview",
     objectPosition: "center 60%",
   },
   {
