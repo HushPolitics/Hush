@@ -22,7 +22,8 @@ import RepresentativesCard from "@/components/RepresentativesCard";
 import AddressLookup from "@/components/AddressLookup";
 import { resolveAddress } from "@/app/actions/location";
 import { lookupPollingPlace, type PollingLookupResult } from "@/app/actions/polling";
-import { filterRaces, scopeReasonFor } from "@/lib/ballot-scope";
+import { filterRaces, lacksLocalRaces, scopeReasonFor } from "@/lib/ballot-scope";
+import BallotGapNote from "@/components/BallotGapNote";
 import { BillsSection } from "./GuideBills";
 
 const fieldStyle = {
@@ -603,6 +604,7 @@ function TileGrid({
         <Display size={22}>See where candidates stand on your issues</Display>
       </div>
       <AddressLookup changeLabel="Change address" />
+      {located && races.length > 0 && lacksLocalRaces(allRaces, { districtIds, stateCode: state }) ? <BallotGapNote /> : null}
       {!located ? (
         <EmptyState>
           Enter your street address above and your races will show up here. Until then we
