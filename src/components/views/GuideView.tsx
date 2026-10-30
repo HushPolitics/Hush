@@ -15,6 +15,7 @@ import {
   issueCoverage,
   parseRaceTitle,
   raceLevelSummary,
+  sortRacesForGuide,
   stripPartySuffix,
 } from "@/lib/guide";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
@@ -641,7 +642,9 @@ function TileGrid({
   const races = useMemo(() => {
     if (!located) return [];
     const scope = { districtIds, stateCode: state };
-    return filterRaces(allRaces, scope).filter((r) => scopeReasonFor(r, scope) !== "unknown-district");
+    return sortRacesForGuide(
+      filterRaces(allRaces, scope).filter((r) => scopeReasonFor(r, scope) !== "unknown-district"),
+    );
   }, [allRaces, located, districtIds, state]);
   const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
 
