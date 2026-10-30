@@ -828,3 +828,15 @@ html {
 .legal-toc-link:hover {
   color: var(--rust) !important;
 }
+
+/* HUSH. Guide (Step 4): the "at a glance" and "why it's worth it" two-column
+   sections stack under ~900px per the spec (the shared .story-two-col only
+   stacks under 800px, which is right for Our Story). */
+.guide-two-col {
+  display: grid;
+}
+@media (max-width: 900px) {
+  .guide-two-col {
+    grid-template-columns: 1fr !important;
+  }
+}
