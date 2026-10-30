@@ -15,12 +15,15 @@ import { FormField, FIELD_STYLE } from "@/components/marketing/FormField";
 // contact method is shown anywhere on the page -- the form is the only way
 // in. No closing-quote section, per spec.
 
+const CANDIDATE_TOPIC = "I'm a candidate: submit my positions";
+
 const TOPICS = [
   "General question",
   "Contributions",
   "Press",
   "Feedback on the product",
   "Something isn't working",
+  CANDIDATE_TOPIC,
 ];
 
 type Status = "idle" | "sending" | "success" | "error";
@@ -57,8 +60,27 @@ function ContactForm({ onSuccess }: { onSuccess: () => void }) {
   // The app's "Send feedback" link arrives with ?topic=feedback so the topic
   // is already chosen. Read after mount to keep server and client markup equal.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("topic") === "feedback") {
+    const params = new URLSearchParams(window.location.search);
+    const topic = params.get("topic");
+    if (topic === "feedback") {
       setFields((f) => ({ ...f, topic: "Feedback on the product" }));
+    } else if (topic === "candidate") {
+      // Arrives from a race page with no candidate positions yet. The race
+      // title is public information, not personal data.
+      const race = (params.get("race") ?? "").slice(0, 200);
+      const candidate = (params.get("candidate") ?? "").slice(0, 120);
+      setFields((f) => ({
+        ...f,
+        topic: CANDIDATE_TOPIC,
+        message:
+          f.message ||
+          [
+            race ? `Race: ${race}` : "Race:",
+            candidate ? `Candidate: ${candidate}` : "Your name and party:",
+            "Link to where you've said it publicly (your website, a speech, an interview or a filing), or the direct quote you want on the record:",
+            "",
+          ].join("\n\n"),
+      }));
     }
   }, []);
 

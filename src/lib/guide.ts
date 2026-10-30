@@ -83,6 +83,49 @@ export function sortRacesForGuide(races: Race[]): Race[] {
   );
 }
 
+/** True for the races pinned to the top of the Guide (Governor, U.S. Senator, U.S. Representative). */
+export function isPinnedRace(race: Race): boolean {
+  const kind = headToHeadKind(race);
+  return kind !== null && PINNED_FIRST.includes(kind);
+}
+
+/**
+ * Whether anyone in this race has a sourced position the voter can see: at
+ * least one candidate with a position on at least one of the voter's picked
+ * `issues`. With no issues picked yet, any position on any issue counts, so
+ * the Guide's order doesn't change for someone who hasn't set up.
+ */
+export function hasRaceInfo(
+  race: Race,
+  issues: string[],
+  positions: Record<string, Record<string, IssuePosition>>,
+): boolean {
+  return race.candidates.some((c) => {
+    const byIssue = positions[c.politicianId];
+    if (!byIssue) return false;
+    return issues.length > 0 ? issues.some((issue) => byIssue[issue]) : Object.keys(byIssue).length > 0;
+  });
+}
+
+/**
+ * Splits an already-ordered race list into the races to lead with and the
+ * races with no information to show, keeping the order within each. The
+ * pinned races always stay in the first list. Remove `isPinnedRace(r) ||` to
+ * let them drop like any other race.
+ */
+export function partitionRacesByInfo(
+  races: Race[],
+  issues: string[],
+  positions: Record<string, Record<string, IssuePosition>>,
+): { withInfo: Race[]; withoutInfo: Race[] } {
+  const withInfo: Race[] = [];
+  const withoutInfo: Race[] = [];
+  for (const r of races) {
+    (isPinnedRace(r) || hasRaceInfo(r, issues, positions) ? withInfo : withoutInfo).push(r);
+  }
+  return { withInfo, withoutInfo };
+}
+
 /**
  * Race.meta is a seeded string like "Nov 3 · federal" -- there's no
  * standalone Level field on Race itself (only BallotItem, a different type

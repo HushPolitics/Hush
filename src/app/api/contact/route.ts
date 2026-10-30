@@ -13,6 +13,7 @@ const TOPICS = [
   "Press",
   "Feedback on the product",
   "Something isn't working",
+  "I'm a candidate: submit my positions",
 ];
 
 export async function POST(request: NextRequest) {

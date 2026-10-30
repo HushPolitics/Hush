@@ -12,8 +12,10 @@ import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/app-content";
 import { ballotPoliticianIds } from "@/lib/feed";
 import {
+  hasRaceInfo,
   issueCoverage,
   parseRaceTitle,
+  partitionRacesByInfo,
   raceLevelSummary,
   sortRacesForGuide,
   stripPartySuffix,
@@ -648,6 +650,15 @@ function TileGrid({
   }, [allRaces, located, districtIds, state]);
   const ballotIds = useMemo(() => ballotPoliticianIds(races), [races]);
 
+  // Races where no candidate has a sourced position on the issues this voter
+  // picked sit in their own section below the main list, so nobody taps into
+  // a school board race just to see "No official position found" repeated.
+  const { withInfo, withoutInfo } = useMemo(
+    () => partitionRacesByInfo(races, topics, positions),
+    [races, topics, positions],
+  );
+  const [showNoInfo, setShowNoInfo] = useState(false);
+
   // The ballot measures are Florida's constitutional amendments, so they show
   // only for an address that resolved in Florida. Everyone else sees why the
   // section is empty rather than another state's amendments.
@@ -659,6 +670,101 @@ function TileGrid({
     () => politicians.filter((p) => ballotIds.has(p.id)),
     [politicians, ballotIds],
   );
+
+  const renderRaceTile = (race: Race) => {
+    const { office, district } = parseRaceTitle(race.title);
+    const { covered, total } = issueCoverage(race, topics, positions);
+    const noInfo = !hasRaceInfo(race, topics, positions);
+
+    return (
+      <Card
+        key={race.id}
+        style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
+      >
+        <div
+          style={{
+            minHeight: 62,
+            boxSizing: "border-box",
+            padding: "10px 16px",
+            background: C.ink,
+          }}
+        >
+          <span style={{ fontFamily: cond, fontSize: 19, lineHeight: 1.15, color: C.onDark }}>{office}</span>
+          {district ? (
+            <span style={{ fontSize: 12, color: C.rust, display: "block" }}>{district}</span>
+          ) : null}
+        </div>
+        <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, flex: 1, background: noInfo ? C.shell : C.white }}>
+        {/* The candidate list renders whether or not anyone has a
+            sourced position.
+
+            It used to sit inside `{top ? ... }`, and `top` is undefined
+            until some candidate has a position on one of the reader's
+            ranked issues. No position research exists yet, so `top` was
+            undefined for every race and every user, and the tile showed
+            a race with no candidates in it at all. Who is running is
+            the baseline fact of a race; what they said about an issue
+            is the enhancement on top. Losing the former because we lack
+            the latter is backwards. */}
+        {race.candidates.length === 0 ? (
+          <span style={{ fontSize: 13, color: C.muted, fontStyle: "italic" }}>
+            No candidates on file for this race yet.
+          </span>
+        ) : (
+          <>
+            <Kicker size={11}>On the ballot</Kicker>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {race.candidates.map((c) => {
+                const nameEl = knownIds.has(c.politicianId) ? (
+                  <Link
+                    href={`/politician/${c.politicianId}`}
+                    style={{ fontSize: 13, color: C.ink, fontWeight: 600 }}
+                  >
+                    {stripPartySuffix(c.name)}
+                  </Link>
+                ) : (
+                  <span style={{ fontSize: 13, color: C.body, fontWeight: 600 }}>
+                    {stripPartySuffix(c.name)}
+                  </span>
+                );
+                return (
+                  <div key={c.politicianId} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    {nameEl}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        <span style={{ fontSize: 11, color: C.muted, marginTop: "auto" }}>
+          {noInfo
+            ? "No candidate positions found yet"
+            : total === 0
+              ? "Pick issues to see coverage for this race."
+              : `Info found for ${covered} of ${total} of your issues`}
+        </span>
+
+        {noInfo ? (
+          <GhostButton
+            onClick={() => router.push(`/hush-guide/${race.id}`)}
+            style={{ padding: "10px 16px", fontSize: 13 }}
+          >
+            See who&apos;s running
+          </GhostButton>
+        ) : (
+          <RustButton
+            onClick={() => router.push(`/hush-guide/${race.id}`)}
+            style={{ padding: "10px 16px", fontSize: 13 }}
+          >
+            View Comparison
+          </RustButton>
+        )}
+        </div>
+      </Card>
+    );
+  };
 
   return (
     <>
@@ -713,96 +819,51 @@ function TileGrid({
           We found your districts, but don&apos;t have any races loaded for them yet.
         </EmptyState>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))",
-            gap: 14,
-          }}
-        >
-          {races.map((race) => {
-            const { office, district } = parseRaceTitle(race.title);
-            const { covered, total } = issueCoverage(race, topics, positions);
+        <>
+          {withInfo.length > 0 ? (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))",
+                gap: 14,
+              }}
+            >
+              {withInfo.map((race) => renderRaceTile(race))}
+            </div>
+          ) : null}
 
-            return (
-              <Card
-                key={race.id}
-                style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
-              >
+          {withoutInfo.length > 0 ? (
+            <div id="races-no-info" style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <Kicker>No candidate positions yet ({withoutInfo.length})</Kicker>
+                <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5, maxWidth: 640 }}>
+                  We haven&apos;t found sourced positions from the candidates in{" "}
+                  {withoutInfo.length === 1 ? "this race" : "these races"}{" "}
+                  {topics.length > 0 ? "on the issues you picked" : "on any issue"}. You can still see who is running.
+                </span>
+              </div>
+              {/* Open by default when there is nothing else to show. */}
+              {withInfo.length > 0 ? (
+                <GhostButton onClick={() => setShowNoInfo((v) => !v)} style={{ alignSelf: "flex-start" }}>
+                  {showNoInfo
+                    ? "Hide these races"
+                    : `Show ${withoutInfo.length} ${withoutInfo.length === 1 ? "race" : "races"}`}
+                </GhostButton>
+              ) : null}
+              {showNoInfo || withInfo.length === 0 ? (
                 <div
                   style={{
-                    minHeight: 62,
-                    boxSizing: "border-box",
-                    padding: "10px 16px",
-                    background: C.ink,
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))",
+                    gap: 14,
                   }}
                 >
-                  <span style={{ fontFamily: cond, fontSize: 19, lineHeight: 1.15, color: C.onDark }}>{office}</span>
-                  {district ? (
-                    <span style={{ fontSize: 12, color: C.rust, display: "block" }}>{district}</span>
-                  ) : null}
+                  {withoutInfo.map((race) => renderRaceTile(race))}
                 </div>
-                <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10, flex: 1, background: C.white }}>
-                {/* The candidate list renders whether or not anyone has a
-                    sourced position.
-
-                    It used to sit inside `{top ? ... }`, and `top` is undefined
-                    until some candidate has a position on one of the reader's
-                    ranked issues. No position research exists yet, so `top` was
-                    undefined for every race and every user, and the tile showed
-                    a race with no candidates in it at all. Who is running is
-                    the baseline fact of a race; what they said about an issue
-                    is the enhancement on top. Losing the former because we lack
-                    the latter is backwards. */}
-                {race.candidates.length === 0 ? (
-                  <span style={{ fontSize: 13, color: C.muted, fontStyle: "italic" }}>
-                    No candidates on file for this race yet.
-                  </span>
-                ) : (
-                  <>
-                    <Kicker size={11}>On the ballot</Kicker>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      {race.candidates.map((c) => {
-                        const nameEl = knownIds.has(c.politicianId) ? (
-                          <Link
-                            href={`/politician/${c.politicianId}`}
-                            style={{ fontSize: 13, color: C.ink, fontWeight: 600 }}
-                          >
-                            {stripPartySuffix(c.name)}
-                          </Link>
-                        ) : (
-                          <span style={{ fontSize: 13, color: C.body, fontWeight: 600 }}>
-                            {stripPartySuffix(c.name)}
-                          </span>
-                        );
-                        return (
-                          <div key={c.politicianId} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            {nameEl}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </>
-                )}
-
-                <span style={{ fontSize: 11, color: C.muted, marginTop: "auto" }}>
-                  {total === 0
-                    ? "Pick issues to see coverage for this race."
-                    : `Info found for ${covered} of ${total} of your issues`}
-                </span>
-
-                <RustButton
-                  onClick={() => router.push(`/hush-guide/${race.id}`)}
-                  style={{ padding: "10px 16px", fontSize: 13 }}
-                >
-                  View Comparison
-                </RustButton>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+              ) : null}
+            </div>
+          ) : null}
+        </>
       )}
       </div>
 
