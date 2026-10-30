@@ -1,4 +1,4 @@
-import type { IssuePosition, Level, Race } from "./types";
+import type { IssuePosition, Level, Race, RaceCandidate } from "./types";
 
 /**
  * Splits a `Race.title` like "U.S. House · FL-04" into office + district.
@@ -9,6 +9,78 @@ import type { IssuePosition, Level, Race } from "./types";
 export function parseRaceTitle(title: string): { office: string; district?: string } {
   const [office, district] = title.split(" · ");
   return district ? { office, district } : { office };
+}
+
+/** "State of FL — United States Senator" -> "United States Senator". */
+function officePart(title: string): string {
+  return title.split(" — ").pop()?.trim() ?? title;
+}
+
+export type HeadToHeadKind = "governor" | "us-house" | "us-senate";
+
+/**
+ * The races that compare the Democrat and the Republican head to head, with
+ * everyone else behind a button. Matched on the office name, because race
+ * titles are "<jurisdiction> — <office>" ("State of FL — Governor",
+ * "State of FL — United States Senator", "State of FL — U.S. Representative,
+ * FL-13"). "Lieutenant Governor" does not match: the pattern is anchored.
+ */
+export function headToHeadKind(race: Race): HeadToHeadKind | null {
+  const office = officePart(race.title);
+  if (/^governor\b/i.test(office)) return "governor";
+  if (/^(u\.s\.|united states) (representative|house)\b/i.test(office)) return "us-house";
+  if (/^(u\.s\.|united states) senator\b/i.test(office)) return "us-senate";
+  return null;
+}
+
+const STATUS_ORDER = ["elected", "unopposed", "qualified", "runoff"];
+
+function standing(c: RaceCandidate): number {
+  const i = STATUS_ORDER.indexOf(String(c.status ?? "").toLowerCase());
+  return i === -1 ? STATUS_ORDER.length : i;
+}
+
+/** Strongest filing status among one party's candidates; ties keep ballot order (sort is stable). */
+function leadingOf(party: "D" | "R", list: RaceCandidate[]): RaceCandidate | undefined {
+  return list.filter((c) => c.party === party).sort((a, b) => standing(a) - standing(b))[0];
+}
+
+/**
+ * Splits a race into the two candidates shown side by side (the Democrat and
+ * the Republican) and everyone else. Anything that isn't a head-to-head race,
+ * or that lacks either a Democrat or a Republican, returns everyone in `main`
+ * and nobody in `others`, which is the page's behavior before this existed.
+ * Original order is kept in both lists.
+ */
+export function splitHeadToHead(race: Race): { main: RaceCandidate[]; others: RaceCandidate[] } {
+  const all = race.candidates;
+  if (!headToHeadKind(race)) return { main: all, others: [] };
+  const d = leadingOf("D", all);
+  const r = leadingOf("R", all);
+  if (!d || !r) return { main: all, others: [] };
+  return {
+    main: all.filter((c) => c === d || c === r),
+    others: all.filter((c) => c !== d && c !== r),
+  };
+}
+
+/** Races listed first on the Guide, in this order. Everything else follows alphabetically. */
+const PINNED_FIRST: HeadToHeadKind[] = ["governor", "us-senate", "us-house"];
+
+/**
+ * Governor, U.S. Senator, U.S. Representative, then all other races
+ * alphabetical by title. `numeric: true` sorts "District 2" before "District 10", which the
+ * database's plain text order did not.
+ */
+export function sortRacesForGuide(races: Race[]): Race[] {
+  const rank = (r: Race) => {
+    const kind = headToHeadKind(r);
+    const i = kind ? PINNED_FIRST.indexOf(kind) : -1;
+    return i === -1 ? PINNED_FIRST.length : i;
+  };
+  return [...races].sort(
+    (a, b) => rank(a) - rank(b) || a.title.localeCompare(b.title, "en", { numeric: true }),
+  );
 }
 
 /**
