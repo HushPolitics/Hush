@@ -29,7 +29,7 @@ const LAST_UPDATED = "September 30, 2026";
 
 type Tab = "privacy" | "terms";
 
-type ListItem = { bold?: string; text: string };
+type ListItem = { bold?: string; text: string; placeholder?: string };
 
 function Para({ children }: { children: ReactNode }) {
   return (
@@ -47,6 +47,12 @@ function BulletList({ items }: { items: ListItem[] }) {
             {item.bold ? <strong>{item.bold}</strong> : null}
             {item.bold ? " " : null}
             {item.text}
+            {item.placeholder ? (
+              <>
+                {" "}
+                <mark style={{ background: "rgba(228,87,46,0.22)", color: C.ink, padding: "0 4px" }}>{item.placeholder}</mark>
+              </>
+            ) : null}
           </span>
         </div>
       ))}
@@ -91,7 +97,7 @@ const PRIVACY_TOC = [
 const TERMS_TOC = [
   { id: "terms-summary", label: "The short version" },
   { id: "terms-accounts", label: "Your account" },
-  { id: "terms-billing", label: "Membership and billing" },
+  { id: "terms-billing", label: "Beta and contributions" },
   { id: "terms-content", label: "Our information" },
   { id: "terms-use", label: "Using HUSH." },
   { id: "terms-links", label: "Links to other sites" },
@@ -194,28 +200,26 @@ function TermsContent() {
 
       <Section id="terms-summary" title="The short version" first>
         <Para>
-          HUSH. gives you information, not advice, and never tells you how to vote. You pay once a year if you
-          choose a membership, and you can cancel whenever you like.
+          HUSH. gives you information, not advice, and never tells you how to vote. It’s free during the beta, through the
+          2026 midterms, and contributions are optional.
         </Para>
       </Section>
 
       <Section id="terms-accounts" title="Your account">
         <Para>
           You need to be at least 13 to create an account, and you’re responsible for keeping your password
-          safe. One membership covers the number of logins included in your plan.
+          safe.
         </Para>
       </Section>
 
-      <Section id="terms-billing" title="Membership and billing">
+      <Section id="terms-billing" title="Beta and contributions">
         <BulletList
           items={[
-            { text: "Memberships are billed once a year. There’s no monthly option." },
-            { text: "Your membership renews each year unless you cancel before the renewal date." },
-            { text: "You can cancel any time from your account settings." },
-            {
-              text:
-                "Changed your mind? If you cancel within 14 days of a new membership or a renewal, we’ll refund it in full. After that, your membership stays active until the end of the year you paid for.",
-            },
+            { text: "HUSH. is in beta. Every feature is free through the 2026 midterms." },
+            { text: "Contributions are optional, one-time, and don’t unlock anything." },
+            { text: "HUSH. isn’t a nonprofit, so contributions aren’t tax-deductible." },
+            { text: "Refunds on contributions:", placeholder: "[refund policy]" },
+            { text: "If paid plans start after the midterms, we’ll tell you by email first. Nothing will charge you automatically." },
           ]}
         />
       </Section>
