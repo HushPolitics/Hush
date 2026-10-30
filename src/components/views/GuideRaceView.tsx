@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { C, positionNotice } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
-import { parseRaceTitle, stripPartySuffix } from "@/lib/guide";
-import type { IssuePosition, Race } from "@/lib/types";
-import { Card, Display, EmptyState, Kicker, PositionNotice, RustButton } from "@/components/ui";
+import { parseRaceTitle, splitHeadToHead, stripPartySuffix } from "@/lib/guide";
+import type { IssuePosition, Party, Race, RaceCandidate } from "@/lib/types";
+import { Card, Display, EmptyState, GhostButton, Kicker, PositionNotice, RustButton } from "@/components/ui";
 
 /**
  * Election Comparison Page — one section per issue the user picked in HUSH
@@ -30,6 +31,12 @@ export default function GuideRaceView({
   const { topics } = usePrefs();
   const knownIds = new Set(knownPoliticianIds);
   const { office, district } = parseRaceTitle(race.title);
+  // Governor, U.S. Senate and U.S. House compare the Democrat and the
+  // Republican only; everyone else is behind a button below (see
+  // splitHeadToHead in guide.ts). Any other race: main is everyone, others
+  // is empty, and nothing below changes.
+  const { main, others } = splitHeadToHead(race);
+  const [showOthers, setShowOthers] = useState(false);
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
@@ -58,7 +65,7 @@ export default function GuideRaceView({
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <Kicker>Candidates</Kicker>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        {race.candidates.map((c) =>
+        {main.map((c) =>
           knownIds.has(c.politicianId) ? (
             <Link
               key={c.politicianId}
@@ -90,11 +97,16 @@ export default function GuideRaceView({
             </span>
           ),
         )}
+        {others.length > 0 ? (
+          <a href="#other-candidates" style={{ fontSize: 13, color: C.muted, alignSelf: "center" }}>
+            + {others.length} other {others.length === 1 ? "candidate" : "candidates"} on the ballot ↓
+          </a>
+        ) : null}
         </div>
       </div>
 
       {topics.length > 0 ? (
-        topics.map((issue) => <IssueSection key={issue} issue={issue} race={race} positions={positions} />)
+        topics.map((issue) => <IssueSection key={issue} issue={issue} candidates={main} positions={positions} />)
       ) : (
         // Who is running is the baseline fact of a race and shows regardless.
         // Positions are the layer on top, which needs the reader's issues, so
@@ -110,17 +122,26 @@ export default function GuideRaceView({
           </RustButton>
         </Card>
       )}
+
+      {others.length > 0 ? (
+        <OtherCandidates
+          others={others}
+          knownIds={knownIds}
+          open={showOthers}
+          onToggle={() => setShowOthers((v) => !v)}
+        />
+      ) : null}
     </div>
   );
 }
 
 function IssueSection({
   issue,
-  race,
+  candidates,
   positions,
 }: {
   issue: string;
-  race: Race;
+  candidates: RaceCandidate[];
   positions: Record<string, Record<string, IssuePosition>>;
 }) {
   return (
@@ -132,14 +153,22 @@ function IssueSection({
       </div>
 
       <div
+        className={candidates.length === 2 ? "guide-compare-h2h" : undefined}
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${Math.min(race.candidates.length, 3)}, minmax(260px, 1fr))`,
+          // Exactly two candidates (the Democrat and the Republican): two equal
+          // columns that always fit the screen, so they stay side by side on
+          // a phone instead of scrolling sideways. Any other count keeps the
+          // existing layout.
+          gridTemplateColumns:
+            candidates.length === 2
+              ? "repeat(2, minmax(0, 1fr))"
+              : `repeat(${Math.min(candidates.length, 3)}, minmax(260px, 1fr))`,
           gap: 14,
           overflowX: "auto",
         }}
       >
-        {race.candidates.map((c) => (
+        {candidates.map((c) => (
           <CandidatePositionCard
             key={c.politicianId}
             name={stripPartySuffix(c.name)}
@@ -206,5 +235,84 @@ function CandidatePositionCard({
         </span>
       )}
     </Card>
+  );
+}
+
+const PARTY_LABEL: Record<Party, string> = {
+  D: "Democrat",
+  R: "Republican",
+  I: "Independent",
+  NPA: "No party affiliation",
+  Other: "Other party",
+};
+
+/**
+ * The button under a head-to-head comparison, and the list it opens: every
+ * other candidate on the ballot, each a card that goes to their profile page.
+ * Candidates with no profile record (their id starts "candidacy:") show as
+ * plain cards that say so, same rule the "Candidates" chips above use.
+ */
+function OtherCandidates({
+  others,
+  knownIds,
+  open,
+  onToggle,
+}: {
+  others: RaceCandidate[];
+  knownIds: Set<string>;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const n = others.length;
+  const box = {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    minHeight: 48,
+    padding: "12px 14px",
+    borderRadius: 10,
+    border: `1px solid ${C.line}`,
+    background: C.white,
+  } as const;
+
+  return (
+    <section
+      id="other-candidates"
+      style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 20, borderTop: `1px solid ${C.line}` }}
+    >
+      <span style={{ fontSize: 14, color: C.body, lineHeight: 1.5 }}>
+        This comparison shows the Democratic and Republican candidates. {n} other{" "}
+        {n === 1 ? "candidate is" : "candidates are"} also on the ballot.
+      </span>
+      <GhostButton onClick={onToggle} style={{ alignSelf: "flex-start" }}>
+        {open ? "Hide other candidates" : `Look at the other ${n} ${n === 1 ? "candidate" : "candidates"} on the ballot`}
+      </GhostButton>
+
+      {open ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(220px, 100%), 1fr))", gap: 10 }}>
+          {others.map((c) => {
+            const name = stripPartySuffix(c.name);
+            const party = PARTY_LABEL[c.party];
+            return knownIds.has(c.politicianId) ? (
+              <Link
+                key={c.politicianId}
+                href={`/politician/${c.politicianId}`}
+                style={{ ...box, color: C.ink, textDecoration: "none" }}
+              >
+                <span style={{ fontSize: 15 }}>{name}</span>
+                <span style={{ fontSize: 12, color: C.muted }}>{party}</span>
+                <span style={{ fontSize: 12, color: C.rust }}>View profile →</span>
+              </Link>
+            ) : (
+              <div key={c.politicianId} style={box}>
+                <span style={{ fontSize: 15, color: C.body }}>{name}</span>
+                <span style={{ fontSize: 12, color: C.muted }}>{party}</span>
+                <span style={{ fontSize: 12, color: C.muted, fontStyle: "italic" }}>No profile page yet</span>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+    </section>
   );
 }
