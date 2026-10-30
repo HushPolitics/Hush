@@ -632,11 +632,11 @@ function FeedHero() {
 /**
  * Your Election. Still short of the full ticking countdown on Your Ballot /
  * HUSH Guide's ElectionCountdownBanner -- this shows both KEY_DATES entries
- * that actually require the reader to act before Election Day (Register by,
- * Early voting), not the full three-item spread that banner has room for.
+ * that actually require the reader to act before Election Day (Early voting,
+ * Mail ballots due), not the full three-item spread that banner has room for.
  */
 function ElectionCard({ days, raceCount }: { days: number | null; raceCount: number }) {
-  const registerBy = KEY_DATES.find((k) => k.label === "Register by") ?? KEY_DATES[0];
+  const mailDue = KEY_DATES.find((k) => k.label === "Mail ballots due");
   const earlyVoting = KEY_DATES.find((k) => k.label === "Early voting");
   return (
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -652,10 +652,10 @@ function ElectionCard({ days, raceCount }: { days: number | null; raceCount: num
         <span style={{ fontSize: 13, color: C.body }}>races on your ballot</span>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {registerBy ? (
+        {mailDue ? (
           <span style={{ fontSize: 13, color: C.body }}>
-            <span style={{ color: C.muted }}>{registerBy.label}:</span>{" "}
-            <span style={{ color: C.ink }}>{registerBy.value}</span>
+            <span style={{ color: C.muted }}>{mailDue.label}:</span>{" "}
+            <span style={{ color: C.ink }}>{mailDue.value}</span>
           </span>
         ) : null}
         {earlyVoting ? (
