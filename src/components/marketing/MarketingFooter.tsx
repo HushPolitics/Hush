@@ -148,7 +148,7 @@ export function MarketingFooter() {
         <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <span style={{ fontSize: 12, color: MK.muted }}>© 2026 HUSH.</span>
           <Link href="/fund-hush" className="home-footer-link" style={{ fontSize: 12, color: MK.onBlackBody, textDecoration: "none" }}>
-            Funded by members. No political money.
+            Funded by voters. No political money.
           </Link>
         </div>
 
