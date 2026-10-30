@@ -125,7 +125,7 @@ function SourcesSection() {
           </div>
         ))}
       </div>
-      <div className="story-two-col" style={{ marginTop: 52, gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+      <div className="guide-two-col" style={{ marginTop: 52, gridTemplateColumns: "1fr 1fr", gap: 24 }}>
         <div style={{ background: MK.card, border: `1px solid ${MK.rule}`, padding: "26px 26px 14px" }}>
           <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: C.ink }}>Sources we accept</span>
           <div style={{ marginTop: 10, display: "flex", flexDirection: "column" }}>
@@ -200,7 +200,7 @@ function ProcessSection() {
 function ScoreSection() {
   return (
     <section id="score" style={{ background: MK.paper, padding: "84px 34px", borderBottom: `1px solid ${MK.rule}`, scrollMarginTop: 130 }}>
-      <div className="story-two-col" style={{ gridTemplateColumns: "minmax(0,0.85fr) minmax(0,1.15fr)", gap: 56, alignItems: "start" }}>
+      <div className="guide-two-col" style={{ gridTemplateColumns: "minmax(0,0.85fr) minmax(0,1.15fr)", gap: 56, alignItems: "start" }}>
         <div>
           <SectionLabel>How the HUSH. Score works</SectionLabel>
           <h2 style={{ margin: "18px 0 0", fontFamily: cond, fontWeight: 400, fontSize: "clamp(32px,3.6vw,54px)", lineHeight: 0.96, textTransform: "uppercase", letterSpacing: "-0.005em", maxWidth: "14ch" }}>
@@ -250,7 +250,7 @@ function ScoreSection() {
 function CorrectionsSection() {
   return (
     <section id="corrections" style={{ background: MK.paperAlt, padding: "84px 34px", borderBottom: `1px solid ${MK.rule}`, scrollMarginTop: 130 }}>
-      <div className="story-two-col" style={{ gridTemplateColumns: "minmax(0,0.85fr) minmax(0,1.15fr)", gap: 56, alignItems: "start" }}>
+      <div className="guide-two-col" style={{ gridTemplateColumns: "minmax(0,0.85fr) minmax(0,1.15fr)", gap: 56, alignItems: "start" }}>
         <div>
           <SectionLabel>When we get it wrong</SectionLabel>
           <h2 style={{ margin: "18px 0 0", fontFamily: cond, fontWeight: 400, fontSize: "clamp(32px,3.6vw,54px)", lineHeight: 0.96, textTransform: "uppercase", letterSpacing: "-0.005em", maxWidth: "12ch" }}>
