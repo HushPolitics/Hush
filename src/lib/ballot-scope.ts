@@ -70,6 +70,18 @@ export function filterRaces(races: Race[], scope: BallotScope | null): Race[] {
   return races.filter((r) => isInScope(r, scope));
 }
 
+/**
+ * True when an address resolved to districts but none of the races matched to
+ * them are local (county, city, school board). The app has no record of which
+ * ballots are missing a race, so this is the proxy for where a gap is most
+ * likely: statewide and federal races are always present, the local ones are
+ * what may not be loaded yet.
+ */
+export function lacksLocalRaces(races: Race[], scope: BallotScope | null): boolean {
+  if (!scope || scope.districtIds.length === 0) return false;
+  return !races.some((r) => r.level === "Local" && scopeReasonFor(r, scope) === "district");
+}
+
 /** Short human label for why a race appears, or null when nothing is narrowed. */
 export function scopeLabel(reason: ScopeReason | null): string | null {
   switch (reason) {
