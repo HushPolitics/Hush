@@ -17,7 +17,7 @@ import { FormField, FIELD_STYLE } from "@/components/marketing/FormField";
 
 const TOPICS = [
   "General question",
-  "Membership and billing",
+  "Contributions",
   "Press",
   "Feedback on the product",
   "Something isn't working",
