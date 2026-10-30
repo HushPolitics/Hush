@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { C } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
@@ -15,6 +16,7 @@ import { createClient } from "@/lib/supabase/client";
  */
 export default function PersonalizeBanner() {
   const { onboarded } = usePrefs();
+  const pathname = usePathname();
   const [signedIn, setSignedIn] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
@@ -24,6 +26,9 @@ export default function PersonalizeBanner() {
     supabase.auth.getUser().then(({ data }) => setSignedIn(Boolean(data.user)));
   }, []);
 
+  // Never over HUSH. Guide or its setup screens: that's where the person is
+  // already finishing setup, and the Guide should show nothing but that step.
+  if (pathname.startsWith("/hush-guide") || pathname.startsWith("/profile/top-issues")) return null;
   if (!signedIn || onboarded || dismissed) return null;
 
   return (
@@ -42,7 +47,7 @@ export default function PersonalizeBanner() {
         Finish personalizing your HUSH. Add your address and rank what matters to you.
       </span>
       <Link
-        href="/signup"
+        href="/hush-guide"
         style={{
           marginLeft: "auto",
           fontWeight: 600,
