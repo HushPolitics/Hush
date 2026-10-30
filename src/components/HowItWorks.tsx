@@ -34,7 +34,7 @@ const SIGN_IN_CARDS = [
   },
   {
     name: "HUSH. Guide",
-    tag: "Membership" as const,
+    tag: "Free in beta" as const,
     image: "hiw-pic-guide.png",
     alt: "A pencil resting on a paper election ballot, black and white",
     headline: "Your ballot, researched.",
@@ -78,7 +78,11 @@ const FAQS: FaqItem[] = [
   },
   {
     q: "Is it free?",
-    a: "A free account gets you the feed, politician pages, and the Stance Check. The HUSH. Guide, every race on your ballot researched, comes with membership, from $19.99 a year.",
+    a: "Yes. HUSH. is in beta, and everything, including the HUSH. Guide, is free through the 2026 midterms. You can contribute if you want to, but nothing is locked.",
+  },
+  {
+    q: "Do I have to pay?",
+    a: "No. Contributions are optional and don’t unlock anything. HUSH. isn’t a nonprofit, so they aren’t tax-deductible.",
   },
 ];
 
