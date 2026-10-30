@@ -198,7 +198,7 @@ function ItPaysTheBillsSection() {
           ))}
         </div>
         <p style={{ margin: "26px 0 0", fontSize: 14, lineHeight: 1.6, color: MK.mutedDark, maxWidth: "46ch" }}>
-          At the close of each year we publish the real numbers: total members, what went back into the product, and whether we finished up or down.
+          At the close of each year we publish the real numbers: total users, what went back into the product, and whether we finished up or down.
         </p>
       </div>
     </section>
