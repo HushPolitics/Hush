@@ -218,7 +218,7 @@ function TermsContent() {
             { text: "HUSH. is in beta. Every feature is free through the 2026 midterms." },
             { text: "Contributions are optional, one-time, and don’t unlock anything." },
             { text: "HUSH. isn’t a nonprofit, so contributions aren’t tax-deductible." },
-            { text: "Refunds on contributions:", placeholder: "[refund policy]" },
+            { text: "Refunds on contributions: if something went wrong, contact us and we’ll make it right." },
             { text: "If paid plans start after the midterms, we’ll tell you by email first. Nothing will charge you automatically." },
           ]}
         />
