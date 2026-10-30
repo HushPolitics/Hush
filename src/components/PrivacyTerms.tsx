@@ -310,7 +310,7 @@ function PrivacyTermsSection() {
                 textTransform: "uppercase",
                 letterSpacing: "-0.005em",
                 fontSize: "clamp(22px, 2.2vw, 32px)",
-                color: active ? C.ink : MK.mutedDark,
+                color: active ? C.ink : "#9A9285",
                 borderBottom: `3px solid ${active ? C.rust : "transparent"}`,
               }}
             >
