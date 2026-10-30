@@ -18,11 +18,11 @@ const LEGAL_LINKS = [
   { label: "Contact", href: "/contact" },
 ];
 
-// Placeholder destinations until real account URLs are supplied.
+// X is left out until HUSH. has an account there (the XIcon glyph below is
+// kept so adding it back is one line).
 const SOCIAL_LINKS = [
-  { label: "Instagram", href: "#" },
-  { label: "TikTok", href: "#" },
-  { label: "X", href: "#" },
+  { label: "Instagram", href: "https://www.instagram.com/hushpolitics/" },
+  { label: "TikTok", href: "https://www.tiktok.com/@hushpolitics" },
 ];
 
 // Placeholder line-art glyphs, not brand assets -- swap for real logo SVGs
@@ -126,6 +126,8 @@ export function MarketingFooter() {
               <a
                 key={s.label}
                 href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label={s.label}
                 className="home-social-icon"
                 style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", border: `1.5px solid ${MK.ruleDarkStrong}`, color: C.onDark }}
