@@ -78,11 +78,11 @@ const FAQS: FaqItem[] = [
   },
   {
     q: "Is it free?",
-    a: "Yes. HUSH. is in beta, and everything, including the HUSH. Guide, is free through the 2026 midterms. You can contribute if you want to, but nothing is locked.",
+    a: "Yes. HUSH. is in beta, and everything, including the HUSH. Guide, is free through the 2026 midterms, and nothing is locked.",
   },
   {
     q: "Do I have to pay?",
-    a: "No. Contributions are optional and don’t unlock anything. HUSH. isn’t a nonprofit, so they aren’t tax-deductible.",
+    a: "No. HUSH. is free through the 2026 midterms. If contributions open later, they’ll be optional and won’t unlock anything.",
   },
 ];
 
