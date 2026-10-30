@@ -86,7 +86,7 @@ const TIERS: Tier[] = [
 function WhoFundsSection() {
   return (
     <section style={{ background: MK.paper, padding: "84px 34px", borderBottom: `1px solid ${MK.rule}` }}>
-      <div className="story-two-col" style={{ gridTemplateColumns: "minmax(0,1.1fr) minmax(0,0.9fr)", gap: 64, alignItems: "center" }}>
+      <div className="guide-two-col" style={{ gridTemplateColumns: "minmax(0,1.1fr) minmax(0,0.9fr)", gap: 64, alignItems: "center" }}>
         <div>
           <h2 style={{ margin: 0, fontFamily: cond, fontWeight: 400, fontSize: "clamp(24px, 2.4vw, 34px)", lineHeight: 1, textTransform: "uppercase", letterSpacing: "-0.005em" }}>
             Who funds HUSH.?
@@ -127,7 +127,7 @@ function WhoFundsSection() {
 function FollowTheMoneySection() {
   return (
     <section style={{ background: MK.paperAlt, padding: "84px 34px 92px", borderBottom: `1px solid ${MK.rule}` }}>
-      <div className="story-two-col" style={{ gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 64, alignItems: "stretch" }}>
+      <div className="guide-two-col" style={{ gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 64, alignItems: "stretch" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 22, maxWidth: "54ch" }}>
           <SectionLabel>Follow the money</SectionLabel>
           <p style={{ margin: 0, fontSize: 17, lineHeight: 1.64, color: MK.body, letterSpacing: "-0.008em" }}>
@@ -171,7 +171,7 @@ function FollowTheMoneySection() {
 function ItPaysTheBillsSection() {
   return (
     <section className="fund-bills-grid" style={{ background: C.ink, color: C.onDark, borderBottom: `1px solid ${MK.ruleDark}` }}>
-      <div className="fund-bills-image" style={{ position: "relative", minHeight: 360, background: MK.ruleDark }}>
+      <div className="fund-bills-image" style={{ position: "relative", minHeight: 300, background: MK.ruleDark }}>
         <img
           src="/images/fund-hush/fund-lights.png"
           alt="A desk lamp lit over a dark desk at night"
@@ -245,7 +245,7 @@ function TierCard({ tier }: { tier: Tier }) {
 function MembershipSection() {
   return (
     <section id="membership" style={{ background: MK.paper, padding: "84px 34px 88px", borderBottom: `1px solid ${MK.rule}`, scrollMarginTop: 120 }}>
-      <div className="story-two-col" style={{ gridTemplateColumns: "minmax(0,1.1fr) minmax(0,0.9fr)", gap: 48, alignItems: "end" }}>
+      <div className="guide-two-col" style={{ gridTemplateColumns: "minmax(0,1.1fr) minmax(0,0.9fr)", gap: 48, alignItems: "end" }}>
         <h2 style={{ margin: 0, fontFamily: cond, fontWeight: 400, fontSize: "clamp(28px,3vw,44px)", lineHeight: 0.98, textTransform: "uppercase", letterSpacing: "-0.005em", maxWidth: "18ch" }}>
           Membership options
         </h2>
