@@ -1094,6 +1094,7 @@ function GlanceIcon({ kind, size = 16, color = C.ink }: { kind: string; size?: n
           <path d="M2.5 6.5h11M5.2 2v3M10.8 2v3" />
         </svg>
       );
+    case "Mail ballots due":
     case "Mail ballot request":
       return (
         <svg {...common} aria-hidden>
