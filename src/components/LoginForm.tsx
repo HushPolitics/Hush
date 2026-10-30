@@ -60,7 +60,7 @@ export default function LoginForm() {
       setPwStatus("error");
       setPwMessage(error.message);
     } else {
-      router.push("/feed");
+      router.push("/hush-guide");
     }
   }
 
