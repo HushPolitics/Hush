@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type ChangeEvent } from "react";
+import { useEffect, useState, type FormEvent, type ChangeEvent } from "react";
 import Link from "next/link";
 import { C, cond } from "@/lib/theme";
 import { MK } from "@/lib/marketingTheme";
@@ -53,6 +53,14 @@ function ContactForm({ onSuccess }: { onSuccess: () => void }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+
+  // The app's "Send feedback" link arrives with ?topic=feedback so the topic
+  // is already chosen. Read after mount to keep server and client markup equal.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("topic") === "feedback") {
+      setFields((f) => ({ ...f, topic: "Feedback on the product" }));
+    }
+  }, []);
 
   function set<K extends keyof Fields>(key: K) {
     return (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
