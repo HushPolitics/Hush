@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type CSSProperties, type FormEvent, type ReactNode } from "react";
-import { C, cond, positionNotice } from "@/lib/theme";
+import { C, cond } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs, type PollingPlace } from "@/lib/prefs";
 import { createClient } from "@/lib/supabase/client";
@@ -16,10 +16,9 @@ import {
   parseRaceTitle,
   raceLevelSummary,
   stripPartySuffix,
-  topRankedIssueForRace,
 } from "@/lib/guide";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
-import { Card, Chip, Display, EmptyState, ExpandableQuote, GhostButton, Kicker, PositionNotice, RustButton } from "@/components/ui";
+import { Card, Chip, Display, EmptyState, GhostButton, Kicker, RustButton } from "@/components/ui";
 import RepresentativesCard from "@/components/RepresentativesCard";
 import AddressLookup from "@/components/AddressLookup";
 import { resolveAddress } from "@/app/actions/location";
@@ -721,7 +720,6 @@ function TileGrid({
           {races.map((race) => {
             const { office, district } = parseRaceTitle(race.title);
             const { covered, total } = issueCoverage(race, topics, positions);
-            const top = topRankedIssueForRace(race, topics, positions);
 
             return (
               <Card
@@ -759,15 +757,10 @@ function TileGrid({
                   </span>
                 ) : (
                   <>
-                    {top ? (
-                      <Kicker size={11}>Your #{top.rank} issue: {top.issue}</Kicker>
-                    ) : (
-                      <Kicker size={11}>On the ballot</Kicker>
-                    )}
+                    <Kicker size={11}>On the ballot</Kicker>
 
-                    <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {race.candidates.map((c) => {
-                        const pos = top ? positions[c.politicianId]?.[top.issue] : undefined;
                         const nameEl = knownIds.has(c.politicianId) ? (
                           <Link
                             href={`/politician/${c.politicianId}`}
@@ -781,42 +774,8 @@ function TileGrid({
                           </span>
                         );
                         return (
-                          <div key={c.politicianId} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                              {nameEl}
-                            </div>
-                            {pos ? (
-                              <ExpandableQuote
-                                text={pos.excerpt}
-                                style={{ fontSize: 12, color: C.body, lineHeight: 1.4 }}
-                              />
-                            ) : (
-                              <span style={{ fontSize: 12, color: C.muted, fontStyle: "italic", lineHeight: 1.4 }}>
-                                No official position found
-                              </span>
-                            )}
-                            {pos ? (
-                              <span style={{ fontSize: 11, color: C.muted, display: "flex", gap: 6, flexWrap: "wrap" }}>
-                                <a
-                                  href={pos.sourceUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{ color: C.rust }}
-                                >
-                                  Source
-                                </a>
-                                {pos.date ? <span>· {pos.date}</span> : null}
-                                {knownIds.has(c.politicianId) ? (
-                                  <>
-                                    <span>·</span>
-                                    <Link href={`/politician/${c.politicianId}#positions`} style={{ color: C.rust }}>
-                                      Full quote →
-                                    </Link>
-                                  </>
-                                ) : null}
-                              </span>
-                            ) : null}
-                            {pos ? <PositionNotice notice={positionNotice(pos.sourceType, pos.sourceTitle)} /> : null}
+                          <div key={c.politicianId} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            {nameEl}
                           </div>
                         );
                       })}
