@@ -9,7 +9,7 @@ const RECIPIENT = "hunter@hushpolitics.com";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TOPICS = [
   "General question",
-  "Membership and billing",
+  "Contributions",
   "Press",
   "Feedback on the product",
   "Something isn't working",
