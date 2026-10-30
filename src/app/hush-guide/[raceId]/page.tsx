@@ -1,8 +1,12 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import GuideRaceView from "@/components/views/GuideRaceView";
-import { getRace, guidePositions, listPoliticians } from "@/lib/repo";
+import { existingPoliticianSlugs, getRace as fetchRace, guidePositions } from "@/lib/repo";
+
+/** Deduped within a request: the title and the page both need the race. */
+const getRace = cache(fetchRace);
 
 /**
  * Records change between deploys, so this page is rebuilt in the background
@@ -37,11 +41,17 @@ export default async function HushGuideRacePage({
   const race = await getRace(raceId);
   if (!race) notFound();
 
-  const [politicians, positions] = await Promise.all([listPoliticians(), guidePositions()]);
+  // Only this race's candidates matter here -- loading every politician and
+  // every position in the database made the first view take several seconds.
+  const slugs = race.candidates.map((c) => c.politicianId).filter(Boolean);
+  const [knownPoliticianIds, positions] = await Promise.all([
+    existingPoliticianSlugs(slugs),
+    guidePositions(slugs),
+  ]);
 
   return (
     <AppShell>
-      <GuideRaceView race={race} politicians={politicians} positions={positions} />
+      <GuideRaceView race={race} knownPoliticianIds={knownPoliticianIds} positions={positions} />
     </AppShell>
   );
 }
