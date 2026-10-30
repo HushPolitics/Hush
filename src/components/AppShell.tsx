@@ -28,6 +28,7 @@ const NAV = [
 const AVATAR_MENU_TAIL = [
   { href: "/following", label: "Following" },
   { href: "/profile/settings", label: "Account settings" },
+  { href: "/contact?topic=feedback", label: "Send feedback" },
 ] as const;
 
 function isActive(pathname: string, href: string) {
