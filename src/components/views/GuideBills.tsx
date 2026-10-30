@@ -36,9 +36,13 @@ export function BillsSection({
         <EmptyState>{emptyMessage}</EmptyState>
       ) : (
         <div
+          className="bills-grid"
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))",
+            // Up to three across, equal widths, filling the row. Counting the
+            // bills (rather than a fixed 3) means one or two measures also
+            // fill the row instead of leaving blank columns.
+            gridTemplateColumns: `repeat(${Math.min(bills.length, 3)}, minmax(0, 1fr))`,
             gap: 16,
           }}
         >
