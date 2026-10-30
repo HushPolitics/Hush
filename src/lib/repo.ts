@@ -431,6 +431,16 @@ export async function getRace(id: string): Promise<Race | undefined> {
   return toRace(row, slugById);
 }
 
+/** Which of these politician slugs have a profile page (so a candidate name can link to it). */
+export async function existingPoliticianSlugs(slugs: string[]): Promise<string[]> {
+  const supabase = createPublicClient();
+  const unique = [...new Set(slugs.filter(Boolean))];
+  if (!supabase || unique.length === 0) return [];
+
+  const { data } = await supabase.from("politicians").select("slug").in("slug", unique);
+  return (data ?? []).map((r) => r.slug as string);
+}
+
 export async function raceExists(id: string): Promise<boolean> {
   const supabase = createPublicClient();
   if (!supabase) return false;
@@ -679,19 +689,31 @@ interface CandidatePositionRow {
  * character in the captured page (and RLS only exposes `verified = true`).
  * One position per candidate per issue: the most recently retrieved wins.
  */
-export async function guidePositions(): Promise<Record<string, Record<string, IssuePosition>>> {
+export async function guidePositions(
+  /** Limit to these politician slugs (a single race page needs only its own candidates). */
+  onlySlugs?: string[],
+): Promise<Record<string, Record<string, IssuePosition>>> {
   const supabase = createPublicClient();
   if (!supabase) return {};
 
-  const data = await fetchAllRows((from, to) =>
-    supabase
+  let scopedIds: string[] | null = null;
+  let scopedSlugById: Map<string, string> | null = null;
+  if (onlySlugs) {
+    if (onlySlugs.length === 0) return {};
+    const { data: pols } = await supabase.from("politicians").select("id, slug").in("slug", onlySlugs);
+    scopedSlugById = new Map((pols ?? []).map((p) => [p.id as string, p.slug as string]));
+    scopedIds = [...scopedSlugById.keys()];
+    if (scopedIds.length === 0) return {};
+  }
+
+  const data = await fetchAllRows((from, to) => {
+    let q = supabase
       .from("candidate_positions")
       .select("politician_id, issue, excerpt, source_url, source_title, source_kind, published_on, retrieved_at")
-      .eq("verified", true)
-      .order("retrieved_at", { ascending: false })
-      .order("id")
-      .range(from, to),
-  );
+      .eq("verified", true);
+    if (scopedIds) q = q.in("politician_id", scopedIds);
+    return q.order("retrieved_at", { ascending: false }).order("id").range(from, to);
+  });
 
   if (!data) return {};
 
@@ -699,7 +721,7 @@ export async function guidePositions(): Promise<Record<string, Record<string, Is
   // candidate_positions stores the uuid. Key the result by slug so lookups
   // from the profile, Guide and Stance Check pages actually match.
   const rows = data as unknown as CandidatePositionRow[];
-  const slugById = await politicianSlugsByUuid(supabase, rows.map((r) => r.politician_id));
+  const slugById = scopedSlugById ?? (await politicianSlugsByUuid(supabase, rows.map((r) => r.politician_id)));
 
   const out: Record<string, Record<string, IssuePosition>> = {};
   for (const row of rows) {
