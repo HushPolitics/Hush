@@ -218,7 +218,7 @@ function ContactSection() {
 
   return (
     <section style={{ background: MK.paper, padding: "84px 34px 96px", borderBottom: `1px solid ${MK.rule}` }}>
-      <div className="story-two-col" style={{ gridTemplateColumns: "minmax(0,0.85fr) minmax(0,1.15fr)", gap: 64, alignItems: "start" }}>
+      <div className="guide-two-col" style={{ gridTemplateColumns: "minmax(0,0.85fr) minmax(0,1.15fr)", gap: 64, alignItems: "start" }}>
         <div>
           <SectionLabel>Get in touch</SectionLabel>
           <h2
