@@ -13,7 +13,9 @@ import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
  *
  * Set NEXT_PUBLIC_PAYWALL=on to turn it on.
  */
-export const PAYWALL_ENABLED = process.env.NEXT_PUBLIC_PAYWALL === "on";
+// Free beta through the 2026 midterms: the gate is hard-off, whatever the
+// env says, so nothing in the product can lock behind a membership.
+export const PAYWALL_ENABLED = false;
 
 export default async function Gate({
   children,
@@ -68,7 +70,7 @@ export default async function Gate({
         </p>
         <div style={{ display: "flex", gap: 9, marginTop: 4 }}>
           <Link
-            href="/pricing"
+            href="/fund-hush#membership"
             style={{
               padding: "11px 18px",
               borderRadius: 8,
