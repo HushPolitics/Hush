@@ -203,7 +203,7 @@ function GuideCallout() {
           </p>
         </div>
         <a
-          href="/hush-guide"
+          href="/guide-overview"
           className="wi-cta-dark"
           style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "15px 24px", background: C.ink, color: C.onDark, fontSize: 14, fontWeight: 700, letterSpacing: "-0.005em", textDecoration: "none" }}
         >
@@ -226,7 +226,7 @@ function FeedSection() {
 
   return (
     <section id="feed" style={{ background: MK.paperAlt, padding: "72px 34px", borderBottom: `1px solid ${MK.rule}`, scrollMarginTop: 130 }}>
-      <div className="story-two-col" style={{ gridTemplateColumns: "minmax(0,0.9fr) minmax(0,1.1fr)", gap: 56, alignItems: "center" }}>
+      <div className="guide-two-col" style={{ gridTemplateColumns: "minmax(0,0.9fr) minmax(0,1.1fr)", gap: 56, alignItems: "center" }}>
         <div>
           <SectionLabel>Feed</SectionLabel>
           <h2 style={{ margin: "18px 0 0", fontFamily: cond, fontWeight: 400, fontSize: "clamp(30px, 3.4vw, 50px)", lineHeight: 0.98, textTransform: "uppercase", letterSpacing: "-0.005em", maxWidth: "14ch" }}>
@@ -642,7 +642,7 @@ function PoliticiansSection() {
       <p style={{ margin: "18px 0 0", fontSize: 17, lineHeight: 1.62, color: MK.body, maxWidth: "60ch" }}>
         Every politician gets a page with their positions, their votes, their promises, and their money. Two tools sit on top of it.
       </p>
-      <div className="story-two-col" style={{ marginTop: 40, gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 40, alignItems: "start" }}>
+      <div className="guide-two-col" style={{ marginTop: 40, gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 40, alignItems: "start" }}>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12, paddingBottom: 14, borderBottom: `2px solid ${C.ink}` }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: C.rust }}>A</span>
