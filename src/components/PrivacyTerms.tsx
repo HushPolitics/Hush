@@ -25,7 +25,7 @@ import { MarketingTitleBar } from "@/components/marketing/TitleBar";
 // None of that is a code decision -- it's copy ported verbatim from the
 // prototype, which the business needs to verify is still accurate.
 
-const LAST_UPDATED = "September 30, 2026";
+const LAST_UPDATED = "October 30, 2026";
 
 type Tab = "privacy" | "terms";
 
@@ -87,7 +87,7 @@ const PRIVACY_TOC = [
   { id: "privacy-summary", label: "The short version" },
   { id: "privacy-collect", label: "What we collect" },
   { id: "privacy-use", label: "How we use it" },
-  { id: "privacy-never", label: "What we never do" },
+  { id: "privacy-never", label: "What we don’t do" },
   { id: "privacy-share", label: "Who we share it with" },
   { id: "privacy-choices", label: "Your choices" },
   { id: "privacy-kids", label: "Children" },
@@ -113,9 +113,9 @@ function PrivacyContent() {
 
       <Section id="privacy-summary" title="The short version" first>
         <Para>
-          We collect what we need to show you your ballot, and nothing we’d be embarrassed to explain. We
-          don’t sell your data, we don’t share it with campaigns, and we don’t use it for political
-          advertising.
+          We collect what we need to show you your ballot, and nothing we’d be embarrassed to explain. Right
+          now, we don’t sell your data, we don’t share it with campaigns, and we don’t use it for political
+          advertising. If that changes, we’ll say so on this page.
         </Para>
       </Section>
 
@@ -142,7 +142,7 @@ function PrivacyContent() {
         />
       </Section>
 
-      <Section id="privacy-never" title="What we never do">
+      <Section id="privacy-never" title="What we don’t do">
         <BulletList
           items={[
             { text: "Sell your personal information, to anyone, at any price." },
@@ -151,6 +151,7 @@ function PrivacyContent() {
             { text: "Tell anyone how you answered or how you plan to vote." },
           ]}
         />
+        <Para>If any of this changes, we’ll say so on this page.</Para>
       </Section>
 
       <Section id="privacy-share" title="Who we share it with">
@@ -175,7 +176,7 @@ function PrivacyContent() {
           <Link href="/contact" className="marketing-underline-link" style={{ color: C.ink, borderBottom: `1px solid ${C.ink}` }}>
             Contact page
           </Link>{" "}
-          and choose “General question.” We’ll respond within 30 days.
+          and choose “General question.” We’ll respond within 45 days.
         </Para>
       </Section>
 
@@ -185,8 +186,8 @@ function PrivacyContent() {
 
       <Section id="privacy-changes" title="Changes to this policy">
         <Para>
-          If we change how we handle your data, we’ll update this page and tell you by email before the
-          change takes effect. Last updated {LAST_UPDATED}.
+          If we change how we handle your data, we’ll post the change on this page and update the date.
+          Last updated {LAST_UPDATED}.
         </Para>
       </Section>
     </div>
@@ -254,8 +255,8 @@ function TermsContent() {
         <Para>
           HUSH. is provided “as is” and “as available,” without warranties of any kind. To
           the fullest extent the law allows, HUSH. isn’t liable for indirect, incidental, or consequential
-          damages, and our total liability to you for any claim is limited to the amount you paid us in the 12
-          months before the claim.
+          damages, and our total liability to you for any claim is limited to the greater of the amount you paid us in the 12
+          months before the claim or $100.
         </Para>
       </Section>
 
@@ -265,7 +266,7 @@ function TermsContent() {
 
       <Section id="terms-changes" title="Changes to these terms">
         <Para>
-          If we make a material change, we’ll tell you by email before it takes effect. Last updated{" "}
+          If we make a material change, we’ll post it on this page and update the date. Last updated{" "}
           {LAST_UPDATED}.
         </Para>
       </Section>
