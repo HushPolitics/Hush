@@ -193,13 +193,13 @@ function GuideCallout() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 12, fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: C.ink }}>
             <span>HUSH. Guide</span>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", background: C.ink, color: C.onDark, padding: "4px 8px" }}>With membership</span>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", background: C.ink, color: C.onDark, padding: "4px 8px" }}>Free in beta</span>
           </div>
           <h2 style={{ margin: "16px 0 0", fontFamily: cond, fontWeight: 400, fontSize: "clamp(26px, 2.8vw, 40px)", lineHeight: 1, textTransform: "uppercase", letterSpacing: "-0.005em", maxWidth: "22ch" }}>
             Your whole ballot, researched.
           </h2>
           <p style={{ margin: "14px 0 0", fontSize: 16.5, lineHeight: 1.6, color: MK.body, maxWidth: "56ch" }}>
-            Zip in, issues picked, and every race you&rsquo;ll vote in comes back with each candidate&rsquo;s positions in their own words. It comes with membership, from $19.99 a year.
+            Zip in, issues picked, and every race you&rsquo;ll vote in comes back with each candidate&rsquo;s positions in their own words. It&rsquo;s free in beta through the 2026 midterms.
           </p>
         </div>
         <a
