@@ -227,7 +227,7 @@ function DisputeSection() {
 
   return (
     <section id="dispute" style={{ background: MK.paper, padding: "72px 34px", borderBottom: `1px solid ${MK.rule}`, scrollMarginTop: 130 }}>
-      <div className="story-two-col" style={{ gridTemplateColumns: "minmax(0,0.85fr) minmax(0,1.15fr)", gap: 56, alignItems: "start" }}>
+      <div className="guide-two-col" style={{ gridTemplateColumns: "minmax(0,0.85fr) minmax(0,1.15fr)", gap: 56, alignItems: "start" }}>
         <div>
           <SectionLabel>How to dispute something</SectionLabel>
           <h2
