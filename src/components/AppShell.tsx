@@ -11,6 +11,7 @@ import { SearchField } from "./ui";
 import PersonalizeBanner from "./PersonalizeBanner";
 import { HushScoreInfoProvider } from "./HushScoreInfo";
 import GlobalFooter from "./GlobalFooter";
+import BetaFeedback from "./BetaFeedback";
 
 // Nav: four destinations plus the avatar menu (see AVATAR_MENU below).
 // Politicians added as the fourth -- same horizontal top bar, no layout
@@ -556,6 +557,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           {children}
           <GlobalFooter />
         </main>
+        <BetaFeedback />
       </div>
 
       <footer
