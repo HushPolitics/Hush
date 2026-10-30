@@ -840,3 +840,12 @@ html {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }
+
+/* Fund HUSH. free-beta card (Step 10) */
+.fund-beta-primary:hover {
+  background: var(--paper) !important;
+}
+.fund-beta-secondary:hover {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+}
