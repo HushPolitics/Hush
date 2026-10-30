@@ -23,7 +23,7 @@ const REFUSED: { who: string; why: string }[] = [
   { who: "Political advertising of any kind", why: "No campaign, party, or issue ads. Not for any race, at any price." },
   { who: "Foreign lobbyists and their intermediaries", why: "No exceptions, and no routing it through a US entity." },
   { who: "Grants and foundation donations", why: "We are not a nonprofit. Nobody’s endowment sets our priorities." },
-  { who: "Donations of any size", why: "Not even from readers. We would rather sell you something than be owed a favour." },
+  { who: "Money with strings attached", why: "Voters can chip in. Nobody, at any amount, gets a say in what HUSH. shows you." },
 ];
 const REFUSED_COUNT = WORDS[REFUSED.length] ?? String(REFUSED.length);
 
@@ -39,10 +39,11 @@ type Tier = {
   featured?: boolean;
 };
 
-// Member and Supporter point at /signup with the plan pre-selected: there's
-// no checkout route yet, so this is the spec's documented fallback
-// ("point them at sign-up with the plan pre-selected ... and flag it").
-// Flagged in the PR report, not silently left as a dead link.
+// Step 10 (free beta): the plan cards below are blurred and inert behind the
+// beta card. CONTRIBUTE_HREF is the Contribute destination; until the Stripe
+// Payment Link is supplied it falls back to /contact (per the spec).
+const CONTRIBUTE_HREF = "/contact";
+
 const TIERS: Tier[] = [
   {
     name: "Free account",
@@ -62,8 +63,8 @@ const TIERS: Tier[] = [
       "Stance Check",
       "HUSH. Guide: every race on your ballot",
     ],
-    cta: "Become a member",
-    href: "/signup?plan=member",
+    cta: "Contribute",
+    href: CONTRIBUTE_HREF,
     featured: true,
   },
   {
@@ -79,7 +80,7 @@ const TIERS: Tier[] = [
       "A HUSH. merch item for joining the movement",
     ],
     cta: "Join the movement",
-    href: "/signup?plan=supporter",
+    href: CONTRIBUTE_HREF,
   },
 ];
 
@@ -184,7 +185,7 @@ function ItPaysTheBillsSection() {
           It pays the bills and keeps the lights on.
         </h2>
         <p style={{ margin: "22px 0 0", fontSize: 17, lineHeight: 1.6, color: MK.onBlackBody, maxWidth: "46ch" }}>
-          Your membership pays for the work of keeping the record current — pulling it, checking it, and keeping it from going stale between elections.
+          Your contribution pays for the work of keeping the record current — pulling it, checking it, and keeping it from going stale between elections.
         </p>
         <div style={{ marginTop: 26, display: "flex", flexDirection: "column", gap: 12 }}>
           {SPEND.map((s) => (
@@ -233,6 +234,7 @@ function TierCard({ tier }: { tier: Tier }) {
       </div>
       <a
         href={tier.href}
+        tabIndex={-1}
         className="wi-cta-dark"
         style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: 15, background: C.ink, color: C.onDark, fontSize: 15, fontWeight: 700, textDecoration: "none" }}
       >
@@ -242,23 +244,99 @@ function TierCard({ tier }: { tier: Tier }) {
   );
 }
 
+function BetaCard() {
+  return (
+    <div
+      style={{
+        gridArea: "1 / 1",
+        position: "relative",
+        zIndex: 1,
+        alignSelf: "center",
+        justifySelf: "center",
+        width: "min(640px, 100%)",
+        minWidth: 0,
+        background: C.ink,
+        color: C.onDark,
+        padding: "38px 38px 34px",
+        boxShadow: "0 24px 60px -20px rgba(28,25,23,0.55)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 18,
+      }}
+    >
+      <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, fontWeight: 600, letterSpacing: "0.16em", textTransform: "uppercase", color: C.onDark }}>
+        <span aria-hidden style={{ width: 9, height: 9, background: C.rust, display: "block" }} />
+        Beta · 2026 midterms
+      </span>
+      <h3 style={{ margin: 0, fontFamily: cond, fontWeight: 400, fontSize: "clamp(28px,3vw,44px)", lineHeight: 0.98, textTransform: "uppercase", letterSpacing: "-0.005em" }}>
+        Everything is{" "}
+        <span
+          style={{
+            display: "inline-block",
+            background: C.rust,
+            color: C.ink,
+            padding: "0.03em 0.16em 0.07em",
+            transform: "rotate(-1deg)",
+            clipPath: "polygon(0.8% 6%,3% 0%,50% 1.5%,97% 0%,100% 8%,99.4% 92%,96% 100%,48% 98%,2% 100%,0% 90%)",
+          }}
+        >
+          free.
+        </span>
+      </h3>
+      <p style={{ margin: 0, fontSize: 16.5, lineHeight: 1.62, color: "#CFC9BD", maxWidth: "52ch" }}>
+        While HUSH. is in beta, every part of it is free through the 2026 midterms, including the HUSH. Guide. No card, no trial clock, nothing locked.
+      </p>
+      <p style={{ margin: 0, fontSize: 16.5, lineHeight: 1.62, color: "#CFC9BD", maxWidth: "52ch" }}>
+        If you want to help keep it running, you can contribute any amount. It’s optional and it doesn’t unlock anything. It just means the money behind HUSH. keeps coming from voters.
+      </p>
+      <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <a
+          href="/signup"
+          className="fund-beta-primary"
+          style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "15px 22px", background: C.rust, color: C.ink, fontSize: 15, fontWeight: 700, textDecoration: "none" }}
+        >
+          <span>Create your free account</span>
+          <span>→</span>
+        </a>
+        <a
+          href={CONTRIBUTE_HREF}
+          className="fund-beta-secondary"
+          style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 21px", border: `1.5px solid ${C.onDark}`, color: C.onDark, fontSize: 15, fontWeight: 700, textDecoration: "none" }}
+        >
+          <span>Contribute</span>
+          <span>→</span>
+        </a>
+      </div>
+      <span style={{ paddingTop: 16, borderTop: "1px solid #3A342C", fontSize: 13, lineHeight: 1.55, color: "#8C8477" }}>
+        HUSH. isn’t a nonprofit, so contributions aren’t tax-deductible. The plans behind this card start after the midterms.
+      </span>
+    </div>
+  );
+}
+
 function MembershipSection() {
   return (
     <section id="membership" style={{ background: MK.paper, padding: "84px 34px 88px", borderBottom: `1px solid ${MK.rule}`, scrollMarginTop: 120 }}>
       <div className="guide-two-col" style={{ gridTemplateColumns: "minmax(0,1.1fr) minmax(0,0.9fr)", gap: 48, alignItems: "end" }}>
         <h2 style={{ margin: 0, fontFamily: cond, fontWeight: 400, fontSize: "clamp(28px,3vw,44px)", lineHeight: 0.98, textTransform: "uppercase", letterSpacing: "-0.005em", maxWidth: "18ch" }}>
-          Membership options
+          Free for the 2026 midterms
         </h2>
         <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: MK.body, maxWidth: "46ch" }}>
           Corporations, super PACs, and politicians would happily pay for a tool like this. When voters pay for it instead, none of them get a say in what it shows you.
         </p>
       </div>
-      <div className="fund-tiers-grid" style={{ marginTop: 34 }}>
-        {TIERS.map((tier) => (
-          <TierCard key={tier.name} tier={tier} />
-        ))}
+      <div style={{ marginTop: 34, display: "grid", minWidth: 0 }}>
+        <div
+          aria-hidden="true"
+          className="fund-tiers-grid"
+          style={{ gridArea: "1 / 1", filter: "blur(7px)", opacity: 0.5, pointerEvents: "none", userSelect: "none", minWidth: 0 }}
+        >
+          {TIERS.map((tier) => (
+            <TierCard key={tier.name} tier={tier} />
+          ))}
+        </div>
+        <BetaCard />
       </div>
-      <p style={{ margin: "14px 0 0", fontSize: 14, lineHeight: 1.6, color: MK.muted }}>Annual only, no monthly billing.</p>
     </section>
   );
 }
@@ -277,7 +355,7 @@ export default function FundHush() {
         attributionName="James Madison"
         attributionSource="Letter to W. T. Barry, 1822"
         line="Information needs a means of acquiring it. Here, that’s you."
-        ctaLabel="Become a member"
+        ctaLabel="Contribute"
         ctaHref="#membership"
       />
       <MarketingFooter />
