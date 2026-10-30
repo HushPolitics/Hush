@@ -6,6 +6,8 @@ import { useEffect, useMemo, useRef, useState, useTransition, type CSSProperties
 import { C, cond, positionNotice } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs, type PollingPlace } from "@/lib/prefs";
+import { createClient } from "@/lib/supabase/client";
+import { syncOnboardingToSupabase } from "@/lib/supabase/profile";
 import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/app-content";
 import { ballotPoliticianIds } from "@/lib/feed";
@@ -43,7 +45,7 @@ const labelStyle: CSSProperties = {
   color: C.muted,
 };
 
-type Step = "address" | "issues" | "grid";
+type Step = "welcome" | "address" | "issues" | "grid";
 
 /**
  * HUSH Guide's own flow. Gated on `topics` plus `guideSetupDone` (see
@@ -81,18 +83,74 @@ export default function GuideView({
   bills?: Bill[];
 }) {
   const router = useRouter();
-  const { topics, guideSetupDone, setGuideSetupDone } = usePrefs();
+  const {
+    topics,
+    guideSetupDone,
+    setGuideSetupDone,
+    onboarded,
+    setOnboarded,
+    firstName,
+    lastName,
+    streetAddress,
+    city,
+    state,
+  } = usePrefs();
   const [manualStep, setManualStep] = useState<Step | null>(null);
+  // Brand-new accounts arrive on `?welcome=1` (from signup, or from the
+  // email-confirmation link) and see a one-time welcome card before the
+  // address step. Read from the URL after mount rather than with
+  // useSearchParams, which would force this statically generated page to
+  // opt out of caching. `null` = not read yet.
+  const [welcome, setWelcome] = useState<boolean | null>(null);
+  useEffect(() => {
+    setWelcome(new URLSearchParams(window.location.search).get("welcome") === "1");
+  }, []);
   const hasGuide = topics.length > 0;
   // Setup counts as finished only when issues are ranked AND the person has
-  // been through the Guide's own Step 1. Ranked issues alone aren't enough:
-  // signup ranks them before the Guide has ever been opened.
+  // been through the Guide's own address step.
   const setupDone = hasGuide && guideSetupDone;
-  const step: Step = manualStep ?? (setupDone ? "grid" : "address");
+  const step: Step = manualStep ?? (setupDone ? "grid" : welcome ? "welcome" : "address");
+
+  // The first time the grid shows for a signed-in account that hasn't been
+  // marked onboarded, save what Guide setup collected (address, ranked
+  // issues) to the account and mark setup finished. Signup no longer does
+  // this: it only creates the account.
+  useEffect(() => {
+    if (step !== "grid" || onboarded) return;
+    const supabase = createClient();
+    if (!supabase) return;
+    let cancelled = false;
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (cancelled || !data.user) return;
+      const synced = await syncOnboardingToSupabase({
+        firstName,
+        lastName,
+        streetAddress,
+        city,
+        state,
+        rankedTopics: topics,
+        markOnboarded: true,
+      });
+      if (synced && !cancelled) setOnboarded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Only when the grid first appears or onboarding flips.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, onboarded]);
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
-      {step === "address" ? (
+      {welcome === null && !setupDone ? null : step === "welcome" ? (
+        <WelcomeStep
+          onStart={() => {
+            // Drop `?welcome=1` so a refresh doesn't replay the welcome.
+            window.history.replaceState(null, "", window.location.pathname);
+            setWelcome(false);
+          }}
+        />
+      ) : step === "address" ? (
         <AddressStep
           hasGuide={setupDone}
           onCancel={setupDone ? () => setManualStep("grid") : undefined}
@@ -106,15 +164,11 @@ export default function GuideView({
               // Manual "Edit address" visit, not first-time setup: stay
               // in-page and go straight to the grid, same as before.
               setManualStep("grid");
-            } else if (hasGuide) {
-              // New account: issues were already ranked during signup, so
-              // open the shared editor with that list ready to review
-              // rather than the empty two-path chooser.
-              router.push("/profile/top-issues?next=/hush-guide");
             } else {
-              // No ranked issues at all (signup step 3 was skipped): the
-              // two-path chooser (rank yourself vs. Issue Finder), unchanged.
-              router.push("/profile/top-issues/start?next=/hush-guide");
+              // First-time setup: straight to the shared ranking editor, which
+              // sends the person back here via `?next=` once they've ranked
+              // something. (Its bottom link still offers Issue Finder.)
+              router.push("/profile/top-issues?next=/hush-guide");
             }
           }}
         />
@@ -136,6 +190,47 @@ export default function GuideView({
         />
       )}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Welcome — shown once to a brand-new account, before the address step
+// ---------------------------------------------------------------------------
+
+function WelcomeStep({ onStart }: { onStart: () => void }) {
+  return (
+    <Card
+      style={{
+        maxWidth: 620,
+        margin: "0 auto",
+        width: "100%",
+        padding: 28,
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+        <Kicker>Welcome</Kicker>
+        <span style={{ height: 1, flex: 1, background: C.line }} />
+      </div>
+      <span style={{ fontFamily: cond, fontSize: 28 }}>Welcome to your HUSH. Guide</span>
+      <span style={{ fontSize: 14, color: C.body, lineHeight: 1.6 }}>
+        Here&apos;s where you&apos;ll get unbiased, transparent voting information about your ballot.
+        Start by entering your address and the political issues you care about. We&apos;ll sort
+        through every race for your district and show you where your candidates line up on the
+        issues that matter most to you.
+      </span>
+      <span style={{ fontSize: 14, color: C.body, lineHeight: 1.6 }}>
+        Each position comes directly from the candidate&apos;s own website or words. If anything
+        comes from another source, we&apos;ll say so. Every position links to where it came from, so
+        you can check it yourself. And where we couldn&apos;t find a candidate&apos;s own words, we tell
+        you that instead of guessing.
+      </span>
+      <RustButton onClick={onStart} style={{ alignSelf: "flex-start" }}>
+        Get started →
+      </RustButton>
+    </Card>
   );
 }
 
