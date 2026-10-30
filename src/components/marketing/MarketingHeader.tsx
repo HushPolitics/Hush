@@ -31,7 +31,7 @@ const mobileLinkStyle: CSSProperties = {
 export function Wordmark({ size }: { size: number | string }) {
   return (
     <span style={{ display: "inline-flex", alignItems: "baseline" }}>
-      <span style={{ fontFamily: cond, fontSize: size, letterSpacing: "0.02em", color: C.onDark }}>
+      <span style={{ fontFamily: cond, fontSize: size, letterSpacing: "-0.01em", color: C.onDark }}>
         HUSH
       </span>
       <span
@@ -65,7 +65,7 @@ export function MarketingHeader({ active, sticky = true }: { active?: MarketingN
   function navLinkStyle(key: MarketingNavKey): CSSProperties {
     if (active === key) {
       return {
-        fontSize: "clamp(15px, 1.1vw, 16px)",
+        fontSize: "clamp(16px, 1.3vw, 19px)", letterSpacing: "-0.01em",
         fontWeight: 500,
         color: C.rust,
         textDecoration: "none",
@@ -73,7 +73,7 @@ export function MarketingHeader({ active, sticky = true }: { active?: MarketingN
         paddingBottom: 3,
       };
     }
-    return { fontSize: "clamp(15px, 1.1vw, 16px)", fontWeight: 500, color: C.onDark, textDecoration: "none" };
+    return { fontSize: "clamp(16px, 1.3vw, 19px)", letterSpacing: "-0.01em", fontWeight: 500, color: C.onDark, textDecoration: "none" };
   }
 
   return (
@@ -158,7 +158,7 @@ export function MarketingHeader({ active, sticky = true }: { active?: MarketingN
           <Link
             href="/login"
             className="home-nav-link"
-            style={{ fontSize: "clamp(15px, 1.1vw, 16px)", fontWeight: 500, color: C.onDark, textDecoration: "none" }}
+            style={{ fontSize: "clamp(16px, 1.3vw, 19px)", letterSpacing: "-0.01em", fontWeight: 500, color: C.onDark, textDecoration: "none" }}
           >
             Log In
           </Link>
@@ -169,7 +169,7 @@ export function MarketingHeader({ active, sticky = true }: { active?: MarketingN
               background: C.rust,
               color: C.ink,
               fontWeight: 700,
-              fontSize: "clamp(15px, 1.1vw, 16px)",
+              fontSize: "clamp(16px, 1.3vw, 19px)", letterSpacing: "-0.01em",
               padding: "16px 28px",
               textDecoration: "none",
             }}
