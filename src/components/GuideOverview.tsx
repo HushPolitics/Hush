@@ -282,9 +282,9 @@ function AtAGlance() {
               Start your guide →
             </a>
             <span style={{ fontSize: 13, color: MK.muted }}>
-              Membership required.{" "}
+              Free in beta through the 2026 midterms.{" "}
               <a href="/fund-hush" className="marketing-underline-link" style={{ color: C.ink, borderBottom: `1px solid ${C.ink}`, textDecoration: "none" }}>
-                See pricing
+                How HUSH. is funded
               </a>
             </span>
           </div>
