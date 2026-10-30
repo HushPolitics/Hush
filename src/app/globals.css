@@ -181,13 +181,13 @@ input::placeholder {
    triggered by a button's onClick, not :hover. */
 .flip-card {
   perspective: 1400px;
-  /* Was 460px, sized for the longer back face (explanation + two lists +
-     source block). The front face is now a short trimmed blurb, not the
-     full official description, so it no longer needs anywhere near that
-     much room -- .flip-card-face keeps its own overflow-y: auto, so a
-     long bill still scrolls internally rather than forcing every card to
-     the tallest possible height. */
-  height: 260px;
+  /* The back face (explanation + YES list + NO list + source block) is much
+     longer than the front, and scrolls inside this height. 260px meant most
+     of it was off-screen. 420px shows more at once now that the cards are
+     three across and wider. This is the one number to adjust: .flip-card-face
+     keeps its own overflow-y: auto, so a long amendment still scrolls rather
+     than being cut off. */
+  height: 420px;
 }
 .flip-card-inner {
   position: relative;
@@ -208,6 +208,18 @@ input::placeholder {
 }
 .flip-card-back {
   transform: rotateY(180deg);
+}
+
+/* Amendment cards: three across on desktop, two on tablets, one on phones. */
+@media (max-width: 1100px) {
+  .bills-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 640px) {
+  .bills-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /*
