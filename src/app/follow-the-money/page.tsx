@@ -19,7 +19,12 @@ export default async function FollowTheMoneyPage() {
 
   const ballotIds = ballotPoliticianIds(races);
   const politicians = allPoliticians.filter((p) => ballotIds.has(p.id));
-  const funding = await Promise.all(politicians.map((p) => getFundingSummary(p.id)));
+  // Only candidates with an FEC id can have a funding picture. Skipping the rest
+  // avoids one database lookup per local candidate, which made this page take
+  // longer than the 60s build limit.
+  const funding = await Promise.all(
+    politicians.map((p) => (p.fecCandidateId ? getFundingSummary(p.id) : Promise.resolve(null))),
+  );
   const fundingById = Object.fromEntries(politicians.map((p, i) => [p.id, funding[i]]));
 
   return (
