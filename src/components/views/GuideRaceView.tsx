@@ -7,6 +7,7 @@ import { C, positionNotice } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { hasRaceInfo, parseRaceTitle, splitHeadToHead, stripPartySuffix } from "@/lib/guide";
 import type { IssuePosition, Party, Race, RaceCandidate } from "@/lib/types";
+import CandidateAffiliation from "@/components/CandidateAffiliation";
 import { Card, Display, EmptyState, GhostButton, Kicker, PositionNotice, RustButton } from "@/components/ui";
 
 /**
@@ -116,6 +117,17 @@ export default function GuideRaceView({
           </a>
         ) : null}
         </div>
+        {main.some((c) => c.affiliation) ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {main
+              .filter((c) => c.affiliation)
+              .map((c) => (
+                <span key={c.politicianId} style={{ fontSize: 12, color: C.muted }}>
+                  {stripPartySuffix(c.name)}: <CandidateAffiliation candidate={c} />
+                </span>
+              ))}
+          </div>
+        ) : null}
       </div>
 
       {noInfo ? (

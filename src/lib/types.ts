@@ -172,6 +172,14 @@ export interface RaceCandidate {
    * is still being contested. Absent when the source carries no status.
    */
   status?: string;
+  /**
+   * A sourced note about the candidate's party, for races where the ballot
+   * itself carries no party (school board, judicial). Worded as what the source
+   * says ("Registered Republican", "Endorsed by the Pinellas County
+   * Republican Party") and always carries the link it came from. Absent when
+   * nothing has been confirmed, which is the common case.
+   */
+  affiliation?: { label: string; sourceUrl: string; sourceName?: string };
 }
 
 export interface Race {
