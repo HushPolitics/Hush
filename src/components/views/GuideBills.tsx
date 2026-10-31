@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { C, cond } from "@/lib/theme";
-import { shortPhrase } from "@/lib/guide";
 import type { Bill } from "@/lib/types";
 import { Card, Display, EmptyState, Kicker } from "@/components/ui";
 
@@ -25,6 +24,41 @@ export function BillsSection({
   /** Shown when `bills` is empty, so the caller can say why (no address yet, state not loaded). */
   emptyMessage?: string;
 }) {
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Starts every card's body on the same line. Each card's title wraps to a
+  // different number of lines, which pushed the body text to a different
+  // height per card. Within each visual row (cards sharing a top edge), every
+  // title is given the height of the tallest one, so the description below it
+  // begins at the same place across the row. Re-measured on resize and once
+  // the web fonts land, since both change how titles wrap.
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const fit = () => {
+      const titles = Array.from(grid.querySelectorAll<HTMLElement>(".bill-title"));
+      titles.forEach((t) => {
+        t.style.minHeight = "";
+      });
+      const rows = new Map<number, HTMLElement[]>();
+      titles.forEach((t) => {
+        const top = (t.closest(".flip-card") as HTMLElement | null)?.offsetTop ?? 0;
+        rows.set(top, [...(rows.get(top) ?? []), t]);
+      });
+      rows.forEach((row) => {
+        const tallest = Math.max(...row.map((t) => t.offsetHeight));
+        row.forEach((t) => {
+          t.style.minHeight = `${tallest}px`;
+        });
+      });
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(grid);
+    document.fonts?.ready.then(fit);
+    return () => ro.disconnect();
+  }, [bills]);
+
   return (
     <section id="bills" style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 10 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -36,6 +70,7 @@ export function BillsSection({
         <EmptyState>{emptyMessage}</EmptyState>
       ) : (
         <div
+          ref={gridRef}
           className="bills-grid"
           style={{
             display: "grid",
@@ -127,12 +162,29 @@ function ChamberPill({ children, accent }: { children: ReactNode; accent: { fg: 
 function BillCard({ bill }: { bill: Bill }) {
   const [flipped, setFlipped] = useState(false);
   const noun = bill.kind === "amendment" ? "amendment" : "bill";
-  // HUSH's own plain-English paraphrase, trimmed for the card front.
+  // HUSH's own plain-English paraphrase for the card front.
   // bill.description is only "official-ish" per its own doc comment in
   // lib/types.ts -- the guaranteed plain-English text is `explanation`.
   // Falls back to `description` for the rare bill with no `explanation`
   // (e.g. one flagged `explainerTooComplex`), so nothing breaks either way.
-  const shortDescription = bill.explanation ? shortPhrase(bill.explanation, 140) : bill.description;
+  //
+  // Shown in full rather than cut at a fixed length: the front face is a
+  // fixed height with a lot of room, so the text runs down to the footer and
+  // only gets an ellipsis if it genuinely would not fit. `clamp` is the number
+  // of lines that fit in the space the box gives the text, re-measured when
+  // the card is resized.
+  const shortDescription = bill.explanation || bill.description;
+  const descRef = useRef<HTMLDivElement>(null);
+  const [clamp, setClamp] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    const measure = () => setClamp(Math.max(1, Math.floor(el.clientHeight / (12.5 * 1.45))));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   function flip() {
     setFlipped((f) => !f);
@@ -170,11 +222,28 @@ function BillCard({ bill }: { bill: Bill }) {
             <ChamberPill accent={JURISDICTION_ACCENT}>{chamberPillLabel(bill.chamber)}</ChamberPill>
             <span style={{ fontSize: 12, color: C.muted }}>{bill.number}</span>
           </div>
-          <span style={{ fontFamily: cond, fontSize: 17, fontWeight: 700, lineHeight: 1.2 }}>{bill.title}</span>
+          <span className="bill-title" style={{ fontFamily: cond, fontSize: 17, fontWeight: 700, lineHeight: 1.2 }}>
+            {bill.title}
+          </span>
 
-          {shortDescription ? (
-            <p style={{ margin: 0, fontSize: 12.5, color: C.body, lineHeight: 1.45 }}>{shortDescription}</p>
-          ) : null}
+          <div ref={descRef} style={{ flex: "1 1 0", minHeight: 0, overflow: "hidden" }}>
+            {shortDescription ? (
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 12.5,
+                  color: C.body,
+                  lineHeight: 1.45,
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  WebkitLineClamp: clamp,
+                  overflow: "hidden",
+                }}
+              >
+                {shortDescription}
+              </p>
+            ) : null}
+          </div>
 
           <div
             style={{

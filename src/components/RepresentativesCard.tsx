@@ -36,6 +36,8 @@ export default function RepresentativesCard({
   header = "kicker",
   variant = "arrow",
   title = "Your Representatives",
+  headerSize,
+  seeAllHref,
 }: {
   politicians: Politician[];
   limit?: number;
@@ -50,6 +52,11 @@ export default function RepresentativesCard({
    *  everywhere except the Feed's orientation strip, which wants its own
    *  wording without relabeling the identical card on HUSH. Guide's sidebar. */
   title?: string;
+  /** Font size of the small uppercase header (default 11). Only used with `header="kicker"`. */
+  headerSize?: number;
+  /** Where the header and arrow link to. Defaults to the full /politicians directory;
+   *  HUSH. Guide passes a link that opens the directory on just this voter's representatives. */
+  seeAllHref?: string;
 }) {
   const shown = politicians.slice(0, limit);
   return (
@@ -59,12 +66,16 @@ export default function RepresentativesCard({
           <Display size={16} color={C.rust}>
             {title}
           </Display>
+        ) : seeAllHref ? (
+          <Link href={seeAllHref} style={{ textDecoration: "none" }}>
+            <Kicker size={headerSize}>{title}</Kicker>
+          </Link>
         ) : (
-          <Kicker>{title}</Kicker>
+          <Kicker size={headerSize}>{title}</Kicker>
         )}
         {variant === "arrow" ? (
           <Link
-            href="/politicians"
+            href={seeAllHref ?? "/politicians"}
             aria-label="See the full politician directory"
             style={{ marginLeft: "auto", fontSize: 15, color: C.muted }}
           >

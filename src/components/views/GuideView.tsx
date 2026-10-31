@@ -19,6 +19,7 @@ import {
   raceLevelSummary,
   sortRacesForGuide,
   stripPartySuffix,
+  yourRepresentatives,
 } from "@/lib/guide";
 import type { Bill, IssuePosition, Politician, Race } from "@/lib/types";
 import { Card, Chip, Display, EmptyState, GhostButton, Kicker, RustButton } from "@/components/ui";
@@ -679,9 +680,12 @@ function TileGrid({
   const measuresEmpty = located
     ? "We haven't loaded the ballot measures for your state yet."
     : "Add your address and the measures you'll vote on will show up here.";
-  const ballotPoliticians = useMemo(
-    () => politicians.filter((p) => ballotIds.has(p.id)),
-    [politicians, ballotIds],
+  // Who holds office for this address right now (governor, both senators, the
+  // U.S. representative) -- not the candidates on the ballot, which is what
+  // this list used to show.
+  const yourReps = useMemo(
+    () => (located ? yourRepresentatives(politicians, races, state) : []),
+    [located, politicians, races, state],
   );
 
   const renderRaceTile = (race: Race) => {
@@ -802,7 +806,7 @@ function TileGrid({
         polling={polling}
         onEditAddress={onEditAddress}
         topics={topics}
-        representatives={ballotPoliticians}
+        representatives={yourReps}
         onEditIssues={onEditIssues}
       />
 
@@ -1066,7 +1070,7 @@ function GuideAtAGlanceStrip({
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Kicker>Your Most Important Issues</Kicker>
+              <Kicker size={13}>Your Most Important Issues</Kicker>
               <button
                 type="button"
                 onClick={onEditIssues}
@@ -1130,6 +1134,8 @@ function GuideAtAGlanceStrip({
           <RepresentativesCard
             politicians={representatives}
             limit={4}
+            headerSize={13}
+            seeAllHref={representatives.length ? `/politicians?reps=${representatives.map((p) => p.id).join(",")}` : undefined}
             style={{ flex: 1, border: "none", borderRadius: 0, background: "transparent", padding: "14px 20px" }}
           />
         </div>
