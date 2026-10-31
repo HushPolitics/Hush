@@ -123,6 +123,7 @@ export default function BetaFeedback() {
           type="button"
           onClick={() => openFeedback()}
           aria-label="Beta: send feedback"
+          className="beta-pill"
           style={{
             position: "fixed",
             right: 16,

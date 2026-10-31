@@ -404,6 +404,10 @@ function AddressStep({
             onChange={(e) => setDraftStreet(e.target.value)}
             placeholder="123 Main St"
             aria-label="Street address"
+            name="street-address"
+            autoComplete="street-address"
+            autoCapitalize="words"
+            autoCorrect="off"
             style={fieldStyle}
           />
         </label>
@@ -415,6 +419,9 @@ function AddressStep({
               onChange={(e) => setDraftCity(e.target.value)}
               placeholder="Jacksonville"
               aria-label="City"
+              name="city"
+              autoComplete="address-level2"
+              autoCapitalize="words"
               style={fieldStyle}
             />
           </label>
@@ -426,6 +433,9 @@ function AddressStep({
               maxLength={2}
               placeholder="FL"
               aria-label="State"
+              name="state"
+              autoComplete="address-level1"
+              autoCapitalize="characters"
               style={{ ...fieldStyle, textTransform: "uppercase" }}
             />
           </label>
@@ -438,6 +448,8 @@ function AddressStep({
               inputMode="numeric"
               placeholder="32202"
               aria-label="ZIP code"
+              name="zip"
+              autoComplete="postal-code"
               style={fieldStyle}
             />
           </label>
@@ -780,6 +792,8 @@ function TileGrid({
         </span>
       </div>
 
+      <PollingQuickCard polling={polling} />
+
       <GuideAtAGlanceStrip
         races={races}
         located={located}
@@ -824,7 +838,7 @@ function TileGrid({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))",
+                gridTemplateColumns: "repeat(auto-fill,minmax(min(300px,100%),1fr))",
                 gap: 14,
               }}
             >
@@ -854,7 +868,7 @@ function TileGrid({
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))",
+                    gridTemplateColumns: "repeat(auto-fill,minmax(min(300px,100%),1fr))",
                     gap: 14,
                   }}
                 >
@@ -889,6 +903,7 @@ function TileGrid({
 function GuideHero() {
   return (
     <div
+      className="guide-hero"
       style={{
         position: "relative",
         borderRadius: 12,
@@ -1290,6 +1305,88 @@ function calendarHref(polling: PollingPlace, cityStateZip: string): string {
 function directionsHref(polling: PollingPlace, cityStateZip: string): string {
   const destination = pollingWhere(polling, cityStateZip);
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+}
+
+/**
+ * Phone-only "Where you vote" card under the page title, so a voter checking
+ * their polling place on Election Day sees it first instead of scrolling past
+ * the timeline. Hidden above 640px by the .polling-quick-card rule in
+ * globals.css (desktop keeps the existing box in the Key dates card). The
+ * directions button is a real link, 52px tall, so it is easy to hit with a
+ * thumb; on an iPhone it opens Apple Maps, elsewhere Google Maps.
+ */
+function PollingQuickCard({ polling }: { polling: PollingPlace }) {
+  const { city, state, zip } = usePrefs();
+  const cityStateZip = [city, state, zip].filter(Boolean).join(" ");
+  const { name: labelName, line: labelLine, found } = pollingLabels(polling);
+  const over = labelName === "Election Day has passed";
+  // A lookup that ran and found nothing reads "Not published yet", with the
+  // lookup site as the button. Before any lookup there is nothing to link to.
+  const notPublished = !found && !over && !!polling.checkedAt;
+  const name = notPublished ? "Not published yet" : labelName;
+  const line = notPublished
+    ? "Your county hasn't posted a polling place for this address. Use the button to look it up."
+    : labelLine;
+  const finderUrl =
+    polling.precinct?.url || polling.lookupUrl || "https://www.vote.org/polling-place-locator/";
+  const destination = pollingWhere(polling, cityStateZip);
+  const googleHref = directionsHref(polling, cityStateZip);
+  const appleHref = `https://maps.apple.com/?daddr=${encodeURIComponent(destination)}&dirflg=d`;
+  const button = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 52,
+    padding: "0 18px",
+    borderRadius: 8,
+    background: C.rust,
+    color: C.sand,
+    fontWeight: 600,
+    fontSize: 15,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    textDecoration: "none",
+    textAlign: "center",
+  } as const;
+
+  return (
+    <div
+      className="polling-quick-card"
+      style={{
+        border: `1px solid ${C.line}`,
+        borderRadius: 12,
+        background: C.white,
+        padding: 16,
+      }}
+    >
+      <Kicker size={10}>Where you vote</Kicker>
+      <span style={{ fontSize: 19, lineHeight: 1.2, overflowWrap: "anywhere" }}>{name}</span>
+      <span style={{ fontSize: 14, color: C.body, lineHeight: 1.4, overflowWrap: "anywhere" }}>{line}</span>
+      {found && polling.hours ? (
+        <span style={{ fontSize: 13, color: C.body, lineHeight: 1.4 }}>Open {polling.hours}</span>
+      ) : null}
+      {found ? (
+        <a
+          href={googleHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => {
+            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+              e.preventDefault();
+              window.location.href = appleHref;
+            }
+          }}
+          style={{ ...button, marginTop: 4 }}
+        >
+          Get directions
+        </a>
+      ) : notPublished ? (
+        <a href={finderUrl} target="_blank" rel="noopener noreferrer" style={{ ...button, marginTop: 4 }}>
+          Find your polling place
+        </a>
+      ) : null}
+    </div>
+  );
 }
 
 function VotingInformationSection({ polling }: { polling: PollingPlace }) {

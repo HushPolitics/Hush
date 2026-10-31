@@ -170,7 +170,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
       style={{
         display: "flex",
         flexDirection: "column",
-        height: "100vh",
         width: "100%",
         color: C.ink,
         background: C.cream,
@@ -561,6 +560,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <footer
+        className="app-footer"
         style={{
           flex: "0 0 34px",
           display: "flex",
