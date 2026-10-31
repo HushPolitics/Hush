@@ -1,4 +1,4 @@
-import type { IssuePosition, Level, Race, RaceCandidate } from "./types";
+import type { IssuePosition, Level, Politician, Race, RaceCandidate } from "./types";
 
 /**
  * Splits a `Race.title` like "U.S. House · FL-04" into office + district.
@@ -214,4 +214,45 @@ export function issueCoverage(
     race.candidates.some((c) => positions[c.politicianId]?.[issue]),
   ).length;
   return { covered, total: issues.length };
+}
+
+
+/**
+ * The people who actually hold office for this voter right now -- not who is
+ * running. For Florida that is the governor, the two U.S. senators, and the
+ * U.S. representative for the voter's congressional district, in that order.
+ *
+ * Matched on what each record already carries: officeholders only
+ * (`isCandidate` false), `office` starting "Governor" / "U.S. Senator" /
+ * "U.S. Representative", and `district` ("FL statewide" for the statewide
+ * seats, "FL-13" for a House seat). The House district is read off the voter's
+ * own U.S. House race ("... U.S. Representative, FL-13"), which is already
+ * scoped to their saved address, so no separate district lookup is needed.
+ * A seat with no matching record is skipped rather than guessed.
+ */
+export function yourRepresentatives(politicians: Politician[], races: Race[], state: string): Politician[] {
+  const st = state.toUpperCase();
+  if (!st) return [];
+  const held = politicians.filter((p) => !p.isCandidate && p.district.toUpperCase().startsWith(st));
+
+  const governor = held.find((p) => p.level === "State" && /^governor\b/i.test(p.office));
+  const senators = held
+    .filter((p) => /^u\.s\. senator\b/i.test(p.office))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .slice(0, 2);
+
+  let houseDistrict: string | null = null;
+  for (const race of races) {
+    if (headToHeadKind(race) !== "us-house") continue;
+    const m = race.title.match(/\b([A-Z]{2}-\d{1,2})\b/);
+    if (m) {
+      houseDistrict = m[1];
+      break;
+    }
+  }
+  const house = houseDistrict
+    ? held.find((p) => /^u\.s\. representative\b/i.test(p.office) && p.district.toUpperCase() === houseDistrict)
+    : undefined;
+
+  return [governor, ...senators, house].filter((p): p is Politician => Boolean(p));
 }
