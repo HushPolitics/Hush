@@ -278,7 +278,7 @@ export async function politicianExists(id: string): Promise<boolean> {
 const RACE_SELECT = `
   id, title, seats_to_fill, is_nonpartisan,
   offices( title, level, districts( id, name, kind, state_code, is_at_large, jurisdictions( name ) ) ),
-  candidacies( id, display_name, party, is_incumbent, ballot_order, withdrew, status, politician_id )
+  candidacies( id, display_name, party, is_incumbent, ballot_order, withdrew, status, politician_id, affiliation_label, affiliation_source_url, affiliation_source_name )
 `;
 
 interface RaceRow {
@@ -296,6 +296,9 @@ interface RaceRow {
     withdrew: boolean | null;
     status: string | null;
     politician_id: string | null;
+    affiliation_label: string | null;
+    affiliation_source_url: string | null;
+    affiliation_source_name: string | null;
   }[] | null;
 }
 
@@ -353,6 +356,15 @@ function toRace(row: RaceRow, slugById: Map<string, string>): Race {
       name: c.display_name,
       party: toParty(c.party),
       status: c.status ?? undefined,
+      // Shown only when there is both a label and the link it came from.
+      affiliation:
+        c.affiliation_label && c.affiliation_source_url
+          ? {
+              label: c.affiliation_label,
+              sourceUrl: c.affiliation_source_url,
+              sourceName: c.affiliation_source_name ?? undefined,
+            }
+          : undefined,
     }));
 
   const level = toLevel(office?.level);
