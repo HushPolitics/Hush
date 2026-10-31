@@ -9,7 +9,7 @@ import { promiseSplit } from "@/lib/scoring";
 import { useRegisterSectionNav } from "@/lib/sectionNav";
 import { isCustomCompareEligible } from "@/lib/compare";
 import type { FactCheck, FundingSummary, IssuePosition, Politician, PromiseStatus, StanceCell } from "@/lib/types";
-import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, PositionNotice, RustButton, SourceAttribution } from "@/components/ui";
+import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, PositionNotice, SourceAttribution } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 import { openFeedback } from "@/components/BetaFeedback";
 import { FactCheckCard, VerdictKey } from "./FactCheckView";
@@ -98,15 +98,13 @@ export default function PoliticianView({
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 24 }}>
       {/* Feedback prompt, first thing on the page so a wrong or missing fact is
-          easy to report. White card with the rust button, same look as the
-          other call-to-action cards. */}
+          easy to report. White card with a link that opens the feedback form. */}
       <div
         style={{
           display: "flex",
           flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
+          alignItems: "baseline",
+          gap: "4px 10px",
           padding: "14px 16px",
           background: C.white,
           border: `1px solid ${C.line}`,
@@ -114,13 +112,17 @@ export default function PoliticianView({
           boxShadow: "0 1px 4px rgba(20,17,12,0.06)",
         }}
       >
-        <span style={{ flex: "1 1 280px", fontSize: 13, lineHeight: 1.5, color: C.body }}>
+        <span style={{ fontSize: 13, lineHeight: 1.5, color: C.body }}>
           Candidate pages are still being built out. Some sections may be thin or empty. Where we
           haven&apos;t found a candidate&apos;s own words, we say so instead of guessing.
         </span>
-        <RustButton onClick={() => openFeedback({ kind: "wrong_info", context: p.name })}>
+        <button
+          type="button"
+          onClick={() => openFeedback({ kind: "wrong_info", context: p.name })}
+          style={{ border: 0, background: "transparent", padding: 0, color: C.rust, fontSize: 13, cursor: "pointer", textDecoration: "underline" }}
+        >
           Something wrong or missing? Tell us
-        </RustButton>
+        </button>
       </div>
 
       {/* 1. Header -- identity strip, no longer a side rail */}
