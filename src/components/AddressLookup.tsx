@@ -116,6 +116,10 @@ export default function AddressLookup({
           onChange={(e) => setValue(e.target.value)}
           placeholder="855 Central Ave, St Petersburg, FL"
           aria-label="Your street address"
+          name="street-address"
+          autoComplete="street-address"
+          autoCapitalize="words"
+          autoCorrect="off"
           style={{
             flex: "1 1 240px",
             minWidth: 0,
