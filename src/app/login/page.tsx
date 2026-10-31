@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import LoginForm from "@/components/LoginForm";
 import { C, cond } from "@/lib/theme";
 
@@ -39,6 +40,13 @@ export default function LoginPage() {
           Sign in to keep your ranked issues, saved politicians and ballot marks across devices.
         </p>
         <LoginForm />
+        <div style={{ height: 1, background: C.line }} />
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.body }}>
+          New to HUSH.?{" "}
+          <Link href="/signup" style={{ color: C.rust, fontWeight: 600, textDecoration: "underline" }}>
+            Create an account
+          </Link>
+        </p>
       </div>
     </div>
   );
