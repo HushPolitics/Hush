@@ -278,7 +278,7 @@ export default function HowItWorks() {
         attributionName="Thomas Jefferson"
         attributionSource="Letter to Richard Price, 1789"
         line="Being well-informed shouldn’t take all day. Log in and see your ballot."
-        ctaLabel="Join the Movement"
+        ctaLabel="Create Account"
         ctaHref="/signup"
       />
       <MarketingFooter />
