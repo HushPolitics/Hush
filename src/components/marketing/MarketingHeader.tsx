@@ -88,7 +88,7 @@ export function MarketingHeader({ active, sticky = true }: { active?: MarketingN
         className="home-header-row"
         style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 16 }}
       >
-        <Link href="/" style={{ justifySelf: "start", textDecoration: "none" }} aria-label="HUSH home">
+        <Link href="/?home=1" style={{ justifySelf: "start", textDecoration: "none" }} aria-label="HUSH home">
           <Wordmark size="clamp(28px, 2.4vw, 36px)" />
         </Link>
 
