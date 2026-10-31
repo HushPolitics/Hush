@@ -7,6 +7,7 @@ import { usePrefs, type EmailPrefs } from "@/lib/prefs";
 import { createClient } from "@/lib/supabase/client";
 import { syncOnboardingToSupabase } from "@/lib/supabase/profile";
 import { Card, Chip, Display, GhostButton, Kicker, RustButton } from "@/components/ui";
+import FoundingBadge from "@/components/FoundingBadge";
 
 const fieldStyle = {
   // An <input> carries an intrinsic width of roughly 20 characters. Without
@@ -136,6 +137,7 @@ function PersonalInfoSection() {
   return (
     <Card style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16, borderTop: `2px solid ${C.rust}` }}>
       <SectionHeader kicker="Account" title="Personal Information" />
+      <FoundingBadge />
       <form onSubmit={save} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ display: "flex", gap: 10 }}>
           <label style={{ ...labelStyle, flex: 1 }}>
