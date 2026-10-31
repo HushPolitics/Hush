@@ -139,15 +139,13 @@ export default function BetaFeedback() {
             color: C.ink,
             fontSize: 12,
             fontWeight: 600,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
             cursor: "pointer",
             boxShadow: "0 4px 14px rgba(21,21,21,0.12)",
           }}
         >
-          <span style={{ color: C.rust }}>Beta</span>
-          <span style={{ color: C.muted }}>·</span>
-          <span>Send feedback</span>
+          <span>
+            <span style={{ color: C.rust }}>Beta</span> - Send Feedback
+          </span>
         </button>
       ) : (
         <div
