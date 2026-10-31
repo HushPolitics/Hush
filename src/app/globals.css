@@ -872,3 +872,76 @@ html {
   background: var(--paper) !important;
   color: var(--ink) !important;
 }
+
+/* ---------------------------------------------------------------------------
+   Phone-first pass for the HUSH. Guide.
+
+   The app frame is 100dvh (the visible height, which follows the phone's
+   address bar as it shows and hides) with 100vh first as the fallback for
+   browsers that don't know dvh. On desktop the two are the same number.
+   --------------------------------------------------------------------------- */
+.app-shell {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* "Where you vote" card under the Guide's title: phones only. */
+.polling-quick-card {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .polling-quick-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* iPhones zoom the page when a field under 16px takes focus. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* The footer note wraps to two lines on a phone; a fixed 34px clipped it. */
+  .app-footer {
+    flex: 0 0 auto !important;
+    min-height: 34px;
+    padding: 8px 16px !important;
+    line-height: 1.35;
+  }
+
+  /* Thumb-sized buttons and text links. */
+  .btn-rust,
+  .btn-ghost {
+    min-height: 44px;
+  }
+  .link-quiet {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  /* Room under the last card for the floating Beta feedback pill. */
+  main.scroll {
+    padding-bottom: 72px;
+  }
+  .beta-pill {
+    min-height: 44px;
+  }
+
+  /* The Compare bar is pinned to the bottom edge, so lift the pill above it
+     and give the page extra room under the last card. */
+  body:has(.compare-toolbar) .beta-pill {
+    bottom: 84px !important;
+  }
+  body:has(.compare-toolbar) main.scroll {
+    padding-bottom: 150px;
+  }
+
+  /* Shorter photo banner so the polling card and the Guide are not pushed
+     below the fold. */
+  .guide-hero {
+    min-height: 120px !important;
+  }
+}
