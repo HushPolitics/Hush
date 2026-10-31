@@ -205,33 +205,43 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
         maxWidth: 620,
         margin: "0 auto",
         width: "100%",
-        padding: 28,
+        padding: 32,
         display: "flex",
         flexDirection: "column",
-        gap: 16,
+        gap: 18,
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        <Kicker>Welcome</Kicker>
-        <span style={{ height: 1, flex: 1, background: C.line }} />
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <span style={{ width: 44, height: 3, background: C.rust, borderRadius: 2 }} />
+        <span style={{ fontFamily: cond, fontSize: 36, lineHeight: 1.1 }}>Welcome to HUSH.</span>
       </div>
-      <span style={{ fontFamily: cond, fontSize: 28 }}>Welcome to your HUSH. Guide</span>
-      <span style={{ fontSize: 14, color: C.body, lineHeight: 1.6 }}>
-        Here&apos;s where you&apos;ll get unbiased, transparent voting information about your ballot.
-        Start by entering your address and the political issues you care about. We&apos;ll sort
-        through every race for your district and show you where your candidates line up on the
-        issues that matter most to you.
+      <span style={{ fontSize: 16, color: C.ink, lineHeight: 1.6 }}>
+        This website is where you’ll find unbiased, transparent voting information about your
+        ballot. Start by entering your address and the political issues you care about. We’ll sort
+        through every race for your district and show you where candidates line up on the issues
+        that matter most to you.
       </span>
       <span style={{ fontSize: 14, color: C.body, lineHeight: 1.6 }}>
-        Each position comes directly from the candidate&apos;s own website or words. If anything
-        comes from another source, we&apos;ll say so. Every position links to where it came from, so
-        you can check it yourself. And where we couldn&apos;t find a candidate&apos;s own words, we tell
-        you that instead of guessing.
+        Each candidate’s stance is sourced directly from his or her own website or direct quotes.
+        Every statement contains a link to the original source, so you can check it yourself. If we
+        are unable to find a candidate’s position on a certain topic it will say, “No Position
+        Found.”
       </span>
-      <span style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>
-        HUSH. is an early release through the election. If something looks wrong or missing, use
-        the Beta tab in the corner and tell us. We read every note.
-      </span>
+      <div
+        style={{
+          fontSize: 13,
+          color: C.muted,
+          lineHeight: 1.6,
+          background: C.shell,
+          borderLeft: `3px solid ${C.rust}`,
+          borderRadius: 4,
+          padding: "12px 14px",
+        }}
+      >
+        Our website development is in the early stage, and we are continuing to make edits to
+        improve its appearance. We greatly appreciate any constructive feedback using the “Beta –
+        Send Feedback” button in the bottom right corner of the screen.
+      </div>
       <RustButton onClick={onStart} style={{ alignSelf: "flex-start" }}>
         Get started →
       </RustButton>
