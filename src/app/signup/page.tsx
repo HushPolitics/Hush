@@ -36,6 +36,19 @@ export default function SignupPage() {
           </span>
           <span style={{ fontFamily: cond, fontWeight: 600, fontSize: 28, color: C.rust }}>.</span>
         </div>
+        <h1
+          style={{
+            margin: 0,
+            fontFamily: cond,
+            fontWeight: 400,
+            fontSize: "clamp(26px, 6vw, 34px)",
+            lineHeight: 1,
+            textTransform: "uppercase",
+            letterSpacing: "-0.005em",
+          }}
+        >
+          Join the movement
+        </h1>
         <SignupWizard topicPool={topicPool()} />
       </div>
     </div>
