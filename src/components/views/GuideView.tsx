@@ -224,8 +224,8 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
       <span style={{ fontSize: 14, color: C.body, lineHeight: 1.6 }}>
         Each candidate’s stance is sourced directly from his or her own website or direct quotes.
         Every statement contains a link to the original source, so you can check it yourself. If we
-        are unable to find a candidate’s position on a certain topic it will say, “No Position
-        Found.”
+        are unable to find a candidate’s position on a certain topic it will say, “No official
+        position found.”
       </span>
       <div
         style={{
@@ -239,7 +239,7 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
         }}
       >
         Our website development is in the early stage, and we are continuing to make edits to
-        improve its appearance. We greatly appreciate any constructive feedback using the “Beta –
+        improve its appearance. We greatly appreciate any constructive feedback using the “Beta -
         Send Feedback” button in the bottom right corner of the screen.
       </div>
       <RustButton onClick={onStart} style={{ alignSelf: "flex-start" }}>
