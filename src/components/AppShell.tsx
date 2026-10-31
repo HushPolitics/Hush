@@ -12,6 +12,7 @@ import PersonalizeBanner from "./PersonalizeBanner";
 import { HushScoreInfoProvider } from "./HushScoreInfo";
 import GlobalFooter from "./GlobalFooter";
 import BetaFeedback from "./BetaFeedback";
+import FoundingBadge from "./FoundingBadge";
 
 // Nav: four destinations plus the avatar menu (see AVATAR_MENU below).
 // Politicians added as the fourth -- same horizontal top bar, no layout
@@ -471,6 +472,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   boxShadow: MENU_SHADOW,
                 }}
               >
+                <FoundingBadge style={{ margin: "4px 4px 6px" }} />
                 {avatarMenu.map((item) => (
                   <Link
                     key={item.href}
