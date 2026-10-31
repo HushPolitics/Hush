@@ -9,7 +9,7 @@ import { promiseSplit } from "@/lib/scoring";
 import { useRegisterSectionNav } from "@/lib/sectionNav";
 import { isCustomCompareEligible } from "@/lib/compare";
 import type { FactCheck, FundingSummary, IssuePosition, Politician, PromiseStatus, StanceCell } from "@/lib/types";
-import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, PositionNotice, SourceAttribution } from "@/components/ui";
+import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, PositionNotice, RustButton, SourceAttribution } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
 import { openFeedback } from "@/components/BetaFeedback";
 import { FactCheckCard, VerdictKey } from "./FactCheckView";
@@ -97,6 +97,32 @@ export default function PoliticianView({
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 24 }}>
+      {/* Feedback prompt, first thing on the page so a wrong or missing fact is
+          easy to report. White card with the rust button, same look as the
+          other call-to-action cards. */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          padding: "14px 16px",
+          background: C.white,
+          border: `1px solid ${C.line}`,
+          borderRadius: 10,
+          boxShadow: "0 1px 4px rgba(20,17,12,0.06)",
+        }}
+      >
+        <span style={{ flex: "1 1 280px", fontSize: 13, lineHeight: 1.5, color: C.body }}>
+          Candidate pages are still being built out. Some sections may be thin or empty. Where we
+          haven&apos;t found a candidate&apos;s own words, we say so instead of guessing.
+        </span>
+        <RustButton onClick={() => openFeedback({ kind: "wrong_info", context: p.name })}>
+          Something wrong or missing? Tell us
+        </RustButton>
+      </div>
+
       {/* 1. Header -- identity strip, no longer a side rail */}
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
@@ -214,34 +240,6 @@ export default function PoliticianView({
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.body, textWrap: "pretty", maxWidth: 720 }}>
           {p.bio}
         </p>
-
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "4px 10px",
-            alignItems: "baseline",
-            padding: "10px 14px",
-            border: `1px dashed ${C.lineHard}`,
-            borderRadius: 8,
-            fontSize: 13,
-            lineHeight: 1.5,
-            color: C.body,
-            maxWidth: 720,
-          }}
-        >
-          <span>
-            Candidate pages are still being built out. Some sections may be thin or empty. Where we
-            haven&apos;t found a candidate&apos;s own words, we say so instead of guessing.
-          </span>
-          <button
-            type="button"
-            onClick={() => openFeedback({ kind: "wrong_info", context: p.name })}
-            style={{ border: 0, background: "transparent", padding: 0, color: C.rust, fontSize: 13, cursor: "pointer", textDecoration: "underline" }}
-          >
-            Something wrong or missing? Tell us
-          </button>
-        </div>
       </div>
 
       {/* Sections 2-7 */}
