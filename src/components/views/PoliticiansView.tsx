@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { C, PARTY, PARTY_LABEL } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
 import { initials } from "@/lib/scoring";
@@ -66,6 +66,20 @@ function PoliticiansHero() {
  * anywhere on this page, same convention the old /representatives used -- a
  * score belongs on a politician's own page, one click away.
  */
+/**
+ * Reads `?reps=slug,slug,...` -- the link HUSH. Guide's "Your Representatives"
+ * card opens -- and hands the ids up. Lives in its own component under a
+ * Suspense boundary so reading the query string does not push the whole
+ * directory out of static rendering.
+ */
+function RepsParam({ onReps }: { onReps: (ids: string[] | null) => void }) {
+  const raw = useSearchParams().get("reps");
+  useEffect(() => {
+    onReps(raw ? raw.split(",").filter(Boolean) : null);
+  }, [raw, onReps]);
+  return null;
+}
+
 export default function PoliticiansView({
   politicians,
   races,
@@ -82,6 +96,9 @@ export default function PoliticiansView({
   const [levelFilter, setLevelFilter] = useState<Level | "All">("All");
   const [partyFilter, setPartyFilter] = useState<Party | "All">("All");
   const [officeFilter, setOfficeFilter] = useState<string>("All");
+  // When set, the directory shows only these people (the voter's own
+  // representatives), in this order, until "Show everyone" is pressed.
+  const [repIds, setRepIds] = useState<string[] | null>(null);
 
   // The politicians currently picked for a custom comparison, resolved from
   // `picks` -- used to enforce the same-office-level constraint as a new row
@@ -110,11 +127,18 @@ export default function PoliticiansView({
       .filter((p) => partyFilter === "All" || p.party === partyFilter)
       .filter((p) => officeFilter === "All" || p.office === officeFilter)
       .filter((p) => !query || `${p.name} ${p.office}`.toLowerCase().includes(query))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  }, [politicians, levelFilter, partyFilter, officeFilter, q]);
+      .filter((p) => !repIds || repIds.includes(p.id))
+      .sort((a, b) =>
+        repIds ? repIds.indexOf(a.id) - repIds.indexOf(b.id) : a.name.localeCompare(b.name),
+      );
+  }, [politicians, levelFilter, partyFilter, officeFilter, q, repIds]);
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
+      <Suspense fallback={null}>
+        <RepsParam onReps={setRepIds} />
+      </Suspense>
+
       <PoliticiansHero />
 
       <Kicker>Politicians</Kicker>
@@ -179,17 +203,40 @@ export default function PoliticiansView({
         </select>
       </div>
 
-      <span
-        style={{
-          fontWeight: 600,
-          fontSize: 12,
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          color: C.muted,
-        }}
-      >
-        {filtered.length} {filtered.length === 1 ? "result" : "results"}
-      </span>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "6px 14px" }}>
+        <span
+          style={{
+            fontWeight: 600,
+            fontSize: 12,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: C.muted,
+          }}
+        >
+          {repIds ? "Your representatives · " : ""}
+          {filtered.length} {filtered.length === 1 ? "result" : "results"}
+        </span>
+        {repIds ? (
+          <button
+            type="button"
+            onClick={() => {
+              setRepIds(null);
+              router.replace("/politicians", { scroll: false });
+            }}
+            style={{
+              border: 0,
+              background: "transparent",
+              padding: 0,
+              color: C.rust,
+              fontSize: 13,
+              textDecoration: "underline",
+              cursor: "pointer",
+            }}
+          >
+            Show everyone
+          </button>
+        ) : null}
+      </div>
 
       {/* Column header -- same treatment as the promise ledger's grid head on a politician's own page */}
       <div
