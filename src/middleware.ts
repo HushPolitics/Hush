@@ -27,7 +27,17 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  const { data } = await supabase.auth.getUser();
+
+  // Signed-in visitors who land on the bare home page (typed URL, bookmark,
+  // search result) go straight to HUSH. Guide. The marketing logo links to
+  // /?home=1, which skips this so they can still reach the landing page.
+  const { pathname, searchParams } = request.nextUrl;
+  if (data.user && pathname === "/" && !searchParams.has("home")) {
+    const redirect = NextResponse.redirect(new URL("/hush-guide", request.url));
+    response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
+    return redirect;
+  }
 
   return response;
 }
