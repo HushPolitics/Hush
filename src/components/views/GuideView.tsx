@@ -28,6 +28,7 @@ import { resolveAddress } from "@/app/actions/location";
 import { lookupPollingPlace, type PollingLookupResult } from "@/app/actions/polling";
 import { filterRaces, lacksLocalRaces, scopeReasonFor } from "@/lib/ballot-scope";
 import BallotGapNote from "@/components/BallotGapNote";
+import CandidateAffiliation from "@/components/CandidateAffiliation";
 import { BillsSection } from "./GuideBills";
 
 const fieldStyle = {
@@ -741,8 +742,9 @@ function TileGrid({
                   </span>
                 );
                 return (
-                  <div key={c.politicianId} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div key={c.politicianId} style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", columnGap: 8, rowGap: 2 }}>
                     {nameEl}
+                    <CandidateAffiliation candidate={c} />
                   </div>
                 );
               })}
