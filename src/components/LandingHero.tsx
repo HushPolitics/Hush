@@ -94,7 +94,7 @@ function HomeHero() {
             className="home-btn-primary"
             style={{ background: C.rust, color: C.ink, fontWeight: 700, fontSize: "clamp(16px, 1.35vw, 19px)", letterSpacing: "-0.012em", padding: "24px 38px", textDecoration: "none" }}
           >
-            Join the Movement
+            Create Account
           </Link>
           <Link
             href="/contact?topic=feedback"

@@ -12,7 +12,7 @@ export function ClosingQuote({
   attributionName,
   attributionSource,
   line,
-  ctaLabel = "Join the Movement",
+  ctaLabel = "Create Account",
   ctaHref = "/signup",
 }: {
   quote: string;

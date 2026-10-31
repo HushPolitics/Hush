@@ -174,7 +174,7 @@ export function MarketingHeader({ active, sticky = true }: { active?: MarketingN
               textDecoration: "none",
             }}
           >
-            Join the Movement
+            Create Account
           </Link>
         </div>
 
@@ -229,7 +229,7 @@ export function MarketingHeader({ active, sticky = true }: { active?: MarketingN
             style={{ margin: 4, textAlign: "center", background: C.rust, color: C.ink, fontWeight: 700, fontSize: 16, padding: "14px 20px", textDecoration: "none" }}
             onClick={() => setMobileOpen(false)}
           >
-            Join the Movement
+            Create Account
           </Link>
         </div>
       ) : null}
