@@ -94,10 +94,18 @@ async function fetchAllRows<T>(
   const PAGE = 1000;
   const all: T[] = [];
   for (let from = 0; ; from += PAGE) {
-    const { data, error } = await page(from, from + PAGE - 1);
-    if (error || !data) return null;
-    all.push(...data);
-    if (data.length < PAGE) return all;
+    let res = await page(from, from + PAGE - 1);
+    // A database statement timeout is usually a brief spike, so try once more.
+    if (res.error || !res.data) {
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      res = await page(from, from + PAGE - 1);
+    }
+    // Throw rather than return nothing: pages here are cached and rebuilt in
+    // the background, and a rebuild that fails keeps serving the last good copy,
+    // whereas an empty result would be cached as if the data were really gone.
+    if (res.error || !res.data) throw new Error("Supabase read failed in fetchAllRows");
+    all.push(...res.data);
+    if (res.data.length < PAGE) return all;
   }
 }
 
