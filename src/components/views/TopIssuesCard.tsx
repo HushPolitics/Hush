@@ -151,6 +151,20 @@ export function TopIssuesCard({
     setDragIndex(null);
   }
 
+  // One-step reorder for the up/down arrows. Browser drag and drop doesn't
+  // work on touch screens, so the arrows are the way to reorder on a phone.
+  function moveBy(index: number, delta: number) {
+    const j = index + delta;
+    if (j < 0 || j >= topics.length) return;
+    if (draft) {
+      const next = draft.topics.slice();
+      [next[index], next[j]] = [next[j], next[index]];
+      draft.onChange(next);
+    } else {
+      live.moveTopic(index, delta);
+    }
+  }
+
   return (
     <Card id={id} style={{ padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -158,7 +172,7 @@ export function TopIssuesCard({
         <Display size={25}>Your Top Issues</Display>
         <span style={{ fontSize: 13, color: C.body }}>
           {editorial
-            ? "What matters most to you. Drag to reorder, remove, or add new issues."
+            ? "What matters most to you. Drag or use the arrows to reorder, remove, or add new issues."
             : "What matters most to you."}
         </span>
       </div>
@@ -166,12 +180,15 @@ export function TopIssuesCard({
       {ranked.length === 0 ? (
         <EmptyState>Add a few issues below and they&apos;ll show up here, ranked.</EmptyState>
       ) : editorial ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
+        <div className="stack-cards" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
           {ranked.map((i, idx) => (
             <IssueGridCard
               key={i.name}
               name={i.name}
               rank={i.rank}
+              index={idx}
+              count={ranked.length}
+              onMove={(delta) => moveBy(idx, delta)}
               accent={i.rank === 1 ? C.rust : i.rank === 2 ? C.ink : undefined}
               active={dragIndex === idx}
               dimmed={dragIndex !== null && dragIndex !== idx}
@@ -212,6 +229,7 @@ export function TopIssuesCard({
                 >
                   <span
                     aria-hidden
+                    className="issue-drag-handle"
                     style={{ color: C.faint, fontSize: 13, cursor: "grab", alignSelf: "flex-start", marginTop: 4 }}
                   >
                     ⠿
@@ -234,6 +252,7 @@ export function TopIssuesCard({
                     {i.rank}
                   </span>
                   <span
+                    className="issue-result-icon"
                     style={{
                       width: 96,
                       height: 96,
@@ -259,23 +278,26 @@ export function TopIssuesCard({
                       Explore this issue →
                     </Link>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => toggle(i.name)}
-                    aria-label={`Remove ${i.name} from your top issues`}
-                    style={{
-                      border: 0,
-                      background: "transparent",
-                      color: C.faint,
-                      fontSize: 16,
-                      lineHeight: 1,
-                      padding: "2px 4px",
-                      cursor: "pointer",
-                      alignSelf: "flex-start",
-                    }}
-                  >
-                    ×
-                  </button>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, alignSelf: "flex-start" }}>
+                    <MoveButtons name={i.name} index={idx} count={ranked.length} onMove={(delta) => moveBy(idx, delta)} />
+                    <button
+                      type="button"
+                      className="issue-remove-btn"
+                      onClick={() => toggle(i.name)}
+                      aria-label={`Remove ${i.name} from your top issues`}
+                      style={{
+                        border: 0,
+                        background: "transparent",
+                        color: C.faint,
+                        fontSize: 16,
+                        lineHeight: 1,
+                        padding: "2px 4px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
                 </div>
               );
             }
@@ -295,7 +317,7 @@ export function TopIssuesCard({
                   opacity: dragIndex !== null && dragIndex !== idx ? 0.6 : 1,
                 }}
               >
-                <span aria-hidden style={{ color: C.faint, fontSize: 13, letterSpacing: -1, cursor: "grab" }}>
+                <span aria-hidden className="issue-drag-handle" style={{ color: C.faint, fontSize: 13, letterSpacing: -1, cursor: "grab" }}>
                   ⠿
                 </span>
                 <span style={{ fontFamily: cond, fontSize: 14, color: C.muted, width: 16 }}>{i.rank}</span>
@@ -312,12 +334,15 @@ export function TopIssuesCard({
                 >
                   {i.name}
                 </span>
+                <span style={{ marginLeft: "auto", display: "flex" }}>
+                  <MoveButtons name={i.name} index={idx} count={ranked.length} onMove={(delta) => moveBy(idx, delta)} />
+                </span>
                 <button
                   type="button"
+                  className="issue-remove-btn"
                   onClick={() => toggle(i.name)}
                   aria-label={`Remove ${i.name} from your top issues`}
                   style={{
-                    marginLeft: "auto",
                     border: 0,
                     background: "transparent",
                     color: C.faint,
@@ -482,6 +507,9 @@ export function TopIssuesCard({
 function IssueGridCard({
   name,
   rank,
+  index,
+  count,
+  onMove,
   accent,
   active,
   dimmed,
@@ -493,6 +521,9 @@ function IssueGridCard({
 }: {
   name: string;
   rank: number;
+  index: number;
+  count: number;
+  onMove: (delta: number) => void;
   accent?: string;
   active: boolean;
   dimmed: boolean;
@@ -505,6 +536,7 @@ function IssueGridCard({
   return (
     <div
       draggable
+      className="issue-grid-card"
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDrop={onDrop}
@@ -522,6 +554,7 @@ function IssueGridCard({
       }}
     >
       <span
+        className="issue-grid-icon"
         style={{
           width: 56,
           height: 56,
@@ -553,18 +586,20 @@ function IssueGridCard({
       >
         {rank}
       </span>
-      <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
-        <span style={{ fontSize: 13, fontWeight: 500, color: C.ink }}>{name}</span>
-        <span style={{ fontSize: 11.5, color: C.body, lineHeight: 1.35 }}>
+      <div className="issue-grid-body" style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+        <span className="issue-grid-name" style={{ fontSize: 13, fontWeight: 500, color: C.ink }}>{name}</span>
+        <span className="issue-grid-desc" style={{ fontSize: 11.5, color: C.body, lineHeight: 1.35 }}>
           {ISSUE_DESCRIPTIONS[name] ?? ""}
         </span>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "0 0 auto", color: C.faint }}>
-        <span aria-hidden style={{ fontSize: 13, cursor: "grab" }}>
+        <span aria-hidden className="issue-drag-handle" style={{ fontSize: 13, cursor: "grab" }}>
           ⠿
         </span>
+        <MoveButtons name={name} index={index} count={count} onMove={onMove} />
         <button
           type="button"
+          className="issue-remove-btn"
           onClick={onRemove}
           aria-label={`Remove ${name} from your top issues`}
           style={{ border: 0, background: "transparent", color: C.faint, fontSize: 16, lineHeight: 1, padding: "2px 4px", cursor: "pointer" }}
@@ -573,5 +608,45 @@ function IssueGridCard({
         </button>
       </div>
     </div>
+  );
+}
+
+/**
+ * Up/down arrows stacked vertically. Browser drag and drop doesn't work on
+ * touch screens, so on a phone these are the way to reorder; they stay
+ * visible on desktop too (keyboard and screen reader friendly).
+ */
+function MoveButtons({
+  name,
+  index,
+  count,
+  onMove,
+}: {
+  name: string;
+  index: number;
+  count: number;
+  onMove: (delta: number) => void;
+}) {
+  return (
+    <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <button
+        type="button"
+        className="issue-move-btn"
+        onClick={() => onMove(-1)}
+        disabled={index === 0}
+        aria-label={`Move ${name} up`}
+      >
+        ↑
+      </button>
+      <button
+        type="button"
+        className="issue-move-btn"
+        onClick={() => onMove(1)}
+        disabled={index === count - 1}
+        aria-label={`Move ${name} down`}
+      >
+        ↓
+      </button>
+    </span>
   );
 }
