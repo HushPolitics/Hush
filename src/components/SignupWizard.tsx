@@ -111,6 +111,9 @@ export default function SignupWizard(_props: { topicPool?: string[] }) {
     // and ranked issues are collected there, not here.
     prefs.setGuideSetupDone(false);
     prefs.setOnboarded(false);
+    // Start with no address: anything left in this browser from an earlier
+    // visitor or account must not show up pre-filled for the new account.
+    prefs.clearLocation();
 
     setAccountStatus("idle");
     setStep(2);
