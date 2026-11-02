@@ -591,6 +591,27 @@ export function ballotMeasures(): Bill[] {
         "Keep the fund's cap at 10% of general revenue (roughly $5 billion today).",
         "Not add the new requirement to deposit $750 million a year, and leave the fund's other rules as they are today.",
       ],
+      impact: [
+        {
+          who: "Your taxes",
+          yes: "No tax rate or bill changes directly. The state would be required to set aside up to $750 million a year in the fund, money that would then not be available for other spending or tax cuts that year.",
+          no: "No tax rate or bill changes either. The Legislature keeps deciding year to year how much surplus to save and how much to spend.",
+        },
+        {
+          who: "State services you rely on (schools, health care, roads, storm recovery)",
+          yes: "Supporters say a cushion of up to 25% of general revenue helps the state weather storms and downturns without raising taxes. Opponents say the yearly deposits would tie up money that could fund schools, health care and housing now.",
+          no: "The fund stays capped at 10% (about $5 billion today). Opponents of the amendment say the fund is already full and extra surplus is better spent on tax cuts; the state would have a smaller cushion in a major disaster or downturn.",
+        },
+        {
+          who: "Future state budgets",
+          yes: "The new deposit rules would be written into the Constitution, so changing them later would take another amendment approved by voters.",
+          no: "Today's rules stay in place. The amendment adds no new limits on how future Legislatures budget.",
+        },
+      ],
+      impactSources: [
+        { name: "News4Jax, Oct. 27", url: "https://www.news4jax.com/vote-2026/2026/10/27/floridas-3-statewide-amendments-heres-what-your-yes-or-no-vote-would-do/" },
+        { name: "WLRN, Oct. 15", url: "https://www.wlrn.org/government-politics/2026-10-15/what-florida-voters-need-to-know-about-amendments-1-and-2" },
+      ],
     },
     {
       ...common,
@@ -608,6 +629,22 @@ export function ballotMeasures(): Bill[] {
       noMeans: [
         "Keep taxing that equipment under current property tax rules, so its owners would keep paying property tax on it.",
         "Leave local governments with the roughly $31 million a year a legislative analysis estimated they would otherwise lose starting in fiscal year 2027-28.",
+      ],
+      impact: [
+        {
+          who: "If you farm or run an agritourism business",
+          yes: "Qualifying equipment you own, such as tractors and harvesters, used on land you own or lease would be exempt from property tax starting in tax year 2027. Your savings depend on what the equipment is worth and your local tax rate.",
+          no: "Your equipment stays taxable under today's rules. Businesses, farms included, already get an exemption on the first $25,000 of this kind of property.",
+        },
+        {
+          who: "If you pay local property taxes or use local services",
+          yes: "Local governments would collect about $31 million a year less statewide starting in 2027-28, according to a legislative analysis. Property taxes help pay for fire and EMS, sheriffs, roads and parks, and how each government absorbs the loss is a local decision.",
+          no: "Local governments keep that revenue. Supporters of the amendment say the exemption lowers farmers' costs and helps farms compete with imports; opponents say relief aimed at small farms would be better targeted.",
+        },
+      ],
+      impactSources: [
+        { name: "News4Jax, Oct. 27", url: "https://www.news4jax.com/vote-2026/2026/10/27/floridas-3-statewide-amendments-heres-what-your-yes-or-no-vote-would-do/" },
+        { name: "WLRN, Oct. 15", url: "https://www.wlrn.org/government-politics/2026-10-15/what-florida-voters-need-to-know-about-amendments-1-and-2" },
       ],
     },
     {
@@ -630,6 +667,37 @@ export function ballotMeasures(): Bill[] {
         "Keep today's homestead exemption and the 10% cap on non-homestead assessment increases, so homeowners would not get the larger exemption and non-homestead owners would not get the lower cap.",
         "Leave local governments with their current property tax base and revenue.",
         "Leave the rules on how local governments spend property tax money as they are.",
+      ],
+      impact: [
+        {
+          who: "If you own and live in your home",
+          yes: "The first $150,000 of your home's value in 2027, then $250,000 in 2028, would be exempt from non-school property taxes, up from about $50,000 today. School taxes don't change and you would still get a bill. Illustration: on a $400,000 home with a combined non-school rate of 10 mills, going from $50,000 to $250,000 exempt is about $2,000 less a year. Your actual savings depend on your home's value and your local rates, and local governments could respond with cuts, fees or other revenue that offset some of it.",
+          no: "Your exemption stays at today's level, about $50,000 on non-school taxes, adjusted for inflation. This amendment changes nothing on your bill.",
+        },
+        {
+          who: "If you rent",
+          yes: "You don't get the homestead exemption. Landlords' taxable values could rise more slowly under the 5% cap, but Orange County warns that owners of rental and commercial property could face higher tax burdens that get passed on to tenants as rent. Smaller local budgets could also affect services you use. What happens depends on local decisions.",
+          no: "No change to how rental property is assessed or taxed from this amendment.",
+        },
+        {
+          who: "If you own a second home, rental or business property",
+          yes: "No new exemption. The yearly cap on how much its taxable value can rise for non-school taxes drops from 10% to 5%, though local tax rates can still change.",
+          no: "The 10% yearly cap stays.",
+        },
+        {
+          who: "If you use local services (police, fire, parks, libraries, roads)",
+          yes: "Local governments would lose revenue. State estimates reach about $12 billion a year statewide eventually, nearly $5 billion in the first year. Orange County, for example, estimates about $165 million less in 2027 and $275 million in 2028. Property tax money would also be limited to listed uses such as public safety, education and infrastructure. Governments say they would weigh cuts, fees or other revenue. Supporters say the amendment delivers meaningful tax relief and makes homeownership more attainable.",
+          no: "Local property tax revenue and spending rules stay as they are, and homeowners don't get the larger exemption.",
+        },
+        {
+          who: "If you are new to Florida",
+          yes: "If you weren't a Florida resident on Dec. 31, 2026, you would get today's exemption first and the larger one starting in your fifth year of exemption, as far as the U.S. Constitution allows.",
+          no: "Today's rules stay, with no added waiting period for the exemption.",
+        },
+      ],
+      impactSources: [
+        { name: "News4Jax, Oct. 27", url: "https://www.news4jax.com/vote-2026/2026/10/27/floridas-3-statewide-amendments-heres-what-your-yes-or-no-vote-would-do/" },
+        { name: "Orange County Government", url: "https://www.ocfl.net/OpenGovernment/PropertyTaxAmendment3.aspx" },
       ],
     },
   ];
