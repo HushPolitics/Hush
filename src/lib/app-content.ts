@@ -324,6 +324,6 @@ export const STANCE_WHY_MATTERS: Record<string, string> = {};
 export const ELECTION_ISO = "2026-11-03T19:00:00-05:00";
 
 export const KEY_DATES = [
-  { label: "Early voting", value: "Ends Oct 31 - Nov 1", detail: "Last days to vote early, in person. The end date depends on your county." },
+  { label: "Early voting", value: "Ended Nov 1", detail: "Early voting is over. Vote on Election Day, Nov 3, 7 am to 7 pm, at your assigned polling place." },
   { label: "Mail ballots due", value: "Nov 3, 7 pm", detail: "Your ballot must reach your county elections office by 7 pm on Election Day." },
 ] satisfies { label: string; value: string; detail: string }[];
