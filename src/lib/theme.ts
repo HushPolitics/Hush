@@ -227,6 +227,9 @@ export const GUIDE_SOURCE_KIND: Record<GuideSourceType, string> = {
   "Official press release": "Primary source",
   "Official social media": "Primary source",
   "Candidate questionnaire": "Primary source",
+  // A news outlet quoting or summarizing the candidate. Deliberately not "Primary
+  // source": the candidate did not publish it.
+  "News report": "News report",
 };
 
 /**
@@ -238,6 +241,9 @@ export function positionNotice(sourceType: GuideSourceType, sourceTitle?: string
   if (sourceType === "Campaign site") return null;
   if (sourceType === "Candidate questionnaire") {
     return `* Pulled directly from the ${sourceTitle || "candidate questionnaire"}. Not taken from this candidate's own campaign website.`;
+  }
+  if (sourceType === "News report") {
+    return `Reported by ${sourceTitle || "a news outlet"}, not taken from this candidate's own campaign website. Read the original story for the full context.`;
   }
   return `Not taken from this candidate's own campaign website. Source: ${sourceType}.`;
 }

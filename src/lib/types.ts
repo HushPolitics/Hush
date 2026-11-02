@@ -240,7 +240,8 @@ export type GuideSourceType =
   | "Official platform document"
   | "Official press release"
   | "Official social media"
-  | "Candidate questionnaire";
+  | "Candidate questionnaire"
+  | "News report";
 
 /**
  * A single candidate's sourced position on a single issue, for HUSH Guide's
