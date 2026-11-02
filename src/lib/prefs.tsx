@@ -394,6 +394,13 @@ interface PrefsContextValue extends Prefs {
   }) => void;
   /** Clears the resolved location, returning the app to the full ballot. */
   clearResolvedLocation: () => void;
+  /**
+   * Wipes everything location-related (street, city, state, ZIP, the matched
+   * address, districts and the polling place) in one write. A new signup calls
+   * this so an address left in this browser by an earlier visitor or account
+   * never shows up pre-filled.
+   */
+  clearLocation: () => void;
   setOnboarded: (onboarded: boolean) => void;
   setGuideSetupDone: (guideSetupDone: boolean) => void;
   setFirstName: (firstName: string) => void;
@@ -469,6 +476,17 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
         }),
       clearResolvedLocation: () =>
         patch({ matchedAddress: "", districtIds: [], districtsResolvedAt: null }),
+      clearLocation: () =>
+        patch({
+          streetAddress: DEFAULTS.streetAddress,
+          city: DEFAULTS.city,
+          state: DEFAULTS.state,
+          zip: DEFAULTS.zip,
+          matchedAddress: DEFAULTS.matchedAddress,
+          districtIds: DEFAULTS.districtIds,
+          districtsResolvedAt: DEFAULTS.districtsResolvedAt,
+          polling: DEFAULTS.polling,
+        }),
       setOnboarded: (onboarded) => patch({ onboarded }),
       setGuideSetupDone: (guideSetupDone) => patch({ guideSetupDone }),
       setFirstName: (firstName) => patch({ firstName }),
