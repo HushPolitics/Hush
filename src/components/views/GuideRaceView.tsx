@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { C, positionNotice } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { hasRaceInfo, parseRaceTitle, splitHeadToHead, stripPartySuffix } from "@/lib/guide";
+import { confirmedNoPositionDate, formatCheckedDate } from "@/lib/position-gaps";
 import type { IssuePosition, Party, Race, RaceCandidate } from "@/lib/types";
 import CandidateAffiliation from "@/components/CandidateAffiliation";
 import { Card, Display, EmptyState, GhostButton, Kicker, PositionNotice, RustButton } from "@/components/ui";
@@ -217,6 +218,7 @@ function IssueSection({
             key={c.politicianId}
             name={stripPartySuffix(c.name)}
             position={positions[c.politicianId]?.[issue]}
+            noPositionChecked={confirmedNoPositionDate(c.politicianId, issue)}
             submitHref={
               submitLinkIssue.get(c.politicianId) === issue
                 ? `/contact?topic=candidate&race=${encodeURIComponent(raceTitle)}&candidate=${encodeURIComponent(stripPartySuffix(c.name))}`
@@ -232,10 +234,13 @@ function IssueSection({
 function CandidatePositionCard({
   name,
   position,
+  noPositionChecked,
   submitHref,
 }: {
   name: string;
   position?: IssuePosition;
+  /** Date HUSH. searched and found nothing, when that is a confirmed finding rather than a blank. */
+  noPositionChecked?: string | null;
   submitHref?: string;
 }) {
   return (
@@ -282,9 +287,20 @@ function CandidatePositionCard({
         </>
       ) : (
         <>
-          <span style={{ fontSize: 13, color: C.muted, fontStyle: "italic" }}>
-            No official position found
-          </span>
+          {noPositionChecked ? (
+            <>
+              <span style={{ fontSize: 13, color: C.ink }}>Hasn&apos;t addressed this</span>
+              <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.4 }}>
+                As of {formatCheckedDate(noPositionChecked)}, HUSH. found no stated position on this issue in the
+                candidate&apos;s campaign materials or news coverage of the race. That is a search result, not a
+                statement that they have no view.
+              </span>
+            </>
+          ) : (
+            <span style={{ fontSize: 13, color: C.muted, fontStyle: "italic" }}>
+              No official position found
+            </span>
+          )}
           {submitHref ? (
             <Link href={submitHref} style={{ fontSize: 12, color: C.rust, lineHeight: 1.4 }}>
               Are you this candidate? Submit your positions →
