@@ -1434,10 +1434,10 @@ function VotingInformationSection({ polling }: { polling: PollingPlace }) {
   // stays in its existing "Register / Early voting / Mail ballot" order
   // (used elsewhere in the app), this just walks through it plus Election
   // Day at the end, where it actually falls.
-  // The early voting dates come from the county data when the lookup found
-  // them (they differ by county); the fixed date is only the fallback.
+  // Early voting has ended statewide, so the fixed KEY_DATES value is used
+  // as-is rather than the county's (now past) early voting window.
   const timelinePoints: { label: string; value: string }[] = [
-    ...KEY_DATES.map((k) => (k.label === "Early voting" && polling.earlyWindow ? { ...k, value: polling.earlyWindow } : k)),
+    ...KEY_DATES,
     { label: "Election Day", value: "Nov 3" },
   ];
   return (
