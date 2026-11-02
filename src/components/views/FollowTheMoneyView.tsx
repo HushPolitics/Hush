@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { C, PARTY, cond } from "@/lib/theme";
 import { Card, Display, Kicker, Pill } from "@/components/ui";
+import { filingRegime } from "@/lib/funding";
 import type { FundingSummary, Politician } from "@/lib/types";
 
 /**
@@ -16,7 +17,14 @@ import type { FundingSummary, Politician } from "@/lib/types";
  * filings synced yet," which is accurate, not broken.
  */
 function fundingStatus(politician: Politician, funding: FundingSummary | null): { label: string; tone: "muted" | "ink" } {
-  if (!politician.fecCandidateId) return { label: "Not federally regulated", tone: "muted" };
+  if (!politician.fecCandidateId) {
+    // Say why there is no FEC record: a federal candidate we have not matched
+    // yet is not the same thing as a race the FEC does not cover.
+    const regime = filingRegime(politician);
+    if (regime === "federal") return { label: "No FEC match yet", tone: "muted" };
+    if (regime === "state") return { label: "Filed with the state", tone: "muted" };
+    return { label: "Not federally regulated", tone: "muted" };
+  }
   if (!funding) return { label: "Funding data unavailable right now", tone: "muted" };
   if (funding.filings.length === 0) return { label: "Matched — no filings synced yet", tone: "muted" };
   return { label: "Filings on record", tone: "ink" };
