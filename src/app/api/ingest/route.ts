@@ -243,7 +243,7 @@ const FEC_API_BASE = "https://api.open.fec.gov/v1";
 const FUNDING_SYNC_FRESHNESS_HOURS = 20;
 const FEC_CYCLE = 2026;
 /** Parallel FEC requests at a time; the FEC allows far more, this just stays polite. */
-const FEC_CONCURRENCY = 5;
+const FEC_CONCURRENCY = 3;
 
 interface FederalCandidate {
   politicianId: string;
@@ -270,13 +270,36 @@ interface FecTotals {
   last_report_type_full?: string | null;
 }
 
+const FEC_MAX_ATTEMPTS = 5;
+
 async function fecGet<T>(path: string, params: Record<string, string>): Promise<T[]> {
-  const qs = new URLSearchParams({ ...params, api_key: process.env.FEC_API_KEY ?? "" });
-  const res = await fetch(`${FEC_API_BASE}${path}?${qs}`);
-  // The message names the path only, never the URL, so the key can't leak into logs.
-  if (!res.ok) throw new Error(`FEC ${path} failed: ${res.status}`);
-  const body = (await res.json()) as { results?: T[] };
-  return body.results ?? [];
+  const key = process.env.FEC_API_KEY ?? "";
+  const qs = new URLSearchParams({ ...params, api_key: key });
+  for (let attempt = 1; ; attempt++) {
+    const res = await fetch(`${FEC_API_BASE}${path}?${qs}`);
+    if (res.ok) {
+      const body = (await res.json()) as { results?: T[] };
+      return body.results ?? [];
+    }
+    // Rate limited: wait (honoring Retry-After when sent) and try again.
+    if (res.status === 429 && attempt < FEC_MAX_ATTEMPTS) {
+      const retryAfter = Number(res.headers.get("retry-after"));
+      const waitMs = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 1500 * 2 ** (attempt - 1);
+      await new Promise((r) => setTimeout(r, Math.min(waitMs, 20000)));
+      continue;
+    }
+    // The message names the path and the FEC's own explanation, never the URL or key.
+    let detail = "";
+    try {
+      detail = (await res.text()).replaceAll(key, "[key]").replace(/\s+/g, " ").slice(0, 160);
+    } catch {
+      /* ignore */
+    }
+    const remaining = res.headers.get("x-ratelimit-remaining");
+    throw new Error(
+      `FEC ${path} failed: ${res.status}${remaining != null ? ` (remaining ${remaining})` : ""}${detail ? ` ${detail}` : ""}`,
+    );
+  }
 }
 
 async function inBatches<T, R>(items: T[], size: number, fn: (item: T) => Promise<R>): Promise<R[]> {
@@ -379,10 +402,10 @@ async function fetchCycleTotals(fecId: string): Promise<FecTotals | null> {
   const rows = await fecGet<FecTotals>(`/candidate/${encodeURIComponent(fecId)}/totals/`, {
     cycle: String(FEC_CYCLE),
     election_full: "false",
-    sort: "-coverage_end_date",
-    per_page: "1",
+    per_page: "10",
   });
-  const t = rows[0];
+  // Newest report coverage first, in case more than one row comes back.
+  const t = [...rows].sort((a, b) => (b.coverage_end_date ?? "").localeCompare(a.coverage_end_date ?? ""))[0];
   return t && t.coverage_end_date && t.receipts != null ? t : null;
 }
 
