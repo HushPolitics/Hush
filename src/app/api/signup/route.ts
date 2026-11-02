@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
   let notified = false;
   try {
-    await sendMail({ to: RECIPIENT, subject: "HUSH. · New signup", text: `${email} joined from the footer.` });
+    await sendMail({ to: RECIPIENT, subject: "HUSH. · New signup", text: `${email} joined from ${body.source === "join" ? "the /join landing page" : "the footer"}.` });
     notified = true;
   } catch (e) {
     console.error("signup notify failed:", e instanceof Error ? e.message : String(e));
