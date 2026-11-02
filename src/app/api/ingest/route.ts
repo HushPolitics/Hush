@@ -262,6 +262,7 @@ interface FecTotals {
   receipts?: number | null;
   disbursements?: number | null;
   cash_on_hand_end_period?: number | null;
+  last_cash_on_hand_end_period?: number | null;
   individual_contributions?: number | null;
   individual_itemized_contributions?: number | null;
   individual_unitemized_contributions?: number | null;
@@ -360,7 +361,7 @@ async function loadFederalCandidates(supabase: ServiceClient): Promise<FederalCa
     if (!politician || !title) continue;
 
     const house = /^U\.S\. Representative, FL-(\d+)/i.exec(title);
-    const senate = /^U\.S\. Senator,\s*FL\b/i.test(title);
+    const senate = /^(U\.S\.|United States) Senator\b/i.test(title);
     if (!house && !senate) continue;
 
     byPolitician.set(politician.id, {
@@ -508,7 +509,7 @@ async function runFundingSync(supabase: ServiceClient, commit: boolean) {
             fecId: c.fecId,
             raised: t.receipts,
             spent: t.disbursements ?? null,
-            cashOnHand: t.cash_on_hand_end_period ?? null,
+            cashOnHand: t.last_cash_on_hand_end_period ?? t.cash_on_hand_end_period ?? null,
             fromIndividuals: individualTotal,
             through: t.coverage_end_date,
             report: t.last_report_type_full ?? null,
@@ -532,7 +533,7 @@ async function runFundingSync(supabase: ServiceClient, commit: boolean) {
               coverage_end: t.coverage_end_date,
               total_raised: t.receipts,
               total_spent: t.disbursements ?? null,
-              cash_on_hand: t.cash_on_hand_end_period ?? null,
+              cash_on_hand: t.last_cash_on_hand_end_period ?? t.cash_on_hand_end_period ?? null,
               individual_contributions_total: individualTotal,
               filed_at: null,
               source_url: `https://www.fec.gov/data/candidate/${encodeURIComponent(c.fecId as string)}/?cycle=${FEC_CYCLE}`,
