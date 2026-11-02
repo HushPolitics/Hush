@@ -299,7 +299,7 @@ function BillCard({ bill }: { bill: Bill }) {
                 color: C.rust,
               }}
             >
-              Click on this card to understand the bill
+              Click on this card to understand the {noun}
             </span>
           </div>
         </Card>
