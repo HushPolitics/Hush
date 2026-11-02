@@ -540,7 +540,7 @@ function BillCard({ bill }: { bill: (typeof BILLS)[number] }) {
         {bill.desc}
       </span>
       <span style={{ marginTop: "auto", paddingTop: 8, borderTop: `1px solid ${MK.paperAlt}`, fontSize: 9.5, color: MK.mutedDark }}>Vote: Nov 3, 2026 · Needs {bill.passes}</span>
-      <span style={{ fontSize: 11, fontWeight: 600, color: C.rust }}>Understand this bill →</span>
+      <span style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.25, color: C.rust }}>Click on this card to understand the bill</span>
     </div>
   );
 }
