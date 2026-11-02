@@ -222,233 +222,350 @@ async function runClaimAssess(supabase: ServiceClient, claimId: string): Promise
 }
 
 // ---------------------------------------------------------------------------
-// Campaign funding sync — see 0006_campaign_funding.sql's header comment.
+// Campaign funding sync -- see 0006_campaign_funding.sql's header comment.
+//
+// Federal races only, because the FEC only covers federal candidates. Scope is
+// Florida's 2026 U.S. Senate and U.S. House candidates who are on the ballot
+// (not withdrawn) and have a politician row. Two steps:
+//   1. Match each one to their FEC candidate id by name. Only a single,
+//      unambiguous match is accepted; anything else is reported and skipped.
+//   2. Pull the cycle-to-date totals (raised, spent, cash on hand, individual
+//      giving) from the FEC and store them as one row per candidate.
+// Committee/PAC contributor names are not synced yet.
+//
+// It is a dry run unless FUNDING_COMMIT=1 is set: it calls the FEC and logs
+// what it WOULD write, so the numbers can be checked against fec.gov before
+// anything reaches the database.
 // ---------------------------------------------------------------------------
 
 const FEC_API_BASE = "https://api.open.fec.gov/v1";
-/** Don't re-hit the FEC API if a sync already succeeded within this window. */
+/** Don't re-hit the FEC API if a committed sync already succeeded within this window. */
 const FUNDING_SYNC_FRESHNESS_HOURS = 20;
-/** Most recent filings per candidate, newest first. */
-const FILINGS_PER_CANDIDATE = 8;
+const FEC_CYCLE = 2026;
+/** Parallel FEC requests at a time; the FEC allows far more, this just stays polite. */
+const FEC_CONCURRENCY = 5;
 
-type CommitteeContributorType = "pac" | "party_committee" | "other_committee";
+interface FederalCandidate {
+  politicianId: string;
+  name: string;
+  fecId: string | null;
+  office: "H" | "S";
+  district: string | null;
+}
 
-function entityTypeToContributorType(entityType: string | null | undefined): CommitteeContributorType {
-  if (entityType === "PAC") return "pac";
-  if (entityType === "PTY") return "party_committee";
-  return "other_committee";
+interface FecCandidateHit {
+  candidate_id: string;
+  name: string;
+}
+
+interface FecTotals {
+  receipts?: number | null;
+  disbursements?: number | null;
+  cash_on_hand_end_period?: number | null;
+  individual_contributions?: number | null;
+  individual_itemized_contributions?: number | null;
+  individual_unitemized_contributions?: number | null;
+  coverage_start_date?: string | null;
+  coverage_end_date?: string | null;
+  last_report_type_full?: string | null;
+}
+
+async function fecGet<T>(path: string, params: Record<string, string>): Promise<T[]> {
+  const qs = new URLSearchParams({ ...params, api_key: process.env.FEC_API_KEY ?? "" });
+  const res = await fetch(`${FEC_API_BASE}${path}?${qs}`);
+  // The message names the path only, never the URL, so the key can't leak into logs.
+  if (!res.ok) throw new Error(`FEC ${path} failed: ${res.status}`);
+  const body = (await res.json()) as { results?: T[] };
+  return body.results ?? [];
+}
+
+async function inBatches<T, R>(items: T[], size: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = [];
+  for (let i = 0; i < items.length; i += size) {
+    out.push(...(await Promise.all(items.slice(i, i + size).map(fn))));
+  }
+  return out;
+}
+
+function first<T>(value: T | T[] | null | undefined): T | null {
+  return Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+}
+
+const NAME_SUFFIXES = new Set(["jr", "sr", "ii", "iii", "iv", "md", "dr"]);
+
+function normalizeName(s: string): string[] {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w && !NAME_SUFFIXES.has(w));
+}
+
+/** "Debbie Wasserman Schultz" -> first "debbie", last "schultz". */
+function politicianNameParts(fullName: string) {
+  const t = normalizeName(fullName);
+  return { first: t[0] ?? "", last: t[t.length - 1] ?? "" };
+}
+
+/** FEC lists names as "WASSERMAN SCHULTZ, DEBBIE". */
+function fecNameParts(fecName: string) {
+  const [last = "", rest = ""] = fecName.split(",");
+  const l = normalizeName(last);
+  const f = normalizeName(rest);
+  return { first: f[0] ?? "", last: l[l.length - 1] ?? "" };
+}
+
+async function loadFederalCandidates(supabase: ServiceClient): Promise<FederalCandidate[]> {
+  const { data, error } = await supabase
+    .from("candidacies")
+    .select("politicians(id, full_name, fec_candidate_id), races(offices(title))")
+    .eq("withdrew", false)
+    .not("politician_id", "is", null);
+  if (error) throw new Error(error.message);
+
+  type Row = {
+    politicians: { id: string; full_name: string; fec_candidate_id: string | null } | { id: string; full_name: string; fec_candidate_id: string | null }[] | null;
+    races: { offices: { title: string } | { title: string }[] | null } | { offices: { title: string } | { title: string }[] | null }[] | null;
+  };
+
+  const byPolitician = new Map<string, FederalCandidate>();
+  for (const row of (data ?? []) as unknown as Row[]) {
+    const politician = first(row.politicians);
+    const title = first(first(row.races)?.offices)?.title;
+    if (!politician || !title) continue;
+
+    const house = /^U\.S\. Representative, FL-(\d+)/i.exec(title);
+    const senate = /^U\.S\. Senator,\s*FL\b/i.test(title);
+    if (!house && !senate) continue;
+
+    byPolitician.set(politician.id, {
+      politicianId: politician.id,
+      name: politician.full_name,
+      fecId: politician.fec_candidate_id,
+      office: house ? "H" : "S",
+      district: house ? house[1].padStart(2, "0") : null,
+    });
+  }
+  return [...byPolitician.values()];
+}
+
+/** The candidate's FEC id, or null unless exactly one FEC candidate matches. */
+async function findFecCandidateId(c: FederalCandidate): Promise<string | null> {
+  const mine = politicianNameParts(c.name);
+  if (!mine.last) return null;
+  const hits = await fecGet<FecCandidateHit>("/candidates/search/", {
+    q: mine.last,
+    state: "FL",
+    office: c.office,
+    election_year: String(FEC_CYCLE),
+    per_page: "50",
+    ...(c.district ? { district: c.district } : {}),
+  });
+  const matches = hits.filter((h) => {
+    const theirs = fecNameParts(h.name);
+    return (
+      theirs.last === mine.last &&
+      !!theirs.first &&
+      !!mine.first &&
+      (theirs.first === mine.first || theirs.first.startsWith(mine.first) || mine.first.startsWith(theirs.first))
+    );
+  });
+  return matches.length === 1 ? matches[0].candidate_id : null;
+}
+
+async function fetchCycleTotals(fecId: string): Promise<FecTotals | null> {
+  const rows = await fecGet<FecTotals>(`/candidate/${encodeURIComponent(fecId)}/totals/`, {
+    cycle: String(FEC_CYCLE),
+    election_full: "false",
+    sort: "-coverage_end_date",
+    per_page: "1",
+  });
+  const t = rows[0];
+  return t && t.coverage_end_date && t.receipts != null ? t : null;
 }
 
 /**
- * Skips the sync entirely if one already succeeded recently — this route can
- * be hit by the daily cron and by a manual trigger without double-billing
- * FEC API calls or generating duplicate `funding_sync_runs` rows.
+ * Skips the sync entirely if a committed one already succeeded recently, so the
+ * daily cron and a manual run from the Vercel dashboard can't double up. A dry
+ * run has no such limit: it writes nothing.
  */
 async function runFundingSyncIfDue(supabase: ServiceClient) {
   if (!process.env.FEC_API_KEY) {
     return { skipped: "FEC_API_KEY not configured" };
   }
 
-  const cutoff = new Date(Date.now() - FUNDING_SYNC_FRESHNESS_HOURS * 60 * 60 * 1000).toISOString();
-  const { data: recent } = await supabase
-    .from("funding_sync_runs")
-    .select("id")
-    .eq("state", "succeeded")
-    .gte("started_at", cutoff)
-    .limit(1)
-    .maybeSingle();
+  const commit = process.env.FUNDING_COMMIT === "1";
 
-  if (recent) return { skipped: "synced within freshness window" };
+  if (commit) {
+    const cutoff = new Date(Date.now() - FUNDING_SYNC_FRESHNESS_HOURS * 60 * 60 * 1000).toISOString();
+    const { data: recent } = await supabase
+      .from("funding_sync_runs")
+      .select("id")
+      .eq("state", "succeeded")
+      .gte("started_at", cutoff)
+      .limit(1)
+      .maybeSingle();
+    if (recent) return { skipped: "synced within freshness window" };
+  }
 
-  return runFundingSync(supabase);
+  const result = await runFundingSync(supabase, commit);
+  console.log("[funding]", JSON.stringify(result));
+  return result;
 }
 
-async function runFundingSync(supabase: ServiceClient) {
-  const { data: run } = await supabase
-    .from("funding_sync_runs")
-    .insert({ state: "running" })
-    .select("id")
-    .single();
+async function runFundingSync(supabase: ServiceClient, commit: boolean) {
+  let runId: string | null = null;
+  if (commit) {
+    const { data: run } = await supabase.from("funding_sync_runs").insert({ state: "running" }).select("id").single();
+    if (!run) return { error: "could not create funding_sync_runs row" };
+    runId = run.id as string;
+  }
 
-  if (!run) return { error: "could not create funding_sync_runs row" };
-
-  let politiciansChecked = 0;
+  const errors: string[] = [];
+  const unmatched: string[] = [];
+  const preview: Record<string, unknown>[] = [];
+  let idsResolved = 0;
+  let noTotals = 0;
   let filingsCreated = 0;
   let filingsUpdated = 0;
+  let checked = 0;
 
   try {
-    const { data: politicians, error } = await supabase
-      .from("politicians")
-      .select("id, fec_candidate_id")
-      .not("fec_candidate_id", "is", null);
+    const candidates = await loadFederalCandidates(supabase);
 
-    if (error) throw new Error(error.message);
+    // Step 1: fill in missing FEC candidate ids.
+    await inBatches(
+      candidates.filter((c) => !c.fecId),
+      FEC_CONCURRENCY,
+      async (c) => {
+        try {
+          const id = await findFecCandidateId(c);
+          if (!id) {
+            unmatched.push(`${c.name} (${c.office}${c.district ? "-" + c.district : ""})`);
+            return;
+          }
+          c.fecId = id;
+          idsResolved++;
+          if (commit) {
+            await supabase
+              .from("politicians")
+              .update({ fec_candidate_id: id })
+              .eq("id", c.politicianId)
+              .is("fec_candidate_id", null);
+          }
+        } catch (e) {
+          errors.push(`${c.name}: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      },
+    );
 
-    for (const politician of politicians ?? []) {
-      politiciansChecked++;
-      const counts = await syncPoliticianFunding(
-        supabase,
-        politician.id as string,
-        politician.fec_candidate_id as string,
-      );
-      filingsCreated += counts.created;
-      filingsUpdated += counts.updated;
+    // Step 2: cycle-to-date totals for everyone with an id.
+    await inBatches(
+      candidates.filter((c) => c.fecId),
+      FEC_CONCURRENCY,
+      async (c) => {
+        checked++;
+        try {
+          const t = await fetchCycleTotals(c.fecId as string);
+          if (!t) {
+            noTotals++;
+            return;
+          }
+          const individualTotal =
+            t.individual_contributions ??
+            (t.individual_itemized_contributions != null || t.individual_unitemized_contributions != null
+              ? (t.individual_itemized_contributions ?? 0) + (t.individual_unitemized_contributions ?? 0)
+              : null);
+
+          preview.push({
+            name: c.name,
+            office: c.office + (c.district ? "-" + c.district : ""),
+            fecId: c.fecId,
+            raised: t.receipts,
+            spent: t.disbursements ?? null,
+            cashOnHand: t.cash_on_hand_end_period ?? null,
+            fromIndividuals: individualTotal,
+            through: t.coverage_end_date,
+            report: t.last_report_type_full ?? null,
+          });
+
+          if (!commit) return;
+
+          const filingKey = `cycle-${FEC_CYCLE}`;
+          const { data: existing } = await supabase
+            .from("funding_filings")
+            .select("id")
+            .eq("politician_id", c.politicianId)
+            .eq("fec_filing_id", filingKey)
+            .maybeSingle();
+          const { error: upsertError } = await supabase.from("funding_filings").upsert(
+            {
+              politician_id: c.politicianId,
+              fec_filing_id: filingKey,
+              period_label: `${t.last_report_type_full ?? "Latest FEC report"} (through ${new Date(t.coverage_end_date as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })})`,
+              coverage_start: t.coverage_start_date ?? null,
+              coverage_end: t.coverage_end_date,
+              total_raised: t.receipts,
+              total_spent: t.disbursements ?? null,
+              cash_on_hand: t.cash_on_hand_end_period ?? null,
+              individual_contributions_total: individualTotal,
+              filed_at: null,
+              source_url: `https://www.fec.gov/data/candidate/${encodeURIComponent(c.fecId as string)}/?cycle=${FEC_CYCLE}`,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "politician_id,fec_filing_id" },
+          );
+          if (upsertError) throw new Error(upsertError.message);
+          if (existing) filingsUpdated++;
+          else filingsCreated++;
+        } catch (e) {
+          errors.push(`${c.name}: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      },
+    );
+
+    if (runId) {
+      await supabase
+        .from("funding_sync_runs")
+        .update({
+          state: "succeeded",
+          finished_at: new Date().toISOString(),
+          politicians_checked: checked,
+          filings_created: filingsCreated,
+          filings_updated: filingsUpdated,
+        })
+        .eq("id", runId);
     }
 
-    await supabase
-      .from("funding_sync_runs")
-      .update({
-        state: "succeeded",
-        finished_at: new Date().toISOString(),
-        politicians_checked: politiciansChecked,
-        filings_created: filingsCreated,
-        filings_updated: filingsUpdated,
-      })
-      .eq("id", run.id);
-
-    return { politiciansChecked, filingsCreated, filingsUpdated };
+    return {
+      mode: commit ? "commit" : "dry-run (set FUNDING_COMMIT=1 to write)",
+      candidates: candidates.length,
+      idsResolved,
+      unmatched,
+      checked,
+      noTotals,
+      filingsCreated,
+      filingsUpdated,
+      errors,
+      preview,
+    };
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    await supabase
-      .from("funding_sync_runs")
-      .update({
-        state: "failed",
-        finished_at: new Date().toISOString(),
-        politicians_checked: politiciansChecked,
-        filings_created: filingsCreated,
-        filings_updated: filingsUpdated,
-        error: message,
-      })
-      .eq("id", run.id);
+    if (runId) {
+      await supabase
+        .from("funding_sync_runs")
+        .update({
+          state: "failed",
+          finished_at: new Date().toISOString(),
+          politicians_checked: checked,
+          filings_created: filingsCreated,
+          filings_updated: filingsUpdated,
+          error: message,
+        })
+        .eq("id", runId);
+    }
     return { error: message };
   }
-}
-
-async function syncPoliticianFunding(
-  supabase: ServiceClient,
-  politicianRowId: string,
-  fecCandidateId: string,
-): Promise<{ created: number; updated: number }> {
-  const apiKey = process.env.FEC_API_KEY;
-  const url =
-    `${FEC_API_BASE}/candidate/${encodeURIComponent(fecCandidateId)}/filings/` +
-    `?sort=-coverage_end_date&per_page=${FILINGS_PER_CANDIDATE}&api_key=${apiKey}`;
-
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`FEC filings lookup failed for ${fecCandidateId}: ${res.status}`);
-  const body = (await res.json()) as { results?: FecFiling[] };
-
-  let created = 0;
-  let updated = 0;
-
-  for (const filing of body.results ?? []) {
-    if (!filing.file_number || !filing.coverage_end_date) continue;
-
-    const individualTotal =
-      filing.individual_itemized_contributions != null || filing.individual_unitemized_contributions != null
-        ? (filing.individual_itemized_contributions ?? 0) + (filing.individual_unitemized_contributions ?? 0)
-        : null;
-
-    const { data: existing } = await supabase
-      .from("funding_filings")
-      .select("id")
-      .eq("politician_id", politicianRowId)
-      .eq("fec_filing_id", String(filing.file_number))
-      .maybeSingle();
-
-    const { data: saved, error: upsertError } = await supabase
-      .from("funding_filings")
-      .upsert(
-        {
-          politician_id: politicianRowId,
-          fec_filing_id: String(filing.file_number),
-          period_label: `${filing.report_type_full ?? filing.report_type ?? "Filing"} ${filing.report_year ?? ""}`.trim(),
-          coverage_start: filing.coverage_start_date,
-          coverage_end: filing.coverage_end_date,
-          total_raised: filing.total_receipts ?? null,
-          total_spent: filing.total_disbursements ?? null,
-          cash_on_hand: filing.cash_on_hand_end_period ?? null,
-          individual_contributions_total: individualTotal,
-          filed_at: filing.receipt_date ?? null,
-          source_url: `https://www.fec.gov/data/candidate/${encodeURIComponent(fecCandidateId)}/?tab=filings`,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "politician_id,fec_filing_id" },
-      )
-      .select("id")
-      .single();
-
-    if (upsertError || !saved) continue;
-    existing ? updated++ : created++;
-
-    // Committee/PAC contributions for this filing — best-effort. A failure
-    // here (e.g. the Schedule A query shape drifting from what FEC returns)
-    // must not lose the filing totals already saved above, so it's isolated
-    // in its own try/catch rather than bubbling up to the whole sync.
-    if (filing.committee_id) {
-      try {
-        await syncFilingContributors(supabase, saved.id as string, filing.committee_id, apiKey);
-      } catch {
-        // Filing stands without its committee breakdown; next sync retries.
-      }
-    }
-  }
-
-  return { created, updated };
-}
-
-async function syncFilingContributors(
-  supabase: ServiceClient,
-  fundingFilingId: string,
-  committeeId: string,
-  apiKey: string | undefined,
-) {
-  const url =
-    `${FEC_API_BASE}/schedules/schedule_a/` +
-    `?committee_id=${encodeURIComponent(committeeId)}&is_individual=false` +
-    `&sort=-contribution_receipt_amount&per_page=20&api_key=${apiKey}`;
-
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Schedule A lookup failed for committee ${committeeId}: ${res.status}`);
-  const body = (await res.json()) as { results?: FecScheduleAResult[] };
-
-  // Re-derive this filing's contributor rows from scratch each sync rather
-  // than diffing — simpler, and correct as long as a filing's contributor
-  // list only ever comes from this one query.
-  await supabase.from("funding_contributors").delete().eq("funding_filing_id", fundingFilingId);
-
-  const rows = (body.results ?? [])
-    .filter((r) => r.contributor_name && r.contribution_receipt_amount != null)
-    .map((r) => ({
-      funding_filing_id: fundingFilingId,
-      committee_name: r.contributor_name as string,
-      committee_fec_id: r.contributor_id ?? null,
-      amount: r.contribution_receipt_amount as number,
-      contributor_type: entityTypeToContributorType(r.entity_type),
-    }));
-
-  if (rows.length) await supabase.from("funding_contributors").insert(rows);
-}
-
-interface FecFiling {
-  file_number?: number | string;
-  coverage_start_date?: string | null;
-  coverage_end_date?: string | null;
-  total_receipts?: number | null;
-  total_disbursements?: number | null;
-  cash_on_hand_end_period?: number | null;
-  individual_itemized_contributions?: number | null;
-  individual_unitemized_contributions?: number | null;
-  receipt_date?: string | null;
-  report_type_full?: string | null;
-  report_type?: string | null;
-  report_year?: number | null;
-  committee_id?: string | null;
-}
-
-interface FecScheduleAResult {
-  contributor_name?: string | null;
-  contributor_id?: string | null;
-  contribution_receipt_amount?: number | null;
-  entity_type?: string | null;
 }
