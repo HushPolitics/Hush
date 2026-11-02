@@ -969,3 +969,78 @@ html {
     width: 100%;
   }
 }
+
+/* "Your Top Issues" editor (TopIssuesCard). The up/down arrows are the
+   touch-friendly way to reorder, since browser drag and drop doesn't work
+   on a phone. */
+.issue-move-btn {
+  width: 26px;
+  height: 22px;
+  border: 1px solid var(--line, rgba(21, 21, 21, 0.14));
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink, #151515);
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+.issue-move-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+@media (hover: none) {
+  .issue-drag-handle {
+    display: none !important;
+  }
+}
+@media (max-width: 640px) {
+  .issue-drag-handle {
+    display: none !important;
+  }
+  .issue-move-btn {
+    width: 40px;
+    height: 36px;
+    font-size: 16px;
+  }
+  .issue-remove-btn {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 20px !important;
+  }
+  /* Grid card: icon, rank, name and controls on one row; the description
+     drops below, full width, instead of being squeezed beside them. */
+  .issue-grid-card {
+    flex-wrap: wrap;
+    gap: 10px !important;
+  }
+  .issue-grid-icon {
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px !important;
+  }
+  .issue-grid-body {
+    display: contents !important;
+  }
+  .issue-grid-name {
+    flex: 1 1 0;
+    min-width: 0;
+    font-size: 14px !important;
+  }
+  .issue-grid-desc {
+    order: 10;
+    flex: 1 1 100%;
+    font-size: 12px !important;
+  }
+  /* Issue Finder results rows: a smaller icon so the text has room. */
+  .issue-result-icon {
+    width: 48px !important;
+    height: 48px !important;
+    flex: 0 0 48px !important;
+    border-radius: 14px !important;
+  }
+  .issue-result-icon svg {
+    width: 26px;
+    height: 26px;
+  }
+}
