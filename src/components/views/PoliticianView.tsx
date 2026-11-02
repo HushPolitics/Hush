@@ -8,6 +8,7 @@ import { usePrefs } from "@/lib/prefs";
 import { promiseSplit } from "@/lib/scoring";
 import { useRegisterSectionNav } from "@/lib/sectionNav";
 import { isCustomCompareEligible } from "@/lib/compare";
+import { FEC_CANDIDATES_URL, FL_DOE_FINANCE_URL, filingRegime, type FilingRegime } from "@/lib/funding";
 import type { FactCheck, FundingSummary, IssuePosition, Politician, PromiseStatus, StanceCell } from "@/lib/types";
 import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, PositionNotice, SourceAttribution } from "@/components/ui";
 import { HushScoreInfoIcon } from "@/components/HushScoreInfo";
@@ -591,7 +592,7 @@ export default function PoliticianView({
             before Claims checked: like Positions, it's "what's true about
             this candidate independent of any one claim," not part of the
             promise ledger and not a fact-check verdict. */}
-        <FundingSection funding={funding} politicianName={p.name} />
+        <FundingSection funding={funding} politicianName={p.name} regime={filingRegime(p)} />
 
         {/* 5. Claims checked */}
         <section id="claims-checked" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -800,16 +801,59 @@ const CONTRIBUTOR_TYPE_LABEL: Record<string, string> = {
  * Copy finalized in the phase-4 cleanup pass -- states 1 and 2 both read as
  * plain status, not an error, since neither one means anything went wrong.
  */
-function FundingSection({ funding, politicianName }: { funding: FundingSummary | null; politicianName: string }) {
+function FundingSection({
+  funding,
+  politicianName,
+  regime,
+}: {
+  funding: FundingSummary | null;
+  politicianName: string;
+  regime: FilingRegime;
+}) {
   const header = (
     <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
       <Kicker>Campaign funding</Kicker>
-      <span style={{ fontFamily: cond, fontSize: 18 }}>Federal disclosure</span>
+      <span style={{ fontFamily: cond, fontSize: 18 }}>{regime === "state" ? "State disclosure" : "Federal disclosure"}</span>
     </div>
   );
 
-  // State 1: not applicable to this office.
+  // State 1: no FEC record to show. What we say depends on why.
   if (!funding) {
+    if (regime === "state") {
+      return (
+        <section id="funding" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {header}
+          <EmptyState>
+            State candidates like {politicianName} file campaign finance reports with the Florida Division of
+            Elections, not the FEC. HUSH. doesn&apos;t pull those numbers yet, so the official filings are the place to
+            look.
+          </EmptyState>
+          <SourceAttribution
+            kind="Official filings"
+            org="Florida Division of Elections"
+            href={FL_DOE_FINANCE_URL}
+            actionLabel="Search Florida campaign finance →"
+          />
+        </section>
+      );
+    }
+    if (regime === "federal") {
+      return (
+        <section id="funding" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {header}
+          <EmptyState>
+            HUSH. hasn&apos;t matched {politicianName} to an FEC record yet, so there are no numbers here. That is a gap
+            on our side, not a sign they haven&apos;t filed.
+          </EmptyState>
+          <SourceAttribution
+            kind="Official filings"
+            org="FEC"
+            href={FEC_CANDIDATES_URL}
+            actionLabel="Search candidates on FEC.gov →"
+          />
+        </section>
+      );
+    }
     return (
       <section id="funding" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {header}
@@ -873,6 +917,8 @@ function FundingSection({ funding, politicianName }: { funding: FundingSummary |
 
         <p style={{ margin: 0, fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
           &ldquo;From individuals&rdquo; is a total only -- HUSH. never publishes individual donor names or employers.
+          &ldquo;Total raised&rdquo; is everything the campaign reported receiving, including any loans the candidate
+          made to their own campaign.
         </p>
 
         {latest.contributors.length > 0 ? (
