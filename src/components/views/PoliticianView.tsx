@@ -8,6 +8,7 @@ import { usePrefs } from "@/lib/prefs";
 import { promiseSplit } from "@/lib/scoring";
 import { useRegisterSectionNav } from "@/lib/sectionNav";
 import { isCustomCompareEligible } from "@/lib/compare";
+import { confirmedNoPositionDate, formatCheckedDate } from "@/lib/position-gaps";
 import { FEC_CANDIDATES_URL, FL_DOE_FINANCE_URL, filingRegime, type FilingRegime } from "@/lib/funding";
 import type { FactCheck, FundingSummary, IssuePosition, Politician, PromiseStatus, StanceCell } from "@/lib/types";
 import { Card, Chip, EmptyState, GhostButton, InkButton, Kicker, Pill, PositionNotice, SourceAttribution } from "@/components/ui";
@@ -565,12 +566,28 @@ export default function PoliticianView({
                       </div>
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                        <span style={{ fontSize: 13, color: C.ink }}>
-                          No official position found
-                        </span>
-                        <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.4 }}>
-                          HUSH. couldn&apos;t find a stated position on this issue in the sources we track.
-                        </span>
+                        {(() => {
+                          const checked = confirmedNoPositionDate(p.id, issue);
+                          return checked ? (
+                            <>
+                              <span style={{ fontSize: 13, color: C.ink }}>Hasn&apos;t addressed this</span>
+                              <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.4 }}>
+                                As of {formatCheckedDate(checked)}, HUSH. found no stated position on this issue in
+                                this candidate&apos;s campaign materials or news coverage of the race. That is a
+                                search result, not a statement that they have no view.
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span style={{ fontSize: 13, color: C.ink }}>
+                                No official position found
+                              </span>
+                              <span style={{ fontSize: 12, color: C.muted, lineHeight: 1.4 }}>
+                                HUSH. couldn&apos;t find a stated position on this issue in the sources we track.
+                              </span>
+                            </>
+                          );
+                        })()}
                         <button
                           type="button"
                           onClick={() => openFeedback({ kind: "wrong_info", context: `${p.name} · ${issue}` })}
