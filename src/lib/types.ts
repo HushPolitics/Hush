@@ -341,6 +341,15 @@ export interface Bill {
   yesMeans?: string[];
   /** "A NO vote would:" bullets — not just the inverse of `yesMeans`. */
   noMeans?: string[];
+  /**
+   * "What it could mean for you" -- one row per kind of voter (homeowner,
+   * renter, farmer...), each saying what a YES and what a NO would do to that
+   * person in practice. Where a figure depends on the voter's own situation
+   * (home value, local tax rate) the line says so rather than inventing one.
+   */
+  impact?: { who: string; yes: string; no: string }[];
+  /** Where the `impact` figures and claims come from, linked on the card. */
+  impactSources?: { name: string; url: string }[];
   sourceName: string;
   sourceUrl: string;
   dateAccessed: string;
