@@ -183,11 +183,12 @@ input::placeholder {
   perspective: 1400px;
   /* The back face (explanation + YES list + NO list + source block) is much
      longer than the front, and scrolls inside this height. 260px meant most
-     of it was off-screen. 420px shows more at once now that the cards are
-     three across and wider. This is the one number to adjust: .flip-card-face
+     of it was off-screen. 560px leaves room for the explanation, the YES/NO
+     lists and the first "What it could mean for you" rows now that the back
+     also carries those. This is the one number to adjust: .flip-card-face
      keeps its own overflow-y: auto, so a long amendment still scrolls rather
      than being cut off. */
-  height: 420px;
+  height: 560px;
 }
 .flip-card-inner {
   position: relative;
@@ -390,7 +391,7 @@ input::placeholder {
   /* Narrower cards wrap onto more lines — taller fixed height keeps both
      flip faces from clipping their content. */
   .flip-card {
-    height: 560px;
+    height: 640px;
   }
 
   /* PoliticiansView's floating "Compare N" bar sticks near the bottom of
