@@ -387,16 +387,17 @@ async function findFecCandidateId(c: FederalCandidate): Promise<string | null> {
     per_page: "50",
     ...(c.district ? { district: c.district } : {}),
   });
-  const matches = hits.filter((h) => {
-    const theirs = fecNameParts(h.name);
-    return (
-      theirs.last === mine.last &&
-      !!theirs.first &&
-      !!mine.first &&
-      (theirs.first === mine.first || theirs.first.startsWith(mine.first) || mine.first.startsWith(theirs.first))
-    );
+  const sameLast = hits.filter((h) => fecNameParts(h.name).last === mine.last);
+  const strict = sameLast.filter((h) => {
+    const theirs = fecNameParts(h.name).first;
+    return !!theirs && !!mine.first && (theirs === mine.first || theirs.startsWith(mine.first) || mine.first.startsWith(theirs));
   });
-  return matches.length === 1 ? matches[0].candidate_id : null;
+  if (strict.length === 1) return strict[0].candidate_id;
+  if (strict.length > 1) return null;
+  // Nicknames ("Angie" vs "Angela"): accept a single same-initial hit for this
+  // state, office and district. Anything ambiguous stays unmatched.
+  const byInitial = sameLast.filter((h) => !!mine.first && fecNameParts(h.name).first[0] === mine.first[0]);
+  return byInitial.length === 1 ? byInitial[0].candidate_id : null;
 }
 
 async function fetchCycleTotals(fecId: string): Promise<FecTotals | null> {
