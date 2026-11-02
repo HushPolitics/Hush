@@ -159,6 +159,36 @@ function ChamberPill({ children, accent }: { children: ReactNode; accent: { fg: 
   );
 }
 
+/**
+ * One "Yes: ... / No: ..." line in a card's "What it could mean for you" block.
+ * The tag is the same neutral ink/shell pill for both, never a good/bad color:
+ * the card says what each vote would do, not which one is better.
+ */
+function ImpactLine({ tag, text }: { tag: "Yes" | "No"; text: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+      <span
+        style={{
+          flex: "0 0 auto",
+          minWidth: 30,
+          textAlign: "center",
+          fontSize: 10.5,
+          fontWeight: 700,
+          letterSpacing: "0.05em",
+          textTransform: "uppercase",
+          color: C.ink,
+          background: C.shell,
+          borderRadius: 4,
+          padding: "2px 6px",
+        }}
+      >
+        {tag}
+      </span>
+      <span style={{ fontSize: 12.5, color: C.body, lineHeight: 1.5 }}>{text}</span>
+    </div>
+  );
+}
+
 function BillCard({ bill }: { bill: Bill }) {
   const [flipped, setFlipped] = useState(false);
   const noun = bill.kind === "amendment" ? "amendment" : "bill";
@@ -263,13 +293,13 @@ function BillCard({ bill }: { bill: Bill }) {
             ) : null}
             <span
               style={{
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
+                fontSize: 16,
+                fontWeight: 700,
+                lineHeight: 1.25,
                 color: C.rust,
               }}
             >
-              Understand this {noun} →
+              Click on this card to understand the {noun}
             </span>
           </div>
         </Card>
@@ -351,6 +381,53 @@ function BillCard({ bill }: { bill: Bill }) {
                       </li>
                     ))}
                   </ul>
+                </div>
+              ) : null}
+
+              {bill.impact && bill.impact.length > 0 ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                    borderTop: `1px solid ${C.lineSoft}`,
+                    paddingTop: 10,
+                  }}
+                >
+                  <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                    <Kicker>What it could mean for you</Kicker>
+                    <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.4 }}>
+                      Find the line that sounds like you. Real effects depend on your own situation and on
+                      decisions your local government makes.
+                    </span>
+                  </div>
+                  {bill.impact.map((row) => (
+                    <div key={row.who} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: C.ink, lineHeight: 1.3 }}>{row.who}</span>
+                      <ImpactLine tag="Yes" text={row.yes} />
+                      <ImpactLine tag="No" text={row.no} />
+                    </div>
+                  ))}
+                  {bill.impactSources && bill.impactSources.length > 0 ? (
+                    <span style={{ fontSize: 11, color: C.muted, lineHeight: 1.5 }}>
+                      Based on:{" "}
+                      {bill.impactSources.map((src, i) => (
+                        <span key={src.url}>
+                          {i > 0 ? " · " : ""}
+                          <a
+                            href={src.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ color: C.rust }}
+                          >
+                            {src.name}
+                          </a>
+                        </span>
+                      ))}
+                      . Estimates can change; check the official text before you vote.
+                    </span>
+                  ) : null}
                 </div>
               ) : null}
             </>
