@@ -7,8 +7,8 @@ import { C, VERDICT_STYLE, cond } from "@/lib/theme";
 import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs } from "@/lib/prefs";
 import { filterRaces } from "@/lib/ballot-scope";
-import { useMounted } from "@/lib/hooks";
-import { ELECTION_ISO, KEY_DATES } from "@/lib/app-content";
+import { KEY_DATES } from "@/lib/app-content";
+import ElectionClock from "@/components/ElectionClock";
 import { FEED_SCOPES, useFeedScope } from "@/lib/feedScope";
 import {
   ballotPoliticianIds,
@@ -323,7 +323,6 @@ export default function FeedView({
   const [sort, setSort] = useState<"recent" | "oldest">("recent");
   const [pageSize, setPageSize] = useState<number>(10);
   const [page, setPage] = useState(1);
-  const mounted = useMounted();
 
   // Same URL-param approach AppShell.tsx's own top-bar search already uses
   // (submitSearch there) -- kept as its own small copy here rather than a
@@ -412,9 +411,6 @@ export default function FeedView({
 
   const followingEmpty = scope === "following" && saved.length === 0;
   const issuesEmpty = scope === "issues" && topics.length === 0;
-  const days = mounted
-    ? Math.max(0, Math.floor((new Date(ELECTION_ISO).getTime() - Date.now()) / 86400000))
-    : null;
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
@@ -439,7 +435,7 @@ export default function FeedView({
         {/* The count must respect the address the reader already gave us.
             Showing the statewide total next to "races on your ballot" told a
             St. Petersburg voter they had 781 races. */}
-        <ElectionCard days={days} raceCount={scopedRaces.length} />
+        <ElectionCard raceCount={scopedRaces.length} />
         <TopIssuesCard topics={topics} />
         <RepresentativesCard politicians={ballotPoliticians} header="display" variant="seeMore" title="Your Saved Representatives" />
       </div>
@@ -635,18 +631,13 @@ function FeedHero() {
  * that actually require the reader to act before Election Day (Early voting,
  * Mail ballots due), not the full three-item spread that banner has room for.
  */
-function ElectionCard({ days, raceCount }: { days: number | null; raceCount: number }) {
+function ElectionCard({ raceCount }: { raceCount: number }) {
   const mailDue = KEY_DATES.find((k) => k.label === "Mail ballots due");
   const earlyVoting = KEY_DATES.find((k) => k.label === "Early voting");
   return (
     <Card style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
       <Display size={16} color={C.rust}>Your Election</Display>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-        <span style={{ fontFamily: cond, fontSize: 34, lineHeight: 1, color: C.ink }}>
-          {days === null ? "—" : days}
-        </span>
-        <span style={{ fontSize: 14, color: C.body }}>days until Election Day</span>
-      </div>
+      <ElectionClock size={34} labelSize={14} />
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
         <span style={{ fontFamily: cond, fontSize: 20, color: C.ink }}>{raceCount}</span>
         <span style={{ fontSize: 13, color: C.body }}>races on your ballot</span>
