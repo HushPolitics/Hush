@@ -7,6 +7,7 @@ import { C, cond } from "@/lib/theme";
 import { usePrefs } from "@/lib/prefs";
 import { createClient } from "@/lib/supabase/client";
 import { syncOnboardingToSupabase } from "@/lib/supabase/profile";
+import { nextFromLocation } from "@/lib/safeNext";
 import { Kicker, RustButton } from "@/components/ui";
 
 const TOTAL_STEPS = 2;
@@ -59,7 +60,7 @@ export default function SignupWizard(_props: { topicPool?: string[] }) {
     }
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
-        router.replace("/hush-guide");
+        router.replace(nextFromLocation() ?? "/hush-guide");
         return;
       }
       setCheckingSession(false);
@@ -91,7 +92,7 @@ export default function SignupWizard(_props: { topicPool?: string[] }) {
           last_name: lastName,
           full_name: `${firstName} ${lastName}`.trim(),
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/hush-guide?welcome=1")}`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextFromLocation() ?? "/hush-guide?welcome=1")}`,
       },
     });
 
@@ -140,7 +141,7 @@ export default function SignupWizard(_props: { topicPool?: string[] }) {
       lastName,
       marketingEmailOptIn: marketingOptIn,
     });
-    router.push("/hush-guide?welcome=1");
+    router.push(nextFromLocation() ?? "/hush-guide?welcome=1");
   }
 
   if (checkingSession) return null;

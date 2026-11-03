@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { C } from "@/lib/theme";
 import { createClient } from "@/lib/supabase/client";
+import { nextFromLocation } from "@/lib/safeNext";
 import { RustButton } from "./ui";
 
 const fieldStyle = {
@@ -60,7 +61,7 @@ export default function LoginForm() {
       setPwStatus("error");
       setPwMessage(error.message);
     } else {
-      router.push("/hush-guide");
+      router.push(nextFromLocation() ?? "/hush-guide");
     }
   }
 
@@ -171,7 +172,9 @@ function OtpForm({ onBack }: { onBack: () => void }) {
     setStatus("sending");
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback${nextFromLocation() ? `?next=${encodeURIComponent(nextFromLocation() as string)}` : ""}`,
+      },
     });
 
     if (error) {
