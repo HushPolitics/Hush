@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import AppShell from "@/components/AppShell";
 import StanceCheckView from "@/components/views/StanceCheckView";
+import StanceCheckPaused from "@/components/StanceCheckPaused";
 import {
   listFactChecks,
   listPoliticians,
@@ -21,7 +22,21 @@ export const revalidate = 300;
 
 export const metadata: Metadata = { title: "Stance Check" };
 
+/**
+ * While true, Stance Check shows a blocking "under construction" notice and
+ * none of the quiz renders. Flip to false to bring the feature back.
+ */
+const STANCE_CHECK_PAUSED = true;
+
 export default async function StanceCheckPage() {
+  if (STANCE_CHECK_PAUSED) {
+    return (
+      <AppShell>
+        <StanceCheckPaused />
+      </AppShell>
+    );
+  }
+
   const [politicians, races, positions, checks] = await Promise.all([
     listPoliticians(),
     listRaces(),
