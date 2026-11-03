@@ -82,7 +82,7 @@ export default function SignupWizard(_props: { topicPool?: string[] }) {
     }
 
     setAccountStatus("sending");
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -99,6 +99,17 @@ export default function SignupWizard(_props: { topicPool?: string[] }) {
       setAccountStatus("error");
       setAccountMessage(error.message);
       return;
+    }
+
+    // Tell the server a new account exists (it re-checks everything itself,
+    // sends one alert, and never delays or fails signup).
+    if (signUpData?.user?.id) {
+      fetch("/api/account-alert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: signUpData.user.id }),
+        keepalive: true,
+      }).catch(() => {});
     }
 
     // Mirror into Prefs immediately — this is the only place these are
