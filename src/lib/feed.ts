@@ -286,13 +286,16 @@ export function buildFeedEvents(
   }
 
   for (const b of bills) {
-    // A bill's most useful date for the Feed is when it's next up for a
-    // vote; falling back to when the source was last updated (or first
-    // pulled) keeps a not-yet-scheduled bill from being excluded entirely.
-    const dateStr = b.voteDate ?? b.dateUpdated ?? b.dateAccessed;
-    const ts = parseFeedDate(dateStr);
-    if (ts === null) continue;
-    events.push({ type: "bill", id: `bill-${b.id}`, ts, date: dateStr, bill: b });
+    // A bill's date for the Feed is when it's next up for a vote, or when
+    // the source last updated it. `dateAccessed` is deliberately NOT a
+    // fallback: that is the day Hush imported the bill, not a legislative
+    // event, and using it stamped every bill with the same import day (all
+    // of them read "2026-10-16") so they all sorted above real news. A bill
+    // with no real date still appears, as undated (ts 0), after everything
+    // that does have one.
+    const dateStr = b.voteDate ?? b.dateUpdated ?? "";
+    const parsed = dateStr ? parseFeedDate(dateStr) : null;
+    events.push({ type: "bill", id: `bill-${b.id}`, ts: parsed ?? 0, date: parsed === null ? "" : dateStr, bill: b });
   }
 
   for (const u of electionUpdates) {
