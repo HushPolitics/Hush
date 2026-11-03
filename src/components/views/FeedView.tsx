@@ -391,7 +391,11 @@ export default function FeedView({
   }, [scopedEvents, typeFilter, politicianIds, stateIds]);
 
   const sortedEvents = useMemo(
-    () => (sort === "oldest" ? events.slice().reverse() : events),
+    () => {
+      if (sort !== "oldest") return events;
+      // Undated items (ts 0, e.g. bills with no real date) stay last either way.
+      return events.filter((e) => e.ts > 0).reverse().concat(events.filter((e) => e.ts === 0));
+    },
     [events, sort],
   );
 
@@ -1036,7 +1040,7 @@ function WorthKnowingSection({
               {/* marginTop: auto pins the date to the same spot at the
                   bottom of the fixed-height card whether the headline above
                   it clamped to one line or two. */}
-              <span style={{ fontSize: 11, color: C.muted, marginTop: "auto" }}>{e.date}</span>
+              <span style={{ fontSize: 11, color: C.muted, marginTop: "auto" }}>{e.date || "Undated"}</span>
             </Card>
           );
           if (!href) {
@@ -1222,7 +1226,7 @@ function FeedListRow({
         )}
         {politician ? <span style={{ fontSize: 11.5, color: C.muted }}>{politician.name}</span> : null}
       </div>
-      <span style={{ fontSize: 12, color: C.muted, flex: "0 0 auto", whiteSpace: "nowrap" }}>{event.date}</span>
+      <span style={{ fontSize: 12, color: C.muted, flex: "0 0 auto", whiteSpace: "nowrap" }}>{event.date || "Undated"}</span>
       <span aria-hidden style={{ color: C.muted, flex: "0 0 auto" }}>
         ›
       </span>
