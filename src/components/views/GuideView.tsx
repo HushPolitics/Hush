@@ -8,8 +8,8 @@ import { versionedAsset } from "@/lib/assetVersion";
 import { usePrefs, type PollingPlace } from "@/lib/prefs";
 import { createClient } from "@/lib/supabase/client";
 import { syncOnboardingToSupabase } from "@/lib/supabase/profile";
-import { useMounted } from "@/lib/hooks";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/app-content";
+import ElectionClock from "@/components/ElectionClock";
 import { ballotPoliticianIds } from "@/lib/feed";
 import {
   hasRaceInfo,
@@ -938,11 +938,6 @@ function GuideHero() {
   );
 }
 
-function useDaysToElection(): number | null {
-  const mounted = useMounted();
-  return mounted ? Math.max(0, Math.floor((new Date(ELECTION_ISO).getTime() - Date.now()) / 86400000)) : null;
-}
-
 /**
  * The Voting Information section -- registration deadline, early voting
  * window, and mail-ballot request date, plus the countdown. Reuses the same
@@ -982,7 +977,6 @@ function GuideAtAGlanceStrip({
   representatives: Politician[];
   onEditIssues: () => void;
 }) {
-  const days = useDaysToElection();
   const { city, state, zip } = usePrefs();
   const cityStateZip = [city, state, zip].filter(Boolean).join(", ").replace(/, ([A-Z]{2}), /, ", $1 ");
   const electionDate = new Date(ELECTION_ISO).toLocaleDateString("en-US", {
@@ -1051,12 +1045,7 @@ function GuideAtAGlanceStrip({
           <span style={{ fontWeight: 600, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: C.ink }}>
             Election Day
           </span>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontFamily: cond, fontSize: 52, lineHeight: 1, color: C.ink }}>
-              {days === null ? "—" : days}
-            </span>
-            <span style={{ fontSize: 13, color: C.ink }}>Days to go</span>
-          </div>
+          <ElectionClock size={52} labelSize={13} layout="stack" />
           <span style={{ height: 1, background: "rgba(28,25,23,0.16)" }} />
           <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.4 }}>{electionDate}</span>
         </div>
@@ -1427,7 +1416,6 @@ function VotingInformationSection({ polling }: { polling: PollingPlace }) {
       ? `${lead}The link below opens a site that looks up your polling place, with your house number and street already filled in, so they go to that site when you click.`
       : `${lead}The link below opens a site where you enter your address to find your polling place. We don't send it.`;
   const finderLabel = "Find your polling place →";
-  const days = useDaysToElection();
   const { city, state, zip } = usePrefs();
   const cityStateZip = [city, state, zip].filter(Boolean).join(" ");
   // Real chronological order for the timeline below -- KEY_DATES itself
@@ -1448,12 +1436,7 @@ function VotingInformationSection({ polling }: { polling: PollingPlace }) {
       </div>
       <Card className="stack-row" style={{ padding: 20, display: "flex", gap: 24, alignItems: "stretch" }}>
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 18 }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontFamily: cond, fontSize: 28, lineHeight: 1, color: C.ink }}>
-              {days === null ? "—" : days}
-            </span>
-            <span style={{ fontSize: 13, color: C.body }}>days until Election Day</span>
-          </div>
+          <ElectionClock size={28} labelSize={13} />
 
           <div style={{ position: "relative", display: "flex", justifyContent: "space-between", gap: 8 }}>
             <span

@@ -320,8 +320,11 @@ export const STANCE_STATEMENTS: Record<string, string> = {
  */
 export const STANCE_WHY_MATTERS: Record<string, string> = {};
 
-/** Election the prototype counts down to. */
+/** Election the prototype counts down to: 7 pm ET on Election Day, when most polls close. */
 export const ELECTION_ISO = "2026-11-03T19:00:00-05:00";
+
+/** 7 am ET on Election Day, when polls open. */
+export const POLLS_OPEN_ISO = "2026-11-03T07:00:00-05:00";
 
 export const KEY_DATES = [
   { label: "Early voting", value: "Ended Nov 1", detail: "Early voting is over. Vote on Election Day, Nov 3, 7 am to 7 pm, at your assigned polling place." },
