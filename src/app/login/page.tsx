@@ -2,10 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import LoginForm from "@/components/LoginForm";
 import { C, cond } from "@/lib/theme";
+import { safeNext } from "@/lib/safeNext";
 
 export const metadata: Metadata = { title: "Sign in" };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string | string[] }>;
+}) {
+  const { next } = await searchParams;
+  const keep = safeNext(Array.isArray(next) ? next[0] : next);
+  const signupHref = keep ? `/signup?next=${encodeURIComponent(keep)}` : "/signup";
   return (
     <div
       style={{
@@ -43,7 +51,7 @@ export default function LoginPage() {
         <div style={{ height: 1, background: C.line }} />
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: C.body }}>
           New to HUSH.?{" "}
-          <Link href="/signup" style={{ color: C.rust, fontWeight: 600, textDecoration: "underline" }}>
+          <Link href={signupHref} style={{ color: C.rust, fontWeight: 600, textDecoration: "underline" }}>
             Create an account
           </Link>
         </p>
