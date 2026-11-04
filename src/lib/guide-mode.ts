@@ -94,3 +94,46 @@ export function nextElectionFor(
     .sort((a, b) => a.date.localeCompare(b.date));
   return mine[0] ?? null;
 }
+
+/**
+ * Winners of a completed election, shown in "between" mode as "Meet your next
+ * governor" style cards until they take office. Adding a winner (or removing
+ * one once they are sworn in) is an edit to this list; `show: false` hides an
+ * entry. The card is only shown to a voter whose saved address is in
+ * `stateCode`, and only while `show` is true.
+ *
+ *   politicianSlug -- the winner's slug in `politicians`, so the card can show
+ *                     the positions already on file for them
+ *   summary        -- one or two plain sentences, no spin
+ *   source*        -- where the result was reported (a link is required)
+ */
+export interface GuideElected {
+  id: string;
+  stateCode: string;
+  heading: string;
+  office: string;
+  name: string;
+  politicianSlug: string;
+  summary: string;
+  sourceTitle: string;
+  sourceUrl: string;
+  sourceDate: string;
+  show: boolean;
+}
+
+export const GUIDE_ELECTED: GuideElected[] = [
+  {
+    id: "fl-governor-2026",
+    stateCode: "FL",
+    heading: "Meet your next governor",
+    office: "Governor of Florida",
+    name: "Byron Donalds",
+    politicianSlug: "byron-donalds-fl",
+    summary:
+      "Byron Donalds, a Republican, won Florida\u2019s governor race on November 3, 2026 and takes office in January 2027. Ron DeSantis remains governor until then. Results are unofficial until certified.",
+    sourceTitle: "Washington Post: GOP Rep. Byron Donalds wins Florida governor\u2019s race",
+    sourceUrl: "https://www.washingtonpost.com/elections/results/2026/11/03/florida-governor-donalds-jolly-live-updates/",
+    sourceDate: "2026-11-03",
+    show: true,
+  },
+];
