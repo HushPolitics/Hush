@@ -231,7 +231,7 @@ function IssueSection({
   );
 }
 
-function CandidatePositionCard({
+export function CandidatePositionCard({
   name,
   position,
   noPositionChecked,
