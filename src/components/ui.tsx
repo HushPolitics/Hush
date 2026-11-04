@@ -450,17 +450,19 @@ export function SearchField({ value, onChange, placeholder, style, className }: 
  * length. Quoting style (curly quotes, italic) matches the politician page's
  * own "Positions" section, so the same excerpt reads the same everywhere.
  */
-export function ExpandableQuote({ text, maxLen = 92, style }: {
+export function ExpandableQuote({ text, maxLen = 92, style, plain = false }: {
   text: string;
   maxLen?: number;
+  /** A HUSH.-written summary: no quotation marks, no italics. */
+  plain?: boolean;
   style?: CSSProperties;
 }) {
   const [expanded, setExpanded] = useState(false);
   const truncated = text.length > maxLen;
   const shown = expanded || !truncated ? text : shortPhrase(text, maxLen);
   return (
-    <span style={{ fontStyle: "italic", ...style }}>
-      &ldquo;{shown}&rdquo;
+    <span style={{ fontStyle: plain ? "normal" : "italic", ...style }}>
+      {plain ? shown : <>&ldquo;{shown}&rdquo;</>}
       {truncated ? (
         <button
           type="button"
