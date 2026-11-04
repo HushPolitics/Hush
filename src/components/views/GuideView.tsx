@@ -9,6 +9,7 @@ import { usePrefs, type PollingPlace } from "@/lib/prefs";
 import { createClient } from "@/lib/supabase/client";
 import { syncOnboardingToSupabase } from "@/lib/supabase/profile";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/app-content";
+import { isElectionMode, formatElectionDate, nextElectionFor } from "@/lib/guide-mode";
 import ElectionClock from "@/components/ElectionClock";
 import { ballotPoliticianIds } from "@/lib/feed";
 import {
@@ -31,6 +32,8 @@ import { filterRaces, lacksLocalRaces, scopeReasonFor } from "@/lib/ballot-scope
 import BallotGapNote from "@/components/BallotGapNote";
 import CandidateAffiliation from "@/components/CandidateAffiliation";
 import { BillsSection } from "./GuideBills";
+import { CandidatePositionCard } from "./GuideRaceView";
+import { confirmedNoPositionDate } from "@/lib/position-gaps";
 
 const fieldStyle = {
   padding: "11px 14px",
@@ -216,16 +219,14 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
         <span style={{ fontFamily: cond, fontSize: 36, lineHeight: 1.1 }}>Welcome to HUSH.</span>
       </div>
       <span style={{ fontSize: 16, color: C.ink, lineHeight: 1.6 }}>
-        This website is where you’ll find unbiased, transparent voting information about your
-        ballot. Start by entering your address and the political issues you care about. We’ll sort
-        through every race for your district and show you where candidates line up on the issues
-        that matter most to you.
+        {isElectionMode
+          ? "This website is where you’ll find unbiased, transparent voting information about your ballot. Start by entering your address and the political issues you care about. We’ll sort through every race for your district and show you where candidates line up on the issues that matter most to you."
+          : "This website is where you’ll find unbiased, transparent information about the people who represent you. Start by entering your address and the political issues you care about. We’ll show you where your current officials stand on the issues that matter most to you."}
       </span>
       <span style={{ fontSize: 14, color: C.body, lineHeight: 1.6 }}>
-        Each candidate’s stance is sourced directly from his or her own website or direct quotes.
-        Every statement contains a link to the original source, so you can check it yourself. If we
-        are unable to find a candidate’s position on a certain topic it will say, “No official
-        position found.”
+        {isElectionMode
+          ? "Each candidate’s stance is sourced directly from his or her own website or direct quotes. Every statement contains a link to the original source, so you can check it yourself. If we are unable to find a candidate’s position on a certain topic it will say, “No official position found.”"
+          : "Each official’s stance is sourced directly from his or her own website, official records, or direct quotes. Every statement contains a link to the original source, so you can check it yourself. If we are unable to find an official’s position on a certain topic it will say, “No official position found.”"}
       </span>
       <div
         style={{
@@ -328,7 +329,11 @@ function AddressStep({
     setError(null);
     const street = draftStreet.trim();
     if (!street) {
-      setError("Enter your street address to continue. A ZIP code alone can't tell us which races are yours.");
+      setError(
+        isElectionMode
+          ? "Enter your street address to continue. A ZIP code alone can't tell us which races are yours."
+          : "Enter your street address to continue. A ZIP code alone can't tell us which districts you live in.",
+      );
       return;
     }
 
@@ -401,7 +406,8 @@ function AddressStep({
         <span style={{ fontFamily: cond, fontSize: 24 }}>Confirm your address</span>
         <span style={{ fontSize: 13, color: C.body, lineHeight: 1.5 }}>
           HUSH. Guide uses your street address to find the districts you live in, so it can show
-          only the races on your ballot. A ZIP code alone isn&apos;t enough, because ZIP codes and
+          {isElectionMode ? " only the races on your ballot." : " the officials who represent you."} A ZIP code
+          alone isn&apos;t enough, because ZIP codes and
           voting districts don&apos;t share boundaries. It&apos;s the same address shown in the
           location pill at the top of the app, so anything you change here changes it everywhere
           else too.
@@ -475,9 +481,9 @@ function AddressStep({
 
         <div style={{ display: "flex", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
           <RustButton type="submit" style={{ flex: 1, opacity: pending ? 0.6 : 1 }}>
-            {pending ? "Finding your ballot…" : "Continue"}
+            {pending ? (isElectionMode ? "Finding your ballot…" : "Finding your districts…") : "Continue"}
           </RustButton>
-          {error && heldPolling ? <GhostButton onClick={continueWithoutLookup}>Continue without my ballot</GhostButton> : null}
+          {error && heldPolling ? <GhostButton onClick={continueWithoutLookup}>{isElectionMode ? "Continue without my ballot" : "Continue without my address"}</GhostButton> : null}
           {onCancel ? <GhostButton onClick={onCancel}>Cancel</GhostButton> : null}
         </div>
       </form>
@@ -649,6 +655,8 @@ function TileGrid({
   const pollingCheckedAt = polling.checkedAt;
   useEffect(() => {
     const age = pollingCheckedAt ? Date.now() - pollingCheckedAt : Infinity;
+    // Polling places belong to the election season; between elections there is nothing to look up.
+    if (!isElectionMode) return;
     if (refreshedPolling.current || !matchedAddress || age < POLLING_MAX_AGE_MS) return;
     if (Date.now() > new Date(ELECTION_ISO).getTime() + 86400000) return;
     refreshedPolling.current = true;
@@ -697,6 +705,9 @@ function TileGrid({
     () => (located ? yourRepresentatives(politicians, races, state) : []),
     [located, politicians, races, state],
   );
+  // Between elections only: the next listed election that this address's
+  // districts take part in (see GUIDE_ELECTIONS in guide-mode.ts). Null today.
+  const nextElection = !isElectionMode && located ? nextElectionFor(districtIds, new Date().toLocaleDateString("en-CA")) : null;
 
   const renderRaceTile = (race: Race) => {
     const { office, district } = parseRaceTitle(race.title);
@@ -801,14 +812,26 @@ function TileGrid({
       <Kicker>HUSH. Guide</Kicker>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <Display size={25}>Straight from the candidates, not from us</Display>
-        <span style={{ fontSize: 13, color: C.body, maxWidth: 640, lineHeight: 1.5 }}>
-          Each candidate&apos;s own words on your issues, unfiltered — so you can decide who earns your
-          vote.
-        </span>
+        {isElectionMode ? (
+          <>
+            <Display size={25}>Straight from the candidates, not from us</Display>
+            <span style={{ fontSize: 13, color: C.body, maxWidth: 640, lineHeight: 1.5 }}>
+              Each candidate&apos;s own words on your issues, unfiltered — so you can decide who earns your
+              vote.
+            </span>
+          </>
+        ) : (
+          <>
+            <Display size={25}>Straight from your officials, not from us</Display>
+            <span style={{ fontSize: 13, color: C.body, maxWidth: 640, lineHeight: 1.5 }}>
+              Where the people who represent you stand on your issues, in their own words, with the source
+              for every statement.
+            </span>
+          </>
+        )}
       </div>
 
-      <PollingQuickCard polling={polling} />
+      {isElectionMode ? <PollingQuickCard polling={polling} /> : null}
 
       <GuideAtAGlanceStrip
         races={races}
@@ -820,9 +843,9 @@ function TileGrid({
         onEditIssues={onEditIssues}
       />
 
-      <VotingInformationSection polling={polling} />
+      {isElectionMode ? <VotingInformationSection polling={polling} /> : null}
 
-        {GUIDE_LEAD === "bills" ? <BillsSection bills={measures} emptyMessage={measuresEmpty} /> : null}
+        {isElectionMode && GUIDE_LEAD === "bills" ? <BillsSection bills={measures} emptyMessage={measuresEmpty} /> : null}
 
           {/*
         Your Races is scoped to the saved address. The address step resolves
@@ -832,6 +855,7 @@ function TileGrid({
         everything.
       */}
 
+      {isElectionMode ? (
       <div id="races" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <Kicker>Your Races</Kicker>
@@ -896,9 +920,144 @@ function TileGrid({
         </>
       )}
       </div>
+      ) : (
+        <YourOfficials
+          officials={yourReps}
+          located={located}
+          topics={topics}
+          positions={positions}
+          nextElection={nextElection}
+          onEditAddress={onEditAddress}
+        />
+      )}
 
-      {GUIDE_LEAD === "races" ? <BillsSection bills={measures} emptyMessage={measuresEmpty} /> : null}
+      {isElectionMode && GUIDE_LEAD === "races" ? <BillsSection bills={measures} emptyMessage={measuresEmpty} /> : null}
     </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Between elections -- the people who represent you, and what they have said
+// ---------------------------------------------------------------------------
+
+/**
+ * "Between" mode's replacement for Your Races: one tile per current official
+ * (the same people the strip's Your Representatives card lists), each
+ * expanding to the sourced position on every issue this voter ranked. The
+ * position cards are the race page's own CandidatePositionCard, so source
+ * link, retrieval date and the "No official position found" wording are
+ * identical to the election-season Guide.
+ */
+function YourOfficials({
+  officials,
+  located,
+  topics,
+  positions,
+  nextElection,
+  onEditAddress,
+}: {
+  officials: Politician[];
+  located: boolean;
+  topics: string[];
+  positions: Record<string, Record<string, IssuePosition>>;
+  nextElection: ReturnType<typeof nextElectionFor>;
+  onEditAddress: () => void;
+}) {
+  const [open, setOpen] = useState<string | null>(null);
+  return (
+    <div id="officials" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <Kicker>Your Officials</Kicker>
+        <Display size={22}>See where they stand on your issues</Display>
+      </div>
+
+      {nextElection ? (
+        <Card style={{ padding: "12px 16px", fontSize: 13, color: C.body, lineHeight: 1.5 }}>
+          Next election for your address: {nextElection.name}, {formatElectionDate(nextElection.date)}
+          {nextElection.runoff ? ` (runoff ${formatElectionDate(nextElection.runoff)})` : ""}.
+        </Card>
+      ) : null}
+
+      {!located ? (
+        <>
+          <EmptyState>
+            Enter your street address and the people who represent you will show up here. Until then we
+            don&apos;t know who they are.
+          </EmptyState>
+          <RustButton onClick={onEditAddress} style={{ alignSelf: "flex-start", minHeight: 44 }}>
+            Add your address
+          </RustButton>
+        </>
+      ) : officials.length === 0 ? (
+        <EmptyState>We don&apos;t have officials loaded for your address yet.</EmptyState>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill,minmax(min(300px,100%),1fr))",
+            gap: 14,
+            alignItems: "start",
+          }}
+        >
+          {officials.map((p) => {
+            const covered = topics.filter((t) => positions[p.id]?.[t]).length;
+            const isOpen = open === p.id;
+            return (
+              <Card key={p.id} style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                <div style={{ minHeight: 62, boxSizing: "border-box", padding: "10px 16px", background: C.ink }}>
+                  <span style={{ fontFamily: cond, fontSize: 19, lineHeight: 1.15, color: C.onDark }}>{p.office}</span>
+                  {p.district ? (
+                    <span style={{ fontSize: 12, color: C.rust, display: "block" }}>{p.district}</span>
+                  ) : null}
+                </div>
+                <div
+                  style={{
+                    padding: "14px 16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                    background: covered === 0 ? C.shell : C.white,
+                  }}
+                >
+                  <Link href={`/politician/${p.id}`} style={{ fontSize: 14, color: C.ink, fontWeight: 600, display: "inline-flex", alignItems: "center", minHeight: 44 }}>
+                    {stripPartySuffix(p.name)}
+                  </Link>
+                  <span style={{ fontSize: 11, color: C.muted }}>
+                    {topics.length === 0
+                      ? "Pick issues to see where they stand."
+                      : covered === 0
+                        ? "No positions found yet on your issues"
+                        : `Info found for ${covered} of ${topics.length} of your issues`}
+                  </span>
+                  {topics.length > 0 ? (
+                    <GhostButton
+                      onClick={() => setOpen(isOpen ? null : p.id)}
+                      style={{ padding: "10px 16px", fontSize: 13, minHeight: 44 }}
+                    >
+                      {isOpen ? "Hide positions" : "View positions"}
+                    </GhostButton>
+                  ) : null}
+                  {isOpen ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingTop: 4 }}>
+                      {topics.map((issue) => (
+                        <div key={issue} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                          <Kicker size={11}>{issue}</Kicker>
+                          <CandidatePositionCard
+                            name={stripPartySuffix(p.name)}
+                            position={positions[p.id]?.[issue]}
+                            noPositionChecked={confirmedNoPositionDate(p.id, issue)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1010,7 +1169,7 @@ function GuideAtAGlanceStrip({
         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <Display size={22}>Your Guide at a Glance</Display>
           <span style={{ fontSize: 12.5, color: C.muted }}>
-            Key dates, your polling place, and what&apos;s on your ballot.
+            {isElectionMode ? "Key dates, your polling place, and what's on your ballot." : "Your issues and the people who represent you."}
           </span>
         </div>
         {cityStateZip ? (
@@ -1031,6 +1190,7 @@ function GuideAtAGlanceStrip({
       {/* Body: election-day panel · key dates · action cards */}
       <div className="stack-row" style={{ display: "flex", alignItems: "stretch" }}>
         {/* Election Day panel */}
+        {isElectionMode ? (
         <div
           style={{
             flex: "0 0 220px",
@@ -1049,6 +1209,7 @@ function GuideAtAGlanceStrip({
           <span style={{ height: 1, background: "rgba(28,25,23,0.16)" }} />
           <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.4 }}>{electionDate}</span>
         </div>
+        ) : null}
 
         {/* Your Most Important Issues + Your Representatives -- replaces the
             Register/Early voting/Mail ballot rows. Those three dates still show
@@ -1056,7 +1217,7 @@ function GuideAtAGlanceStrip({
             column now covers the strip's other half -- who's on the ballot and
             what you told HUSH. matters to you -- instead of repeating the dates
             a second time. */}
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", borderLeft: `1px solid ${C.line}` }} className="stack-row">
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", borderLeft: isElectionMode ? `1px solid ${C.line}` : undefined }} className="stack-row">
           {/* Your Most Important Issues */}
           <div
             style={{
@@ -1140,6 +1301,7 @@ function GuideAtAGlanceStrip({
         </div>
 
         {/* Polling place + ballot cards */}
+        {isElectionMode ? (
         <div style={{ flex: "0 0 260px", display: "flex", flexDirection: "column", borderLeft: `1px solid ${C.line}` }}>
           <a
             href="#voting"
@@ -1198,6 +1360,7 @@ function GuideAtAGlanceStrip({
             <span style={{ marginLeft: "auto", color: C.rust }} aria-hidden>→</span>
           </a>
         </div>
+        ) : null}
       </div>
 
     </Card>
