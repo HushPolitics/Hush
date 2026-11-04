@@ -257,8 +257,8 @@ export function CandidatePositionCard({
 
       {position ? (
         <>
-          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: C.body, fontStyle: "italic" }}>
-            &ldquo;{position.excerpt}&rdquo;
+          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: C.body, fontStyle: position.sourceType === "Summary" ? "normal" : "italic" }}>
+            {position.sourceType === "Summary" ? position.excerpt : <>&ldquo;{position.excerpt}&rdquo;</>}
           </p>
           <PositionNotice notice={positionNotice(position.sourceType, position.sourceTitle)} />
           <div

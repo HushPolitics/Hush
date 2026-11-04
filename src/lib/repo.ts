@@ -759,6 +759,7 @@ const GUIDE_SOURCE_TYPES: readonly GuideSourceType[] = [
   "Official social media",
   "Candidate questionnaire",
   "News report",
+  "Summary",
 ];
 
 interface CandidatePositionRow {

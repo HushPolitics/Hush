@@ -545,8 +545,8 @@ export default function PoliticianView({
                     </span>
                     {pos ? (
                       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        <p style={{ margin: 0, fontSize: 13, color: C.body, lineHeight: 1.5, fontStyle: "italic" }}>
-                          &ldquo;{pos.excerpt}&rdquo;
+                        <p style={{ margin: 0, fontSize: 13, color: C.body, lineHeight: 1.5, fontStyle: pos.sourceType === "Summary" ? "normal" : "italic" }}>
+                          {pos.sourceType === "Summary" ? pos.excerpt : <>&ldquo;{pos.excerpt}&rdquo;</>}
                         </p>
                         <SourceAttribution
                           kind={GUIDE_SOURCE_KIND[pos.sourceType]}

@@ -338,6 +338,7 @@ function Row({
             {position ? (
               <ExpandableQuote
                 text={position.excerpt}
+                plain={position.sourceType === "Summary"}
                 style={{ fontSize: 12, color: C.body, lineHeight: 1.45 }}
               />
             ) : (

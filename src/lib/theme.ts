@@ -230,6 +230,8 @@ export const GUIDE_SOURCE_KIND: Record<GuideSourceType, string> = {
   // A news outlet quoting or summarizing the candidate. Deliberately not "Primary
   // source": the candidate did not publish it.
   "News report": "News report",
+  // Written by HUSH., not by the candidate: always labeled as a summary, never as a quote.
+  "Summary": "Summary",
 };
 
 /**
@@ -241,6 +243,9 @@ export function positionNotice(sourceType: GuideSourceType, sourceTitle?: string
   if (sourceType === "Campaign site") return null;
   if (sourceType === "Candidate questionnaire") {
     return `* Pulled directly from the ${sourceTitle || "candidate questionnaire"}. Not taken from this candidate's own campaign website.`;
+  }
+  if (sourceType === "Summary") {
+    return `Summary written by HUSH. in neutral language from ${sourceTitle || "public sources"}. Not a direct quote. Read the source for the candidate's own words.`;
   }
   if (sourceType === "News report") {
     return `Reported by ${sourceTitle || "a news outlet"}, not taken from this candidate's own campaign website. Read the original story for the full context.`;
