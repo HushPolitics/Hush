@@ -241,7 +241,9 @@ export type GuideSourceType =
   | "Official press release"
   | "Official social media"
   | "Candidate questionnaire"
-  | "News report";
+  | "News report"
+  // A short neutral summary written by HUSH. when a candidate has no quotable source on an issue.
+  | "Summary";
 
 /**
  * A single candidate's sourced position on a single issue, for HUSH Guide's
