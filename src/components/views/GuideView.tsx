@@ -9,7 +9,7 @@ import { usePrefs, type PollingPlace } from "@/lib/prefs";
 import { createClient } from "@/lib/supabase/client";
 import { syncOnboardingToSupabase } from "@/lib/supabase/profile";
 import { ELECTION_ISO, KEY_DATES } from "@/lib/app-content";
-import { isElectionMode, formatElectionDate, nextElectionFor } from "@/lib/guide-mode";
+import { isElectionMode, formatElectionDate, nextElectionFor, GUIDE_ELECTED } from "@/lib/guide-mode";
 import ElectionClock from "@/components/ElectionClock";
 import { ballotPoliticianIds } from "@/lib/feed";
 import {
@@ -831,6 +831,10 @@ function TileGrid({
         )}
       </div>
 
+      {!isElectionMode && located ? (
+        <ElectedSection state={state} politicians={politicians} topics={topics} positions={positions} />
+      ) : null}
+
       {isElectionMode ? <PollingQuickCard polling={polling} /> : null}
 
       <GuideAtAGlanceStrip
@@ -932,6 +936,101 @@ function TileGrid({
       )}
 
       {isElectionMode && GUIDE_LEAD === "races" ? <BillsSection bills={measures} emptyMessage={measuresEmpty} /> : null}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Between elections -- who just won (config: GUIDE_ELECTED in guide-mode.ts)
+// ---------------------------------------------------------------------------
+
+/**
+ * "Meet your next governor": one card per listed winner for the voter's state,
+ * with the result's source and the winner's positions already on file (the
+ * same position card as everywhere else in the Guide).
+ */
+function ElectedSection({
+  state,
+  politicians,
+  topics,
+  positions,
+}: {
+  state: string;
+  politicians: Politician[];
+  topics: string[];
+  positions: Record<string, Record<string, IssuePosition>>;
+}) {
+  const [open, setOpen] = useState<string | null>(null);
+  const items = GUIDE_ELECTED.filter((e) => e.show && e.stateCode.toUpperCase() === state.toUpperCase());
+  if (items.length === 0) return null;
+  return (
+    <>
+      {items.map((e) => {
+        const p = politicians.find((x) => x.id === e.politicianSlug);
+        const covered = p ? topics.filter((t) => positions[p.id]?.[t]).length : 0;
+        const isOpen = open === e.id;
+        return (
+          <Card key={e.id} style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
+            <div style={{ padding: "10px 20px", background: C.ink }}>
+              <span style={{ fontFamily: cond, fontSize: 19, lineHeight: 1.15, color: C.onDark }}>{e.office}</span>
+              <span style={{ fontSize: 12, color: C.rust, display: "block" }}>Elected November 3, 2026</span>
+            </div>
+            <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
+              <Display size={22}>{e.heading}: {e.name}</Display>
+              <span style={{ fontSize: 13.5, color: C.body, lineHeight: 1.55, maxWidth: 680 }}>{e.summary}</span>
+              <a
+                href={e.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 12.5, color: C.rust, display: "inline-flex", alignItems: "center", minHeight: 44, alignSelf: "flex-start" }}
+              >
+                {e.sourceTitle} ({formatElectionDate(e.sourceDate)}) →
+              </a>
+              {p ? (
+                <>
+                  <span style={{ fontSize: 11, color: C.muted }}>
+                    {topics.length === 0
+                      ? "Pick issues to see where he stands."
+                      : covered === 0
+                        ? "No positions found yet on your issues"
+                        : `Info found for ${covered} of ${topics.length} of your issues`}
+                  </span>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    {topics.length > 0 ? (
+                      <RustButton
+                        onClick={() => setOpen(isOpen ? null : e.id)}
+                        style={{ padding: "10px 16px", fontSize: 13, minHeight: 44 }}
+                      >
+                        {isOpen ? "Hide positions" : `See where ${stripPartySuffix(p.name)} stands`}
+                      </RustButton>
+                    ) : null}
+                    <Link
+                      href={`/politician/${p.id}`}
+                      style={{ fontSize: 13, color: C.rust, display: "inline-flex", alignItems: "center", minHeight: 44 }}
+                    >
+                      Full profile →
+                    </Link>
+                  </div>
+                  {isOpen ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingTop: 4 }}>
+                      {topics.map((issue) => (
+                        <div key={issue} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                          <Kicker size={11}>{issue}</Kicker>
+                          <CandidatePositionCard
+                            name={stripPartySuffix(p.name)}
+                            position={positions[p.id]?.[issue]}
+                            noPositionChecked={confirmedNoPositionDate(p.id, issue)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+            </div>
+          </Card>
+        );
+      })}
     </>
   );
 }
