@@ -8,6 +8,7 @@ import { versionedAsset } from "@/lib/assetVersion";
 import { initials } from "@/lib/scoring";
 import { usePrefs } from "@/lib/prefs";
 import { isCustomCompareEligible, matchesPickLevel } from "@/lib/compare";
+import { stateName } from "@/lib/usStates";
 import { Avatar, Chip, Display, EmptyState, Kicker, SearchField } from "@/components/ui";
 import type { Level, Party, Politician, Race, StanceCell } from "@/lib/types";
 
@@ -95,7 +96,7 @@ export default function PoliticiansView({
   const [q, setQ] = useState("");
   const [levelFilter, setLevelFilter] = useState<Level | "All">("All");
   const [partyFilter, setPartyFilter] = useState<Party | "All">("All");
-  const [officeFilter, setOfficeFilter] = useState<string>("All");
+  const [stateFilter, setStateFilter] = useState<string>("All");
   // When set, the directory shows only these people (the voter's own
   // representatives), in this order, until "Show everyone" is pressed.
   const [repIds, setRepIds] = useState<string[] | null>(null);
@@ -113,25 +114,36 @@ export default function PoliticiansView({
     setPicks(picks.includes(id) ? picks.filter((x) => x !== id) : picks.concat(id));
   }
 
-  const offices = useMemo(() => {
-    const set = new Set(
-      politicians.filter((p) => levelFilter === "All" || p.level === levelFilter).map((p) => p.office),
-    );
-    return Array.from(set).sort();
+  // Only states that have someone at the chosen level, listed by full name.
+  // People whose seat carries no state have nothing to filter on, so they show
+  // under "All states" only.
+  const states = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of politicians) {
+      if (p.stateCode && (levelFilter === "All" || p.level === levelFilter)) set.add(p.stateCode);
+    }
+    return Array.from(set)
+      .map((code) => ({ code, name: stateName(code) }))
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [politicians, levelFilter]);
+
+  // Switching level can drop the chosen state from the list (no federal
+  // officials in a state, say). Fall back to everyone rather than leaving a
+  // dropdown that shows a value it no longer offers.
+  const activeState = states.some((s) => s.code === stateFilter) ? stateFilter : "All";
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
     return politicians
       .filter((p) => levelFilter === "All" || p.level === levelFilter)
       .filter((p) => partyFilter === "All" || p.party === partyFilter)
-      .filter((p) => officeFilter === "All" || p.office === officeFilter)
+      .filter((p) => activeState === "All" || p.stateCode === activeState)
       .filter((p) => !query || `${p.name} ${p.office}`.toLowerCase().includes(query))
       .filter((p) => !repIds || repIds.includes(p.id))
       .sort((a, b) =>
         repIds ? repIds.indexOf(a.id) - repIds.indexOf(b.id) : a.name.localeCompare(b.name),
       );
-  }, [politicians, levelFilter, partyFilter, officeFilter, q, repIds]);
+  }, [politicians, levelFilter, partyFilter, activeState, q, repIds]);
 
   return (
     <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -157,10 +169,7 @@ export default function PoliticiansView({
             <Chip
               key={lvl}
               on={levelFilter === lvl}
-              onClick={() => {
-                setLevelFilter(lvl);
-                setOfficeFilter("All");
-              }}
+              onClick={() => setLevelFilter(lvl)}
             >
               {lvl}
             </Chip>
@@ -181,9 +190,9 @@ export default function PoliticiansView({
           ))}
         </div>
         <select
-          value={officeFilter}
-          onChange={(e) => setOfficeFilter(e.target.value)}
-          aria-label="Filter by office"
+          value={activeState}
+          onChange={(e) => setStateFilter(e.target.value)}
+          aria-label="Filter by state"
           style={{
             padding: "9px 12px",
             border: `1px solid ${C.lineHard}`,
@@ -194,10 +203,10 @@ export default function PoliticiansView({
             fontFamily: "inherit",
           }}
         >
-          <option value="All">All offices</option>
-          {offices.map((o) => (
-            <option key={o} value={o}>
-              {o}
+          <option value="All">All states</option>
+          {states.map((st) => (
+            <option key={st.code} value={st.code}>
+              {st.name}
             </option>
           ))}
         </select>
