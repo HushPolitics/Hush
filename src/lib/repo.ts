@@ -190,13 +190,14 @@ function toPolitician(row: PoliticianRow): Politician {
         | undefined);
 
   const office = heldOffice ?? soughtOffice;
-  const district = first(office?.districts) as { name?: string } | null;
+  const district = first(office?.districts) as { name?: string; state_code?: string } | null;
 
   return {
     id: row.slug,
     name: row.display_name ?? row.full_name,
     office: office?.title ?? "",
     district: district?.name ?? "",
+    stateCode: district?.state_code?.trim().toUpperCase() || undefined,
     level: toLevel(office?.level),
     party: toParty(row.party),
     bio: row.bio ?? "",
