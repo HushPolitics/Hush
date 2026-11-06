@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo_Black, Inter, IBM_Plex_Mono } from "next/font/google";
 import { PrefsProvider } from "@/lib/prefs";
+import VercelAnalytics from "@/components/VercelAnalytics";
 import { C } from "@/lib/theme";
 import "./globals.css";
 
@@ -70,6 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${barlow.variable} ${barlowCondensed.variable} ${geistMono.variable}`}>
       <body>
         <PrefsProvider>{children}</PrefsProvider>
+        <VercelAnalytics />
       </body>
     </html>
   );
