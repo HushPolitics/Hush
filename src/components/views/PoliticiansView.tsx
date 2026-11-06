@@ -15,6 +15,10 @@ import type { Level, Party, Politician, Race, StanceCell } from "@/lib/types";
 const LEVEL_FILTERS: (Level | "All")[] = ["All", "Federal", "State", "Local"];
 const PARTY_FILTERS: (Party | "All")[] = ["All", "D", "R", "I"];
 
+// Name suggestions break ties by office level, so with a short search like
+// "sc" the senators and governors come ahead of the many local candidates.
+const LEVEL_ORDER: Record<Level, number> = { Federal: 0, State: 1, Local: 2 };
+
 // The state dropdown lists the 50 states and DC only. Delegates from the
 // territories (PR, GU, VI, AS, MP) still appear under "All states".
 const STATE_CODES = new Set(US_STATES.map((s) => s.value));
@@ -142,9 +146,11 @@ export default function PoliticiansView({
   // dropdown that shows a value it no longer offers.
   const activeState = states.some((s) => s.code === stateFilter) ? stateFilter : "All";
 
-  // Up to eight people whose name matches what's typed, best matches first
-  // (a name or word that starts with it, then anywhere in the name). Searches
-  // everyone, not just the rows the filters below currently leave.
+  // Up to eight people whose name matches what's typed: first those where it
+  // starts the name or one of its words ("sc" finds Tim Scott), then ones
+  // where it falls mid-word. Within each group federal comes before state
+  // before local, then A to Z. Searches everyone, not just the rows the
+  // filters below currently leave.
   const suggestions = useMemo(() => {
     const query = q.trim().toLowerCase();
     if (!query) return [];
@@ -153,11 +159,17 @@ export default function PoliticiansView({
       const name = p.name.toLowerCase();
       const at = name.indexOf(query);
       if (at < 0) continue;
-      const rank = at === 0 ? 0 : name[at - 1] === " " ? 1 : 2;
+      // 0 = the typed text starts the name or one of its words, 1 = mid-word.
+      const rank = at === 0 || name[at - 1] === " " ? 0 : 1;
       scored.push({ p, rank });
     }
     return scored
-      .sort((a, b) => a.rank - b.rank || a.p.name.localeCompare(b.p.name))
+      .sort(
+        (a, b) =>
+          a.rank - b.rank ||
+          LEVEL_ORDER[a.p.level] - LEVEL_ORDER[b.p.level] ||
+          a.p.name.localeCompare(b.p.name),
+      )
       .slice(0, 8)
       .map((x) => x.p);
   }, [politicians, q]);
