@@ -8,12 +8,16 @@ import { versionedAsset } from "@/lib/assetVersion";
 import { initials } from "@/lib/scoring";
 import { usePrefs } from "@/lib/prefs";
 import { isCustomCompareEligible, matchesPickLevel } from "@/lib/compare";
-import { stateName } from "@/lib/usStates";
+import { US_STATES, stateName } from "@/lib/usStates";
 import { Avatar, Chip, Display, EmptyState, Kicker, SearchField } from "@/components/ui";
 import type { Level, Party, Politician, Race, StanceCell } from "@/lib/types";
 
 const LEVEL_FILTERS: (Level | "All")[] = ["All", "Federal", "State", "Local"];
 const PARTY_FILTERS: (Party | "All")[] = ["All", "D", "R", "I"];
+
+// The state dropdown lists the 50 states and DC only. Delegates from the
+// territories (PR, GU, VI, AS, MP) still appear under "All states".
+const STATE_CODES = new Set(US_STATES.map((s) => s.value));
 
 // Avatar / Name / Party / Office / District / Compare. All three proportional
 // data columns (not a fixed width mixed in) grow at a consistent rate and
@@ -115,12 +119,14 @@ export default function PoliticiansView({
   }
 
   // Only states that have someone at the chosen level, listed by full name.
-  // People whose seat carries no state have nothing to filter on, so they show
-  // under "All states" only.
+  // People whose seat carries no state, or is in a territory, have nothing to
+  // filter on, so they show under "All states" only.
   const states = useMemo(() => {
     const set = new Set<string>();
     for (const p of politicians) {
-      if (p.stateCode && (levelFilter === "All" || p.level === levelFilter)) set.add(p.stateCode);
+      if (p.stateCode && STATE_CODES.has(p.stateCode) && (levelFilter === "All" || p.level === levelFilter)) {
+        set.add(p.stateCode);
+      }
     }
     return Array.from(set)
       .map((code) => ({ code, name: stateName(code) }))
