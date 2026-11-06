@@ -101,6 +101,10 @@ export default function PoliticiansView({
   const [levelFilter, setLevelFilter] = useState<Level | "All">("All");
   const [partyFilter, setPartyFilter] = useState<Party | "All">("All");
   const [stateFilter, setStateFilter] = useState<string>("All");
+  // Name suggestions under the search box: open while it has focus and text,
+  // `hi` is the keyboard-highlighted row (-1 = none).
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [hi, setHi] = useState(-1);
   // When set, the directory shows only these people (the voter's own
   // representatives), in this order, until "Show everyone" is pressed.
   const [repIds, setRepIds] = useState<string[] | null>(null);
@@ -138,6 +142,44 @@ export default function PoliticiansView({
   // dropdown that shows a value it no longer offers.
   const activeState = states.some((s) => s.code === stateFilter) ? stateFilter : "All";
 
+  // Up to eight people whose name matches what's typed, best matches first
+  // (a name or word that starts with it, then anywhere in the name). Searches
+  // everyone, not just the rows the filters below currently leave.
+  const suggestions = useMemo(() => {
+    const query = q.trim().toLowerCase();
+    if (!query) return [];
+    const scored: { p: Politician; rank: number }[] = [];
+    for (const p of politicians) {
+      const name = p.name.toLowerCase();
+      const at = name.indexOf(query);
+      if (at < 0) continue;
+      const rank = at === 0 ? 0 : name[at - 1] === " " ? 1 : 2;
+      scored.push({ p, rank });
+    }
+    return scored
+      .sort((a, b) => a.rank - b.rank || a.p.name.localeCompare(b.p.name))
+      .slice(0, 8)
+      .map((x) => x.p);
+  }, [politicians, q]);
+
+  const showSuggest = suggestOpen && suggestions.length > 0;
+
+  function onSearchKeyDown(e: React.KeyboardEvent) {
+    if (!showSuggest) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHi((i) => (i + 1) % suggestions.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHi((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+    } else if (e.key === "Enter" && hi >= 0) {
+      e.preventDefault();
+      router.push(`/politician/${suggestions[hi].id}`);
+    } else if (e.key === "Escape") {
+      setSuggestOpen(false);
+    }
+  }
+
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
     return politicians
@@ -169,7 +211,70 @@ export default function PoliticiansView({
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
-        <SearchField value={q} onChange={setQ} placeholder="Search name or office…" style={{ width: 240 }} />
+        <div
+          style={{ position: "relative" }}
+          onFocus={() => setSuggestOpen(true)}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setSuggestOpen(false);
+          }}
+          onKeyDown={onSearchKeyDown}
+        >
+          <SearchField
+            value={q}
+            onChange={(v) => {
+              setQ(v);
+              setHi(-1);
+              setSuggestOpen(true);
+            }}
+            placeholder="Search name or office…"
+            style={{ width: 240 }}
+          />
+          {showSuggest ? (
+            <ul
+              role="listbox"
+              aria-label="Matching politicians"
+              style={{
+                position: "absolute",
+                top: "calc(100% + 4px)",
+                left: 0,
+                zIndex: 20,
+                width: 320,
+                maxWidth: "calc(100vw - 56px)",
+                margin: 0,
+                padding: 4,
+                listStyle: "none",
+                background: C.sandDeep,
+                border: `1px solid ${C.lineHard}`,
+                borderRadius: 7,
+                boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
+              }}
+            >
+              {suggestions.map((p, i) => (
+                <li key={p.id} role="option" aria-selected={i === hi}>
+                  <Link
+                    href={`/politician/${p.id}`}
+                    onMouseEnter={() => setHi(i)}
+                    style={{
+                      display: "flex",
+                      alignItems: "baseline",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      padding: "7px 9px",
+                      borderRadius: 5,
+                      background: i === hi ? C.sand : "transparent",
+                      color: C.ink,
+                      textDecoration: "none",
+                      fontSize: 13,
+                    }}
+                  >
+                    <span style={{ fontWeight: 600 }}>{p.name}</span>
+                    <span style={{ fontSize: 12, color: C.muted, textAlign: "right" }}>{p.office}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {LEVEL_FILTERS.map((lvl) => (
             <Chip
