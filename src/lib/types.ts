@@ -91,6 +91,8 @@ export interface Politician {
   name: string;
   office: string;
   district: string;
+  /** Two-letter state of the seat held or sought (e.g. "FL"), when the district carries one. */
+  stateCode?: string;
   level: Level;
   party: Party;
   /** First year in this office, when the record carries one. */
